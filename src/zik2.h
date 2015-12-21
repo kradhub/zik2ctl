@@ -63,8 +63,7 @@ struct _Zik2Class
 };
 
 GType zik2_get_type (void);
-Zik2 *zik2_new (void);
-void zik2_set_connection (Zik2 * zik2, Zik2Connection * conn);
+Zik2 *zik2_new (Zik2Connection * conn);
 
 G_END_DECLS
 

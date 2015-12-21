@@ -21,6 +21,7 @@
 #include <errno.h>
 
 #include "bluetooth-client.h"
+#include "zik2.h"
 #include "zik2profile.h"
 #include "zik2connection.h"
 #include "zik2message.h"
@@ -81,21 +82,20 @@ zik2_profile_class_init (Zik2ProfileClass * klass)
 
   /* Zik2Profile::zik2-connected:
    * @profile: the Zik2Profile instance
-   * @device: the zik2 device object-path
-   * @con: the Zik2Connection linked to device
+   * @device: the #Zik2 object connected
    */
   zik2_profile_signals[SIGNAL_ZIK2_CONNECTED] = g_signal_new ("zik2-connected",
       G_TYPE_FROM_CLASS (klass), G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL,
-      G_TYPE_NONE, 2, G_TYPE_STRING, G_TYPE_POINTER);
+      G_TYPE_NONE, 1, G_TYPE_OBJECT);
 
   /* Zik2Profile::zik2-disconnected:
    * @profile: the Zik2Profile instance
-   * @device: the zik2 device object-path
+   * @device: the #zik2 object disconnected
    */
   zik2_profile_signals[SIGNAL_ZIK2_DISCONNECTED] =
       g_signal_new ("zik2-disconnected", G_TYPE_FROM_CLASS (klass),
           G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 1,
-          G_TYPE_STRING);
+          G_TYPE_OBJECT);
 }
 
 static void
@@ -103,7 +103,7 @@ zik2_profile_init (Zik2Profile * profile)
 {
   profile->conn = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
   profile->devices = g_hash_table_new_full (g_str_hash, g_str_equal,
-      g_free, (GDestroyNotify) zik2_connection_free);
+      g_free, (GDestroyNotify) g_object_unref);
 }
 
 static void
@@ -120,11 +120,11 @@ zik2_profile_finalize (GObject * object)
 static gboolean
 notify_disconnect (gpointer key, gpointer value, gpointer userdata)
 {
-  gchar *device = (gchar *) key;
+  Zik2 *zik2 = ZIK2 (value);
   Zik2Profile *profile = (Zik2Profile *) userdata;
 
   g_signal_emit (profile, zik2_profile_signals[SIGNAL_ZIK2_DISCONNECTED], 0,
-      device);
+      zik2);
 
   return TRUE;
 }
@@ -142,7 +142,8 @@ static void
 zik2_profile_new_connection (Zik2Profile * profile, const gchar * device,
     gint fd)
 {
-  Zik2Connection *conn;
+  Zik2 *zik2;
+  Zik2Connection *conn = NULL;
 
   g_info ("zik2_profile_new_connection called with device '%s' and fd %d",
       device, fd);
@@ -162,23 +163,29 @@ zik2_profile_new_connection (Zik2Profile * profile, const gchar * device,
     return;
   }
 
-  g_hash_table_insert (profile->devices, g_strdup (device), conn);
+  zik2 = zik2_new (conn);
+  g_hash_table_insert (profile->devices, g_strdup (device), zik2);
 
-  g_signal_emit (profile, zik2_profile_signals[SIGNAL_ZIK2_CONNECTED],
-      0, device, conn);
+  g_signal_emit (profile, zik2_profile_signals[SIGNAL_ZIK2_CONNECTED], 0, zik2);
 }
 
 static void
 zik2_profile_request_disconnection (Zik2Profile * profile, const gchar * device)
 {
+  Zik2 *zik2;
+
   g_info ("zik2_profile_request_disconnection called with device '%s'\n",
      device);
 
-  g_signal_emit (profile, zik2_profile_signals[SIGNAL_ZIK2_DISCONNECTED],
-      0, device);
-
-  if (!g_hash_table_remove (profile->devices, device))
+  zik2 = g_hash_table_lookup (profile->devices, device);
+  if (zik2 == NULL) {
     g_warning ("device '%s' not found", device);
+    return;
+  }
+
+  g_signal_emit (profile, zik2_profile_signals[SIGNAL_ZIK2_DISCONNECTED],
+      0, zik2);
+  g_hash_table_remove (profile->devices, device);
 }
 
 static void

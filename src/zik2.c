@@ -198,6 +198,9 @@ zik2_finalize (GObject * object)
   g_free (zik2->source);
   g_free (zik2->battery_state);
 
+  if (zik2->conn)
+    zik2_connection_free (zik2->conn);
+
   G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
@@ -549,19 +552,20 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
   }
 }
 
+/* @conn: (transfer full) */
 Zik2 *
-zik2_new (void)
+zik2_new (Zik2Connection * conn)
 {
-  return g_object_new (ZIK2_TYPE, NULL);
-}
+  Zik2 *zik2;
 
-void
-zik2_set_connection (Zik2 * zik2, Zik2Connection * conn)
-{
+  zik2 = g_object_new (ZIK2_TYPE, NULL);
   zik2->conn = conn;
 
+  /* sync with devices */
   zik2_get_serial (zik2);
   zik2_get_noise_control (zik2);
   zik2_get_software_version (zik2);
   zik2_get_source (zik2);
+
+  return zik2;
 }

@@ -211,28 +211,10 @@ set_noise_control (Zik2 * zik2)
 }
 
 static void
-on_zik2_connected (Zik2Profile * profile, gchar * device, gpointer conn,
-    gpointer userdata)
+on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
 {
-  GDBusObjectManager *manager = G_DBUS_OBJECT_MANAGER (userdata);
-  GDBusInterface *iface;
-  BluetoothDevice1 *bt_device;
-  Zik2 *zik2;
   guint i;
 
-  iface = g_dbus_object_manager_get_interface (manager, device,
-      BLUEZ_DEVICE_IFACE);
-  if (iface == NULL) {
-    g_printerr ("failed to retrieve bluetooth device node interface\n");
-    return;
-  }
-
-  bt_device = BLUETOOTH_DEVICE1 (iface);
-
-  g_print ("connected to %s\n", bluetooth_device1_get_name (bt_device));
-
-  zik2 = zik2_new ();
-  zik2_set_connection (zik2, conn);
 
   /* process set request from user */
   if (noise_control_switch)
@@ -241,14 +223,11 @@ on_zik2_connected (Zik2Profile * profile, gchar * device, gpointer conn,
   if (dump_api_xml) {
     for (i = 0; zik2_api[i].name != NULL; i++) {
       g_print ("- %s\n", zik2_api[i].name);
-      zik2_get (conn, zik2_api[i].get_uri);
+      zik2_get (zik2->conn, zik2_api[i].get_uri);
     }
   } else {
     show_zik2 (zik2);
   }
-
-  g_object_unref (zik2);
-  g_object_unref (iface);
 }
 
 static void
