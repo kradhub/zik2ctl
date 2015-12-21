@@ -42,6 +42,9 @@ struct _Zik2
 {
   GObject parent;
 
+  gchar *name;
+  gchar *address;
+
   Zik2Connection *conn;
 
   gchar *serial;
@@ -63,7 +66,7 @@ struct _Zik2Class
 };
 
 GType zik2_get_type (void);
-Zik2 *zik2_new (Zik2Connection * conn);
+Zik2 *zik2_new (const gchar * name, const gchar * address, Zik2Connection * conn);
 
 G_END_DECLS
 

@@ -31,6 +31,7 @@
 
 #define BLUEZ_PROFILE_MANAGER_PATH "/org/bluez"
 #define BLUEZ_PROFILE_MANAGER_IFACE "org.bluez.ProfileManager1"
+#define BLUEZ_DEVICE_IFACE "org.bluez.Device1"
 
 static const gchar introspection_xml[] =
   "<node>"
@@ -145,32 +146,56 @@ static void
 zik2_profile_new_connection (Zik2Profile * profile, const gchar * device,
     gint fd)
 {
+  GDBusInterface *iface = NULL;
+  BluetoothDevice1 *bt_device;
   Zik2 *zik2;
   Zik2Connection *conn = NULL;
 
   g_info ("zik2_profile_new_connection called with device '%s' and fd %d",
       device, fd);
 
+  /* get the Device1 interface to have the name and bluetooth address of the
+   * device */
+  iface = g_dbus_object_manager_get_interface (profile->manager, device,
+      BLUEZ_DEVICE_IFACE);
+  if (iface == NULL) {
+    g_critical ("failed to retrieve %s for '%s'\n", BLUEZ_DEVICE_IFACE, device);
+    goto beach;
+  }
+
   conn = zik2_connection_new (fd);
   if (conn == NULL) {
     g_critical ("failed to create zik2_connection for fd %d", fd);
-    close (fd);
-    return;
+    goto beach;
   }
 
   /* open session */
   g_debug ("opening session for device '%s'", device);
   if (!zik2_connection_open_session (conn)) {
     g_warning ("failed to open session");
-    zik2_connection_free (conn);
-    close(fd);
-    return;
+    goto beach;
   }
 
-  zik2 = zik2_new (conn);
+  bt_device = BLUETOOTH_DEVICE1 (iface);
+  zik2 = zik2_new (bluetooth_device1_get_name (bt_device),
+      bluetooth_device1_get_address (bt_device), conn);
+
   g_hash_table_insert (profile->devices, g_strdup (device), zik2);
 
   g_signal_emit (profile, zik2_profile_signals[SIGNAL_ZIK2_CONNECTED], 0, zik2);
+
+  g_object_unref (iface);
+
+  return;
+
+beach:
+  if (iface)
+    g_object_unref (iface);
+
+  if (conn)
+    zik2_connection_free (conn);
+
+  close (fd);
 }
 
 static void

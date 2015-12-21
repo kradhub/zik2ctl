@@ -122,6 +122,8 @@ static const GMarkupParser zik2_xml_parser_cbs = {
 enum
 {
   PROP_0,
+  PROP_NAME,
+  PROP_ADDRESS,
   PROP_SERIAL,
   PROP_SOFTWARE_VERSION,
   PROP_NOISE_CONTROL_ENABLED,
@@ -149,6 +151,15 @@ zik2_class_init (Zik2Class * klass)
   gobject_class->finalize = zik2_finalize;
   gobject_class->get_property = zik2_get_property;
   gobject_class->set_property = zik2_set_property;
+
+  g_object_class_install_property (gobject_class, PROP_NAME,
+      g_param_spec_string ("name", "Name", "Zik2 name", UNKNOWN_STR,
+          G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_ADDRESS,
+      g_param_spec_string ("address", "Address", "Zik2 bluetooth address",
+          UNKNOWN_STR,
+          G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_property (gobject_class, PROP_SERIAL,
       g_param_spec_string ("serial", "Serial", "Zik2 serial number",
@@ -193,6 +204,8 @@ zik2_finalize (GObject * object)
 {
   Zik2 *zik2 = ZIK2 (object);
 
+  g_free (zik2->name);
+  g_free (zik2->address);
   g_free (zik2->serial);
   g_free (zik2->software_version);
   g_free (zik2->source);
@@ -501,6 +514,12 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
   Zik2 *zik2 = ZIK2 (object);
 
   switch (prop_id) {
+    case PROP_NAME:
+      g_value_set_string (value, zik2->name);
+      break;
+    case PROP_ADDRESS:
+      g_value_set_string (value, zik2->address);
+      break;
     case PROP_SERIAL:
       g_value_set_string (value, zik2->serial);
       break;
@@ -535,6 +554,12 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
   Zik2 *zik2 = ZIK2 (object);
 
   switch (prop_id) {
+    case PROP_NAME:
+      zik2->name = g_value_dup_string (value);
+      break;
+    case PROP_ADDRESS:
+      zik2->address = g_value_dup_string (value);
+      break;
     case PROP_NOISE_CONTROL_ENABLED:
       {
         gboolean tmp;
@@ -554,11 +579,11 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
 
 /* @conn: (transfer full) */
 Zik2 *
-zik2_new (Zik2Connection * conn)
+zik2_new (const gchar * name, const gchar * address, Zik2Connection * conn)
 {
   Zik2 *zik2;
 
-  zik2 = g_object_new (ZIK2_TYPE, NULL);
+  zik2 = g_object_new (ZIK2_TYPE, "name", name, "address", address, NULL);
   zik2->conn = conn;
 
   /* sync with devices */

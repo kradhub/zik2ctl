@@ -211,8 +211,12 @@ set_noise_control (Zik2 * zik2)
 static void
 on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
 {
+  gchar *name;
   guint i;
 
+  g_object_get (zik2, "name", &name, NULL);
+  g_print ("connected to %s\n", name);
+  g_free (name);
 
   /* process set request from user */
   if (noise_control_switch)
