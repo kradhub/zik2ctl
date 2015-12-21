@@ -1,0 +1,5 @@
+.deps
+bluetooth-client.c
+bluetooth-client.h
+*.o
+zik2ctl
