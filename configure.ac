@@ -1,5 +1,5 @@
 AC_PREREQ([2.69])
-AC_INIT([zik2ctl], [0,1])
+AC_INIT([zik2ctl], [0.1])
 
 AM_INIT_AUTOMAKE([foreign])
 
