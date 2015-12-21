@@ -1,0 +1,55 @@
+Zik2ctl
+=======
+
+Zik2ctl is a command line tools to display and configure Parrot Zik2 Headphones
+for GNU/Linux environment. It is currently released under the term of the
+LGPLv3, see COPYING and COPYING.LESSER for more informations.
+
+Usage
+-----
+Running zik2ctl without arguments show a list of Zik2 currently paired with
+host.
+
+To show current Zik2 state, just type:
+$ zik2ctl --device "01:23:45:67:89:AB"
+where 01:23:45:67:89:AB is the address of the device shown when running without
+arguments.
+
+To configure Zik2, just run with desired --set-xxxx options, for instance to
+enable the noise control, type:
+$ zik2ctl --device "01:23:45:67:89:AB" --set-noise-control=on
+
+You can get all options with --help.
+
+
+Runtime requirements
+--------------------
+Communication with Zik2 is done using bluetooth connection.
+Hence you need at least version 5 of Bluez installed and the bluetooth daemon
+should be running.
+
+Building from source
+--------------------
+
+For now, Zik2Ctl only require at least version 2.44 of the GLib library.
+You will also need a set of tools including:
+- autoconf
+- automake
+
+Then in the zik2ctl directory, run:
+$ autoreconf -fi
+to generate build system files, then the usual:
+$ ./configure
+$ make
+
+Zik2ctl binary will be in the 'src' directory. You can them use it directly
+or install it using
+$ make install
+
+Known issue
+-----------
+
+Bluez may currently need to be patched as current released version (5.36) did
+not worked correctly for me. I have to compile the current master to make it
+working. The required patch, from what I think, is:
+http://git.kernel.org/cgit/bluetooth/bluez.git/commit/?id=6ada5d5b03acc383ae33e773782d8c725c5df78d
