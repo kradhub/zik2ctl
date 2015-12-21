@@ -37,6 +37,7 @@ struct _Zik2Profile
 {
   GObject parent;
 
+  GDBusObjectManager *manager;
   GDBusConnection *conn;
   guint id;
 
@@ -56,10 +57,9 @@ GType zik2_profile_get_type (void);
 Zik2Profile *zik2_profile_new (void);
 
 gboolean zik2_profile_install (Zik2Profile * profile,
-    BluetoothProfileManager1 * manager);
+    GDBusObjectManager * manager);
 
-void zik2_profile_uninstall (Zik2Profile * profile,
-    BluetoothProfileManager1 * manager);
+void zik2_profile_uninstall (Zik2Profile * profile);
 
 G_END_DECLS
 

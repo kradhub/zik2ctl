@@ -29,8 +29,6 @@
 
 #define BLUEZ_NAME "org.bluez"
 #define BLUEZ_OBJECT_MANAGER_PATH "/"
-#define BLUEZ_PROFILE_MANAGER_PATH "/org/bluez"
-#define BLUEZ_PROFILE_MANAGER_IFACE "org.bluez.ProfileManager1"
 #define BLUEZ_ADAPTER_IFACE "org.bluez.Adapter1"
 #define BLUEZ_DEVICE_IFACE "org.bluez.Device1"
 
@@ -250,23 +248,12 @@ static Zik2Profile *
 setup_profile (GDBusObjectManager * manager)
 {
   Zik2Profile *profile;
-  GDBusInterface *iface;
-
-  /* make and install our zik2 profile to handle control */
-  iface = g_dbus_object_manager_get_interface (manager,
-      BLUEZ_PROFILE_MANAGER_PATH, BLUEZ_PROFILE_MANAGER_IFACE);
-  if (iface == NULL) {
-    g_printerr ("failed to get ProfileManager interface\n");
-    return NULL;
-  }
 
   profile = zik2_profile_new ();
   g_signal_connect (profile, "zik2-connected", G_CALLBACK (on_zik2_connected),
       manager);
 
-  zik2_profile_install (profile, BLUETOOTH_PROFILE_MANAGER1 (iface));
-
-  g_object_unref (iface);
+  zik2_profile_install (profile, manager);
 
   return profile;
 }
@@ -274,15 +261,7 @@ setup_profile (GDBusObjectManager * manager)
 void
 cleanup_profile (Zik2Profile * profile, GDBusObjectManager * manager)
 {
-  GDBusInterface *iface;
-
-  iface = g_dbus_object_manager_get_interface (manager,
-      BLUEZ_PROFILE_MANAGER_PATH, BLUEZ_PROFILE_MANAGER_IFACE);
-  if (iface != NULL) {
-    zik2_profile_uninstall (profile, BLUETOOTH_PROFILE_MANAGER1 (iface));
-    g_object_unref (iface);
-  }
-
+  zik2_profile_uninstall (profile);
   g_object_unref (profile);
 }
 

@@ -29,6 +29,9 @@
 #define ZIK2_PATH "/org/bluez/zik2"
 #define ZIK2_UUID "8b6814d3-6ce7-4498-9700-9312c1711f63"
 
+#define BLUEZ_PROFILE_MANAGER_PATH "/org/bluez"
+#define BLUEZ_PROFILE_MANAGER_IFACE "org.bluez.ProfileManager1"
+
 static const gchar introspection_xml[] =
   "<node>"
   "  <interface name='org.bluez.Profile1'>"
@@ -266,23 +269,35 @@ zik2_profile_new (void)
 }
 
 gboolean
-zik2_profile_install (Zik2Profile * profile, BluetoothProfileManager1 * manager)
+zik2_profile_install (Zik2Profile * profile, GDBusObjectManager * manager)
 {
   Zik2ProfileClass *klass = ZIK2_PROFILE_GET_CLASS (profile);
+  GDBusInterface *iface;
+  BluetoothProfileManager1 *profile_manager;
   GError *error = NULL;
   GVariantDict dict;
 
-  /* 1. export object on the bus */
+  /* 1. get ProfileManager1 interface */
+  iface = g_dbus_object_manager_get_interface (manager,
+      BLUEZ_PROFILE_MANAGER_PATH, BLUEZ_PROFILE_MANAGER_IFACE);
+  if (iface == NULL) {
+    g_critical ("failed to get '%s' interface for node '%s'",
+        BLUEZ_PROFILE_MANAGER_IFACE, BLUEZ_PROFILE_MANAGER_PATH);
+    return FALSE;
+  }
+
+  /* 2. export object on the bus */
   profile->id = g_dbus_connection_register_object (profile->conn, ZIK2_PATH,
       klass->introspection_data->interfaces[0], &klass->interface_vtable,
       profile, NULL, &error);
   if (profile->id == 0) {
     g_critical ("failed to register profile object: %s", error->message);
+    g_object_unref (iface);
     g_error_free (error);
     return FALSE;
   }
 
-  /* 2. fill some info about profile */
+  /* 3. fill some info about profile */
   g_variant_dict_init (&dict, NULL);
   g_variant_dict_insert_value (&dict, "Name",
       g_variant_new_string ("Zik2 controller profile"));
@@ -290,30 +305,52 @@ zik2_profile_install (Zik2Profile * profile, BluetoothProfileManager1 * manager)
       g_variant_new_boolean (TRUE));
   g_variant_dict_insert_value (&dict, "Role", g_variant_new_string ("client"));
 
-  /* 3. register to bluetoothd */
-  if (!bluetooth_profile_manager1_call_register_profile_sync (manager,
+  /* 4. register to bluetoothd */
+  profile_manager = BLUETOOTH_PROFILE_MANAGER1 (iface);
+  if (!bluetooth_profile_manager1_call_register_profile_sync (profile_manager,
         ZIK2_PATH, ZIK2_UUID, g_variant_dict_end (&dict), NULL, &error)) {
     g_critical ("failed to register profile on bluetoothd: %s", error->message);
     g_dbus_connection_unregister_object (profile->conn, profile->id);
+    g_object_unref (iface);
     g_error_free (error);
     return FALSE;
   }
+
+  g_object_unref (iface);
+
+  profile->manager = g_object_ref (manager);
 
   return TRUE;
 }
 
 void
-zik2_profile_uninstall (Zik2Profile * profile,
-    BluetoothProfileManager1 * manager)
+zik2_profile_uninstall (Zik2Profile * profile)
 {
+  GDBusInterface *iface;
+  BluetoothProfileManager1 *profile_manager;
   GError *error = NULL;
 
-  bluetooth_profile_manager1_call_unregister_profile_sync (manager, ZIK2_PATH,
-      NULL, &error);
+  /* 1. get ProfileManager1 interface */
+  iface = g_dbus_object_manager_get_interface (profile->manager,
+      BLUEZ_PROFILE_MANAGER_PATH, BLUEZ_PROFILE_MANAGER_IFACE);
+  if (iface == NULL) {
+    g_critical ("failed to get '%s' interface for node '%s'",
+        BLUEZ_PROFILE_MANAGER_IFACE, BLUEZ_PROFILE_MANAGER_PATH);
+    goto skip_unregister_profile;
+  }
+
+  /* 2, unregister profile from bluetooth and unregister object from bus */
+  profile_manager = BLUETOOTH_PROFILE_MANAGER1 (iface);
+  bluetooth_profile_manager1_call_unregister_profile_sync (profile_manager,
+      ZIK2_PATH, NULL, &error);
   if (error) {
     g_warning ("failed to unregister profile from blutoothd: %s",
         error->message);
   }
 
+skip_unregister_profile:
   g_dbus_connection_unregister_object (profile->conn, profile->id);
+
+  g_object_unref (iface);
+  g_object_unref (profile->manager);
 }
