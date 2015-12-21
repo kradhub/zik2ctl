@@ -36,14 +36,16 @@
 
 #define ZIK2_UUID "8b6814d3-6ce7-4498-9700-9312c1711f63"
 
+static gboolean list_devices = FALSE;
 static gchar *device_addr = NULL;
 static gboolean dump_api_xml = FALSE;
 static gchar *noise_control_switch = NULL;
 
 static GOptionEntry entries[] = {
-  { "device", 'd', 0, G_OPTION_ARG_STRING, &device_addr, "Zik2 device address", "01:23:45:67:89:AB" },
+  { "list", 'l', 0, G_OPTION_ARG_NONE, &list_devices, "List Zik2 devices paired", NULL },
+  { "device", 'd', 0, G_OPTION_ARG_STRING, &device_addr, "Specify Zik2 device address", "01:23:45:67:89:AB" },
   { "set-noise-control", 0, 0, G_OPTION_ARG_STRING, &noise_control_switch, "Enable the noise control", "<on|off>" },
-  { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "dump answer from all known api (with --device)", NULL },
+  { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
   { NULL, 0, 0, 0, NULL, NULL, NULL }
 };
 
@@ -366,14 +368,38 @@ main (int argc, char *argv[])
   g_free (name_owner);
 
   zik2_devices = zik2_device_list_new (manager);
+  if (zik2_devices == NULL) {
+    g_print ("No Zik2 has been paired, please pair them first\n");
+    goto out;
+  }
 
-  if (device_addr) {
+  if (list_devices) {
+    /* display a list of paired Zik2 */
+    GSList *walk;
+
+    g_print ("List of Zik2 paired:\n");
+
+    for (walk = zik2_devices; walk != NULL; walk = g_slist_next (walk)) {
+      BluetoothDevice1 *device = BLUETOOTH_DEVICE1 (walk->data);
+
+      g_print ("%s: %s\n", bluetooth_device1_get_name (device),
+          bluetooth_device1_get_address (device));
+    }
+  } else {
     BluetoothDevice1 *device;
     Zik2Profile *profile;
 
-    device = lookup_device_by_addr (zik2_devices, device_addr);
-    if (device == NULL) {
-      g_printerr ("device '%s' not found\n", device_addr);
+    if (device_addr) {
+      device = lookup_device_by_addr (zik2_devices, device_addr);
+      if (device == NULL) {
+        g_printerr ("device '%s' not found\n", device_addr);
+        goto out;
+      }
+    } else if (g_slist_length (zik2_devices) == 1) {
+      device = BLUETOOTH_DEVICE1 (zik2_devices->data);
+    } else {
+      /* there is more than one zik2 and no device specified, error out */
+      g_print ("more than 1 device are paired, please select one\n");
       goto out;
     }
 
@@ -389,18 +415,6 @@ main (int argc, char *argv[])
     g_main_loop_run (loop);
 
     cleanup_profile (profile, manager);
-  } else {
-    /* display a list of paired Zik2 */
-    GSList *walk;
-
-    g_print ("List of Zik2 paired:\n");
-
-    for (walk = zik2_devices; walk != NULL; walk = g_slist_next (walk)) {
-      BluetoothDevice1 *device = BLUETOOTH_DEVICE1 (walk->data);
-
-      g_print ("%s: %s\n", bluetooth_device1_get_name (device),
-          bluetooth_device1_get_address (device));
-    }
   }
 
   ret = EXIT_SUCCESS;

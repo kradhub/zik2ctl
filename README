@@ -7,20 +7,24 @@ LGPLv3, see COPYING and COPYING.LESSER for more informations.
 
 Usage
 -----
-Running zik2ctl without arguments show a list of Zik2 currently paired with
-host.
+First Zik2 device should be paired with host.
 
-To show current Zik2 state, just type:
-$ zik2ctl --device "01:23:45:67:89:AB"
-where 01:23:45:67:89:AB is the address of the device shown when running without
-arguments.
+Running zik2ctl without arguments connect to the default Zik2 device and show
+its configuration.
+To configure device, just run program with the desired --set-xxxx options,
+for instance to enable the noise control, type:
+$ zik2ctl --set-noise-control=on
 
-To configure Zik2, just run with desired --set-xxxx options, for instance to
-enable the noise control, type:
-$ zik2ctl --device "01:23:45:67:89:AB" --set-noise-control=on
+If you have multiple Zik2 paired, you can list them using:
 
-You can get all options with --help.
+$ zik2ctl -l
 
+and select which one you want to connect with the '--device' option
+which takes the address of the device.
+
+To get full help, type:
+
+$ zik2ctl --help
 
 Runtime requirements
 --------------------
