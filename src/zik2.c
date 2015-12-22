@@ -217,26 +217,21 @@ zik2_finalize (GObject * object)
   G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
-static void
-zik2_get_serial (Zik2 * zik2)
+static gboolean
+zik2_get_and_parse_result (Zik2 * zik2, const gchar * uri, ParserData * pdata)
 {
   Zik2Message *msg;
   Zik2Message *answer = NULL;
   GMarkupParseContext *parser;
   GError *error = NULL;
-  ParserData pdata;
   gchar *xml;
-  guint i;
+  gboolean ret = FALSE;
 
-  parser_data_init (&pdata);
-
-  msg = zik2_message_new_request_get (API_SYSTEM_PI_URI);
+  msg = zik2_message_new_request_get (uri);
   zik2_connection_send_message (zik2->conn, msg, &answer);
-
   xml = zik2_message_request_get_request_answer (answer);
-  pdata.target = "system";
 
-  parser = g_markup_parse_context_new (&zik2_xml_parser_cbs, 0, &pdata, NULL);
+  parser = g_markup_parse_context_new (&zik2_xml_parser_cbs, 0, pdata, NULL);
   if (!g_markup_parse_context_parse (parser, xml, strlen (xml), &error)) {
     g_critical ("failed to parse answer: %s", error->message);
     goto out;
@@ -245,11 +240,35 @@ zik2_get_serial (Zik2 * zik2)
   if (!g_markup_parse_context_end_parse (parser, &error))
     g_error_free (error);
 
-  if (pdata.error) {
-    g_warning ("failed to get serial: device answer with error");
+  if (pdata->error) {
+    g_warning ("device returns error with uri '%s'", uri);
     goto out;
-  } else if (!pdata.found) {
-    g_warning ("target '%s' not found", pdata.target);
+  } else if (!pdata->found) {
+    g_warning ("target '%s' not found", pdata->target);
+    goto out;
+  }
+
+  ret = TRUE;
+
+out:
+  g_free (xml);
+  g_markup_parse_context_free (parser);
+  zik2_message_free (msg);
+  zik2_message_free (answer);
+
+  return ret;
+}
+
+static void
+zik2_get_serial (Zik2 * zik2)
+{
+  ParserData pdata;
+  guint i;
+
+  parser_data_init (&pdata);
+  pdata.target = "system";
+  if (!zik2_get_and_parse_result (zik2, API_SYSTEM_PI_URI, &pdata)) {
+    g_warning ("failed to get serial");
     goto out;
   }
 
@@ -262,46 +281,20 @@ zik2_get_serial (Zik2 * zik2)
   }
 
 out:
-  g_free (xml);
   parser_data_cleanup (&pdata);
-  g_markup_parse_context_free (parser);
-  zik2_message_free (msg);
-  zik2_message_free (answer);
 }
 
 static void
 zik2_get_noise_control (Zik2 * zik2)
 {
-  Zik2Message *msg;
-  Zik2Message *answer = NULL;
-  GMarkupParseContext *parser;
-  GError *error = NULL;
   ParserData pdata;
-  gchar *xml;
   guint i;
 
   parser_data_init (&pdata);
-
-  msg = zik2_message_new_request_get (API_AUDIO_NOISE_CONTROL_ENABLED_URI);
-  zik2_connection_send_message (zik2->conn, msg, &answer);
-
-  xml = zik2_message_request_get_request_answer (answer);
   pdata.target = "noise_control";
-
-  parser = g_markup_parse_context_new (&zik2_xml_parser_cbs, 0, &pdata, NULL);
-  if (!g_markup_parse_context_parse (parser, xml, strlen (xml), &error)) {
-    g_critical ("failed to parse answer: %s", error->message);
-    goto out;
-  }
-
-  if (!g_markup_parse_context_end_parse (parser, &error))
-    g_error_free (error);
-
-  if (pdata.error) {
-    g_warning ("failed to get noise control: device answer with error");
-    goto out;
-  } else if (!pdata.found) {
-    g_warning ("target '%s' not found", pdata.target);
+  if (!zik2_get_and_parse_result (zik2, API_AUDIO_NOISE_CONTROL_ENABLED_URI,
+        &pdata)) {
+    g_warning ("failed to get noise control status");
     goto out;
   }
 
@@ -320,11 +313,7 @@ zik2_get_noise_control (Zik2 * zik2)
   }
 
 out:
-  g_free (xml);
   parser_data_cleanup (&pdata);
-  g_markup_parse_context_free (parser);
-  zik2_message_free (msg);
-  zik2_message_free (answer);
 }
 
 static gboolean
@@ -344,36 +333,13 @@ zik2_set_noise_control (Zik2 * zik2, gboolean active)
 static void
 zik2_get_software_version (Zik2 * zik2)
 {
-  Zik2Message *msg;
-  Zik2Message *answer = NULL;
-  GMarkupParseContext *parser;
-  GError *error = NULL;
   ParserData pdata;
-  gchar *xml;
   guint i;
 
   parser_data_init (&pdata);
-
-  msg = zik2_message_new_request_get (API_SOFTWARE_VERSION_URI);
-  zik2_connection_send_message (zik2->conn, msg, &answer);
-
-  xml = zik2_message_request_get_request_answer (answer);
   pdata.target = "software";
-
-  parser = g_markup_parse_context_new (&zik2_xml_parser_cbs, 0, &pdata, NULL);
-  if (!g_markup_parse_context_parse (parser, xml, strlen (xml), &error)) {
-    g_critical ("failed to parse answer: %s", error->message);
-    goto out;
-  }
-
-  if (!g_markup_parse_context_end_parse (parser, &error))
-    g_error_free (error);
-
-  if (pdata.error) {
-    g_warning ("failed to get software: device answer with error");
-    goto out;
-  } else if (!pdata.found) {
-    g_warning ("target '%s' not found", pdata.target);
+  if (!zik2_get_and_parse_result (zik2, API_SOFTWARE_VERSION_URI, &pdata)) {
+    g_warning ("failed to get software version");
     goto out;
   }
 
@@ -389,46 +355,19 @@ zik2_get_software_version (Zik2 * zik2)
   }
 
 out:
-  g_free (xml);
   parser_data_cleanup (&pdata);
-  g_markup_parse_context_free (parser);
-  zik2_message_free (msg);
-  zik2_message_free (answer);
 }
 
 static void
 zik2_get_source (Zik2 * zik2)
 {
-  Zik2Message *msg;
-  Zik2Message *answer = NULL;
-  GMarkupParseContext *parser;
-  GError *error = NULL;
   ParserData pdata;
-  gchar *xml;
   guint i;
 
   parser_data_init (&pdata);
-
-  msg = zik2_message_new_request_get (API_AUDIO_SOURCE_URI);
-  zik2_connection_send_message (zik2->conn, msg, &answer);
-
-  xml = zik2_message_request_get_request_answer (answer);
   pdata.target = "source";
-
-  parser = g_markup_parse_context_new (&zik2_xml_parser_cbs, 0, &pdata, NULL);
-  if (!g_markup_parse_context_parse (parser, xml, strlen (xml), &error)) {
-    g_critical ("failed to parse answer: %s", error->message);
-    goto out;
-  }
-
-  if (!g_markup_parse_context_end_parse (parser, &error))
-    g_error_free (error);
-
-  if (pdata.error) {
-    g_warning ("failed to get source: device answer with error");
-    goto out;
-  } else if (!pdata.found) {
-    g_warning ("target '%s' not found\n", pdata.target);
+  if (!zik2_get_and_parse_result (zik2, API_AUDIO_SOURCE_URI, &pdata)) {
+    g_warning ("failed to get audio source");
     goto out;
   }
 
@@ -444,46 +383,19 @@ zik2_get_source (Zik2 * zik2)
   }
 
 out:
-  g_free (xml);
   parser_data_cleanup (&pdata);
-  g_markup_parse_context_free (parser);
-  zik2_message_free (msg);
-  zik2_message_free (answer);
 }
 
 static void
 zik2_get_battery (Zik2 * zik2)
 {
-  Zik2Message *msg;
-  Zik2Message *answer = NULL;
-  GMarkupParseContext *parser;
-  GError *error = NULL;
   ParserData pdata;
-  gchar *xml;
   guint i;
 
   parser_data_init (&pdata);
-
-  msg = zik2_message_new_request_get (API_SYSTEM_BATTERY_URI);
-  zik2_connection_send_message (zik2->conn, msg, &answer);
-
-  xml = zik2_message_request_get_request_answer (answer);
   pdata.target = "battery";
-
-  parser = g_markup_parse_context_new (&zik2_xml_parser_cbs, 0, &pdata, NULL);
-  if (!g_markup_parse_context_parse (parser, xml, strlen (xml), &error)) {
-    g_critical ("failed to parse answer: %s", error->message);
-    goto out;
-  }
-
-  if (!g_markup_parse_context_end_parse (parser, &error))
-    g_error_free (error);
-
-  if (pdata.error) {
-    g_warning ("failed to get battery: device answer with error");
-    goto out;
-  } else if (!pdata.found) {
-    g_warning ("target '%s' not found\n", pdata.target);
+  if (!zik2_get_and_parse_result (zik2, API_SYSTEM_BATTERY_URI, &pdata)) {
+    g_warning ("failed to get battery status");
     goto out;
   }
 
@@ -500,11 +412,7 @@ zik2_get_battery (Zik2 * zik2)
   }
 
 out:
-  g_free (xml);
   parser_data_cleanup (&pdata);
-  g_markup_parse_context_free (parser);
-  zik2_message_free (msg);
-  zik2_message_free (answer);
 }
 
 static void
