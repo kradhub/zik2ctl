@@ -23,6 +23,7 @@
 #include "zik2message.h"
 
 #define UNKNOWN_STR "unknown"
+#define DEFAULT_NOISE_CONTROL_STRENGTH 1
 
 typedef struct
 {
@@ -127,11 +128,36 @@ enum
   PROP_SERIAL,
   PROP_SOFTWARE_VERSION,
   PROP_NOISE_CONTROL_ENABLED,
+  PROP_NOISE_CONTROL_MODE,
+  PROP_NOISE_CONTROL_STRENGTH,
   PROP_SOURCE,
   PROP_BATTERY_STATE,
   PROP_BATTERY_PERCENT,
 };
 
+#define ZIK2_NOISE_CONTROL_MODE_TYPE (zik2_noise_control_mode_get_type ())
+static GType
+zik2_noise_control_mode_get_type (void)
+{
+  static volatile GType type;
+
+  static const GEnumValue modes[] = {
+    { ZIK2_NOISE_CONTROL_MODE_OFF, "Disable noise control", "off" },
+    { ZIK2_NOISE_CONTROL_MODE_ANC, "Enable noise cancelling", "anc" },
+    { ZIK2_NOISE_CONTROL_MODE_AOC, "Enable street mode", "aoc" },
+    { 0, NULL, NULL }
+  };
+
+  if (g_once_init_enter (&type)) {
+    GType _type;
+
+    _type = g_enum_register_static ("Zik2NoiseControlMode", modes);
+
+    g_once_init_leave (&type, _type);
+  }
+
+  return type;
+}
 
 #define parent_class zik2_parent_class
 G_DEFINE_TYPE (Zik2, zik2, G_TYPE_OBJECT);
@@ -179,6 +205,17 @@ zik2_class_init (Zik2Class * klass)
           "Zik2 noise control enabled status", FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
+  g_object_class_install_property (gobject_class, PROP_NOISE_CONTROL_MODE,
+      g_param_spec_enum ("noise-control-mode", "Noise control mode",
+          "Select the noise control mode", ZIK2_NOISE_CONTROL_MODE_TYPE,
+          ZIK2_NOISE_CONTROL_MODE_OFF,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_NOISE_CONTROL_STRENGTH,
+      g_param_spec_uint ("noise-control-strength", "Noise control strength",
+        "Set the noise control strength", 1, 2, DEFAULT_NOISE_CONTROL_STRENGTH,
+        G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
   g_object_class_install_property (gobject_class, PROP_BATTERY_STATE,
       g_param_spec_string ("battery-state", "Battery state",
         "State of the battery", UNKNOWN_STR,
@@ -197,6 +234,8 @@ zik2_init (Zik2 * zik2)
   zik2->software_version = g_strdup (UNKNOWN_STR);
   zik2->source = g_strdup (UNKNOWN_STR);
   zik2->battery_state = g_strdup (UNKNOWN_STR);
+
+  zik2->noise_control_strength = DEFAULT_NOISE_CONTROL_STRENGTH;
 }
 
 static void
@@ -331,6 +370,110 @@ zik2_set_noise_control (Zik2 * zik2, gboolean active)
 }
 
 static void
+zik2_get_noise_control_mode_and_strength (Zik2 * zik2)
+{
+  ParserData pdata;
+  guint i;
+
+  parser_data_init (&pdata);
+  pdata.target = "noise_control";
+  if (!zik2_get_and_parse_result (zik2, API_AUDIO_NOISE_CONTROL_URI, &pdata)) {
+    g_warning ("failed to get noise control mode and strength");
+    goto out;
+  }
+
+  for (i = 0; i < pdata.attribute_names->len; i++) {
+    const gchar *name = g_ptr_array_index (pdata.attribute_names, i);
+    const gchar *value = g_ptr_array_index (pdata.attribute_values, i);
+
+    if (g_strcmp0 (name, "type") == 0) {
+      GEnumClass *klass;
+      GEnumValue *mode;
+
+      klass = G_ENUM_CLASS (g_type_class_peek (ZIK2_NOISE_CONTROL_MODE_TYPE));
+
+      mode = g_enum_get_value_by_nick (klass, value);
+      if (mode == NULL) {
+        g_warning ("failed to get enum value associated with '%s'", value);
+        goto out;
+      }
+      zik2->noise_control_mode = mode->value;
+    } else if (g_strcmp0 (name, "value") == 0) {
+      zik2->noise_control_strength = atoi (value);
+    }
+  }
+
+out:
+  parser_data_cleanup (&pdata);
+}
+
+static gboolean
+zik2_set_noise_control_mode (Zik2 * zik2, Zik2NoiseControlMode mode)
+{
+  Zik2Message *msg;
+  gboolean ret;
+  const gchar *type;
+  gchar *uri;
+
+  switch (mode) {
+    case ZIK2_NOISE_CONTROL_MODE_OFF:
+      type = "off";
+      break;
+    case ZIK2_NOISE_CONTROL_MODE_ANC:
+      type = "anc";
+      break;
+    case ZIK2_NOISE_CONTROL_MODE_AOC:
+      type = "aoc";
+      break;
+    default:
+      g_assert_not_reached ();
+  }
+
+  uri = g_strdup_printf ("/api/audio/noise_control/set?arg=%s&value=%u", type,
+    zik2->noise_control_strength);
+  msg = zik2_message_new_request_get (uri);
+  g_free (uri);
+
+  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
+  zik2_message_free (msg);
+
+  return ret;
+}
+
+static gboolean
+zik2_set_noise_control_strength (Zik2 * zik2, guint strength)
+{
+  Zik2Message *msg;
+  gboolean ret;
+  const gchar *type;
+  gchar *uri;
+
+  switch (zik2->noise_control_mode) {
+    case ZIK2_NOISE_CONTROL_MODE_OFF:
+      type = "off";
+      break;
+    case ZIK2_NOISE_CONTROL_MODE_ANC:
+      type = "anc";
+      break;
+    case ZIK2_NOISE_CONTROL_MODE_AOC:
+      type = "aoc";
+      break;
+    default:
+      g_assert_not_reached ();
+  }
+
+  uri = g_strdup_printf ("/api/audio/noise_control/set?arg=%s&value=%u", type,
+    zik2->noise_control_strength);
+  msg = zik2_message_new_request_get (uri);
+  g_free (uri);
+
+  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
+  zik2_message_free (msg);
+
+  return ret;
+}
+
+static void
 zik2_get_software_version (Zik2 * zik2)
 {
   ParserData pdata;
@@ -441,6 +584,12 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_NOISE_CONTROL_ENABLED:
       g_value_set_boolean (value, zik2->noise_control_enabled);
       break;
+    case PROP_NOISE_CONTROL_MODE:
+      g_value_set_enum (value, zik2->noise_control_mode);
+      break;
+    case PROP_NOISE_CONTROL_STRENGTH:
+      g_value_set_uint (value, zik2->noise_control_strength);
+      break;
     case PROP_BATTERY_STATE:
       zik2_get_battery (zik2);
       g_value_set_string (value, zik2->battery_state);
@@ -479,6 +628,28 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
           g_warning ("failed to set noise control enabled");
       }
       break;
+    case PROP_NOISE_CONTROL_MODE:
+      {
+        Zik2NoiseControlMode tmp;
+
+        tmp = g_value_get_enum (value);
+        if (zik2_set_noise_control_mode (zik2, tmp))
+          zik2->noise_control_mode = tmp;
+        else
+           g_warning ("failed to set noise control mode");
+      }
+      break;
+    case PROP_NOISE_CONTROL_STRENGTH:
+      {
+        guint tmp;
+
+        tmp = g_value_get_uint (value);
+        if (zik2_set_noise_control_strength (zik2, tmp))
+          zik2->noise_control_strength = tmp;
+        else
+          g_warning ("failed to set noise control strength");
+      }
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -497,6 +668,7 @@ zik2_new (const gchar * name, const gchar * address, Zik2Connection * conn)
   /* sync with devices */
   zik2_get_serial (zik2);
   zik2_get_noise_control (zik2);
+  zik2_get_noise_control_mode_and_strength (zik2);
   zik2_get_software_version (zik2);
   zik2_get_source (zik2);
 

@@ -29,6 +29,15 @@ G_BEGIN_DECLS
 #define ZIK2_GET_CLASS(obj) \
   (G_TYPE_INSTANCE_GET_CLASS ((obj), ZIK2_TYPE, Zik2Class))
 
+enum _Zik2NoiseControlMode
+{
+  ZIK2_NOISE_CONTROL_MODE_OFF,
+  ZIK2_NOISE_CONTROL_MODE_ANC,
+  ZIK2_NOISE_CONTROL_MODE_AOC
+};
+
+typedef enum _Zik2NoiseControlMode Zik2NoiseControlMode;
+
 enum _Zik2Color
 {
   ZIK2_COLOR_BLUE = 0x2,
@@ -52,6 +61,8 @@ struct _Zik2
   gchar *software_version;
 
   gboolean noise_control_enabled;
+  Zik2NoiseControlMode noise_control_mode;
+  guint noise_control_strength;
 
   gint noise_level;
   guint volume;
