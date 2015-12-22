@@ -40,6 +40,7 @@ static gboolean dump_api_xml = FALSE;
 static gchar *noise_control_switch = NULL;
 static gchar *noise_control_mode = NULL;
 static gint noise_control_strength = 0;
+static gchar *get_uri = NULL;
 
 static GOptionEntry entries[] = {
   { "list", 'l', 0, G_OPTION_ARG_NONE, &list_devices, "List Zik2 devices paired", NULL },
@@ -48,6 +49,7 @@ static GOptionEntry entries[] = {
   { "set-noise-control-mode", 0, 0, G_OPTION_ARG_STRING, &noise_control_mode, "Select noise control mode (anc: noise cancelling, aoc: street mode)", "<off|anc|aoc>" },
   { "set-noise-control-strength", 0, 0, G_OPTION_ARG_INT, &noise_control_strength, "Select noise control strength", "<1|2>" },
   { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
+  { "get-uri", 0, 0, G_OPTION_ARG_STRING, &get_uri, "Get uri and print reply", "/api/..." },
   { NULL, 0, 0, 0, NULL, NULL, NULL }
 };
 
@@ -306,6 +308,8 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
       g_print ("- %s\n", zik2_api[i].name);
       zik2_get (zik2->conn, zik2_api[i].get_uri);
     }
+  } else if (get_uri) {
+    zik2_get (zik2->conn, get_uri);
   } else {
     show_zik2 (zik2);
   }
