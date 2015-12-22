@@ -408,7 +408,8 @@ out:
 }
 
 static gboolean
-zik2_set_noise_control_mode (Zik2 * zik2, Zik2NoiseControlMode mode)
+zik2_set_noise_control_mode_and_strength (Zik2 * zik2,
+    Zik2NoiseControlMode mode, guint strength)
 {
   Zik2Message *msg;
   gboolean ret;
@@ -416,39 +417,6 @@ zik2_set_noise_control_mode (Zik2 * zik2, Zik2NoiseControlMode mode)
   gchar *uri;
 
   switch (mode) {
-    case ZIK2_NOISE_CONTROL_MODE_OFF:
-      type = "off";
-      break;
-    case ZIK2_NOISE_CONTROL_MODE_ANC:
-      type = "anc";
-      break;
-    case ZIK2_NOISE_CONTROL_MODE_AOC:
-      type = "aoc";
-      break;
-    default:
-      g_assert_not_reached ();
-  }
-
-  uri = g_strdup_printf ("/api/audio/noise_control/set?arg=%s&value=%u", type,
-    zik2->noise_control_strength);
-  msg = zik2_message_new_request_get (uri);
-  g_free (uri);
-
-  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
-  zik2_message_free (msg);
-
-  return ret;
-}
-
-static gboolean
-zik2_set_noise_control_strength (Zik2 * zik2, guint strength)
-{
-  Zik2Message *msg;
-  gboolean ret;
-  const gchar *type;
-  gchar *uri;
-
-  switch (zik2->noise_control_mode) {
     case ZIK2_NOISE_CONTROL_MODE_OFF:
       type = "off";
       break;
@@ -633,7 +601,8 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
         Zik2NoiseControlMode tmp;
 
         tmp = g_value_get_enum (value);
-        if (zik2_set_noise_control_mode (zik2, tmp))
+        if (zik2_set_noise_control_mode_and_strength (zik2, tmp,
+              zik2->noise_control_strength))
           zik2->noise_control_mode = tmp;
         else
            g_warning ("failed to set noise control mode");
@@ -644,7 +613,8 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
         guint tmp;
 
         tmp = g_value_get_uint (value);
-        if (zik2_set_noise_control_strength (zik2, tmp))
+        if (zik2_set_noise_control_mode_and_strength (zik2,
+              zik2->noise_control_mode, tmp))
           zik2->noise_control_strength = tmp;
         else
           g_warning ("failed to set noise control strength");
