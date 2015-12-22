@@ -38,11 +38,15 @@ static gboolean list_devices = FALSE;
 static gchar *device_addr = NULL;
 static gboolean dump_api_xml = FALSE;
 static gchar *noise_control_switch = NULL;
+static gchar *noise_control_mode = NULL;
+static gint noise_control_strength = 0;
 
 static GOptionEntry entries[] = {
   { "list", 'l', 0, G_OPTION_ARG_NONE, &list_devices, "List Zik2 devices paired", NULL },
   { "device", 'd', 0, G_OPTION_ARG_STRING, &device_addr, "Specify Zik2 device address", "01:23:45:67:89:AB" },
   { "set-noise-control", 0, 0, G_OPTION_ARG_STRING, &noise_control_switch, "Enable the noise control", "<on|off>" },
+  { "set-noise-control-mode", 0, 0, G_OPTION_ARG_STRING, &noise_control_mode, "Select noise control mode (anc: noise cancelling, aoc: street mode)", "<off|anc|aoc>" },
+  { "set-noise-control-strength", 0, 0, G_OPTION_ARG_INT, &noise_control_strength, "Select noise control strength", "<1|2>" },
   { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
   { NULL, 0, 0, 0, NULL, NULL, NULL }
 };
@@ -151,6 +155,23 @@ zik2_get (Zik2Connection * conn, const gchar * property)
   zik2_message_free (answer);
 }
 
+static const gchar *
+nc_mode_str (Zik2NoiseControlMode mode)
+{
+  switch (mode) {
+    case ZIK2_NOISE_CONTROL_MODE_OFF:
+      return "off";
+    case ZIK2_NOISE_CONTROL_MODE_ANC:
+      return "anc (noise cancelling)";
+    case ZIK2_NOISE_CONTROL_MODE_AOC:
+        return "aoc (street mode)";
+    default:
+        break;
+  }
+
+  return "unknown";
+}
+
 static void
 show_zik2 (Zik2 * zik2)
 {
@@ -160,6 +181,8 @@ show_zik2 (Zik2 * zik2)
   gchar *source;
   gchar *bat_state;
   guint bat_percent;
+  Zik2NoiseControlMode noise_control_mode;
+  guint noise_control_strength;
 
   g_object_get (zik2, "serial", &serial,
       "noise-control-enabled", &nc_enabled,
@@ -167,13 +190,17 @@ show_zik2 (Zik2 * zik2)
       "software-version", &sw_version,
       "battery-state", &bat_state,
       "battery-percentage", &bat_percent,
+      "noise-control-mode", &noise_control_mode,
+      "noise-control-strength", &noise_control_strength,
       NULL);
 
-  g_print ("serial-number         : %s\n", serial);
-  g_print ("software version      : %s\n", sw_version);
-  g_print ("noise control enabled : %s\n", nc_enabled ? "true" : "false");
-  g_print ("audio source          : %s\n", source);
-  g_print ("battery state         : %s (remaining: %u%%)\n", bat_state,
+  g_print ("serial-number          : %s\n", serial);
+  g_print ("software version       : %s\n", sw_version);
+  g_print ("noise control enabled  : %s\n", nc_enabled ? "true" : "false");
+  g_print ("noise control mode     : %s\n", nc_mode_str (noise_control_mode));
+  g_print ("noise control strength : %u\n", noise_control_strength);
+  g_print ("audio source           : %s\n", source);
+  g_print ("battery state          : %s (remaining: %u%%)\n", bat_state,
       bat_percent);
 
   g_free (serial);
@@ -208,6 +235,52 @@ set_noise_control (Zik2 * zik2)
   return TRUE;
 }
 
+static gboolean
+set_noise_control_mode (Zik2 * zik2)
+{
+  Zik2NoiseControlMode req_mode;
+  Zik2NoiseControlMode mode;
+
+  if (g_strcmp0 (noise_control_mode, "off") == 0)
+    req_mode = ZIK2_NOISE_CONTROL_MODE_OFF;
+  else if (g_strcmp0 (noise_control_mode, "anc") == 0)
+    req_mode = ZIK2_NOISE_CONTROL_MODE_ANC;
+  else if (g_strcmp0 (noise_control_mode, "aoc") == 0)
+    req_mode = ZIK2_NOISE_CONTROL_MODE_AOC;
+  else
+    return FALSE;
+
+  g_print ("Setting noise control mode to %s\n", noise_control_mode);
+  g_object_set (zik2, "noise-control-mode", req_mode, NULL);
+  g_object_get (zik2, "noise-control-mode", &mode, NULL);
+
+  if (mode != req_mode) {
+    g_printerr ("failed to set noise control mode to %s\n", noise_control_mode);
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+static gboolean
+set_noise_control_strength (Zik2 * zik2)
+{
+  guint req_value = noise_control_strength;
+  guint value;
+
+  g_print ("Setting noise control strength to %u\n", noise_control_strength);
+  g_object_set (zik2, "noise-control-strength", req_value, NULL);
+  g_object_get (zik2, "noise-control-strength", &value, NULL);
+
+  if (value != req_value) {
+    g_printerr ("failed to set noise control strength to %u\n",
+        noise_control_strength);
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
 static void
 on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
 {
@@ -221,6 +294,12 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
   /* process set request from user */
   if (noise_control_switch)
     set_noise_control (zik2);
+
+  if (noise_control_mode)
+    set_noise_control_mode (zik2);
+
+  if (noise_control_strength)
+    set_noise_control_strength (zik2);
 
   if (dump_api_xml) {
     for (i = 0; zik2_api[i].name != NULL; i++) {
@@ -279,6 +358,23 @@ check_arguments (void)
     if (g_strcmp0 (noise_control_switch, "on") != 0 &&
         g_strcmp0 (noise_control_switch, "off")) {
       g_printerr ("unrecognized 'set-noise-control' value\n");
+      ret = FALSE;
+    }
+  }
+
+  if (noise_control_mode) {
+    /* valid values: off, anc, aoc */
+    if (g_strcmp0 (noise_control_mode, "off") != 0 &&
+        g_strcmp0 (noise_control_mode, "anc") != 0 &&
+        g_strcmp0 (noise_control_mode, "aoc") != 0) {
+      g_printerr ("unrecognized 'set-noise-control-mode' value\n");
+      ret = FALSE;
+    }
+  }
+
+  if (noise_control_strength) {
+    if (noise_control_strength < 1 && noise_control_strength > 2) {
+      g_printerr ("unrecognized 'set-noise-control-strength' value\n");
       ret = FALSE;
     }
   }
