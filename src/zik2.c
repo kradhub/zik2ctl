@@ -463,7 +463,7 @@ zik2_set_noise_control_strength (Zik2 * zik2, guint strength)
   }
 
   uri = g_strdup_printf ("/api/audio/noise_control/set?arg=%s&value=%u", type,
-    zik2->noise_control_strength);
+      strength);
   msg = zik2_message_new_request_get (uri);
   g_free (uri);
 
