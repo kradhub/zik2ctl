@@ -163,6 +163,7 @@ zik2_profile_new_connection (Zik2Profile * profile, const gchar * device,
   if (!zik2_connection_open_session (conn)) {
     g_warning ("failed to open session");
     zik2_connection_free (conn);
+    close(fd);
     return;
   }
 
