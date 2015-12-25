@@ -216,7 +216,7 @@ show_zik2 (Zik2 * zik2)
       "noise-control-mode", &noise_control_mode,
       "noise-control-strength", &noise_control_strength,
       "volume", &volume,
-      "enable-head-detection", &head_detection,
+      "head-detection", &head_detection,
       "color", &color,
       "flight-mode", &flight_mode,
       NULL);
@@ -340,7 +340,7 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
 
   if (head_detection_switch) {
     g_print ("Setting head detection to %s\n", head_detection_switch);
-    if (!set_boolean_property_from_string (zik2, "enable-head-detection",
+    if (!set_boolean_property_from_string (zik2, "head-detection",
           head_detection_switch))
       g_printerr ("Failed to set head detection");
   }

@@ -40,7 +40,7 @@ enum
   PROP_BATTERY_STATE,
   PROP_BATTERY_PERCENT,
   PROP_VOLUME,
-  PROP_ENABLE_HEAD_DETECTION,
+  PROP_HEAD_DETECTION,
   PROP_COLOR,
   PROP_FLIGHT_MODE,
 };
@@ -64,7 +64,7 @@ struct _Zik2Private
   gchar *battery_state;
   guint battery_percentage;
   Zik2Color color;
-  gboolean enable_head_detection;
+  gboolean head_detection;
   gchar *serial;
 
   /* others */
@@ -188,9 +188,9 @@ zik2_class_init (Zik2Class * klass)
       g_param_spec_uint ("volume", "Volume", "Volume", 0, G_MAXUINT, 0,
         G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_property (gobject_class, PROP_ENABLE_HEAD_DETECTION,
-      g_param_spec_boolean ("enable-head-detection", "Enable head detection",
-          "Enable the head detection", FALSE,
+  g_object_class_install_property (gobject_class, PROP_HEAD_DETECTION,
+      g_param_spec_boolean ("head-detection", "Head detection",
+          "Whether head detection is active or not", FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_property (gobject_class, PROP_COLOR,
@@ -508,7 +508,7 @@ out:
 }
 
 static void
-zik2_get_enable_head_detection (Zik2 * zik2)
+zik2_get_head_detection (Zik2 * zik2)
 {
   Zik2RequestReplyData *reply;
   Zik2HeadDetectionInfo *info;
@@ -526,14 +526,14 @@ zik2_get_enable_head_detection (Zik2 * zik2)
     goto out;
   }
 
-  zik2->priv->enable_head_detection = info->enabled;
+  zik2->priv->head_detection = info->enabled;
 
 out:
   zik2_request_reply_data_free (reply);
 }
 
 static gboolean
-zik2_set_enable_head_detection (Zik2 * zik2, gboolean active)
+zik2_set_head_detection (Zik2 * zik2, gboolean active)
 {
   Zik2Message *msg;
   gboolean ret;
@@ -655,9 +655,9 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
       zik2_get_volume (zik2);
       g_value_set_uint (value, priv->volume);
       break;
-    case PROP_ENABLE_HEAD_DETECTION:
-      zik2_get_enable_head_detection (zik2);
-      g_value_set_boolean (value, priv->enable_head_detection);
+    case PROP_HEAD_DETECTION:
+      zik2_get_head_detection (zik2);
+      g_value_set_boolean (value, priv->head_detection);
       break;
     case PROP_COLOR:
       zik2_get_color (zik2);
@@ -722,13 +722,13 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
           g_warning ("failed to set noise control strength");
       }
       break;
-    case PROP_ENABLE_HEAD_DETECTION:
+    case PROP_HEAD_DETECTION:
       {
         guint tmp;
 
         tmp = g_value_get_boolean (value);
-        if (zik2_set_enable_head_detection (zik2, tmp))
-          priv->enable_head_detection = tmp;
+        if (zik2_set_head_detection (zik2, tmp))
+          priv->head_detection = tmp;
         else
           g_warning ("failed to enable/disable head detection");
       }
