@@ -196,15 +196,20 @@ show_zik2 (Zik2 * zik2)
       "volume", &volume,
       NULL);
 
-  g_print ("serial-number          : %s\n", serial);
-  g_print ("software version       : %s\n", sw_version);
-  g_print ("noise control enabled  : %s\n", nc_enabled ? "true" : "false");
-  g_print ("noise control mode     : %s\n", nc_mode_str (noise_control_mode));
-  g_print ("noise control strength : %u\n", noise_control_strength);
-  g_print ("audio source           : %s\n", source);
-  g_print ("battery state          : %s (remaining: %u%%)\n", bat_state,
+  g_print ("audio:\n");
+  g_print ("  noise control enabled  : %s\n", nc_enabled ? "true" : "false");
+  g_print ("  noise control mode     : %s\n", nc_mode_str (noise_control_mode));
+  g_print ("  noise control strength : %u\n", noise_control_strength);
+  g_print ("  source                 : %s\n", source);
+  g_print ("  volume (raw)           : %u\n", volume);
+
+  g_print ("\nsoftware:\n");
+  g_print ("  software version       : %s\n", sw_version);
+
+  g_print ("\nsystem:\n");
+  g_print ("  battery state          : %s (remaining: %u%%)\n", bat_state,
       bat_percent);
-  g_print ("volume                 : %u\n", volume);
+  g_print ("  serial-number          : %s\n", serial);
 
   g_free (serial);
   g_free (sw_version);
