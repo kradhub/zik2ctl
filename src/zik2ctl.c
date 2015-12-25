@@ -208,7 +208,7 @@ show_zik2 (Zik2 * zik2)
   gboolean flight_mode;
 
   g_object_get (zik2, "serial", &serial,
-      "noise-control-enabled", &nc_enabled,
+      "noise-control", &nc_enabled,
       "source", &source,
       "software-version", &sw_version,
       "battery-state", &bat_state,
@@ -327,8 +327,8 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
   /* process set request from user */
   if (noise_control_switch) {
     g_print ("Setting noise control to %s\n", noise_control_switch);
-    if (!set_boolean_property_from_string (zik2, "noise-control-enabled",
-        noise_control_switch))
+    if (!set_boolean_property_from_string (zik2, "noise-control",
+          noise_control_switch))
       g_printerr ("Failed to set noise control");
   }
 

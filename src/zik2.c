@@ -33,7 +33,7 @@ enum
   PROP_ADDRESS,
   PROP_SERIAL,
   PROP_SOFTWARE_VERSION,
-  PROP_NOISE_CONTROL_ENABLED,
+  PROP_NOISE_CONTROL,
   PROP_NOISE_CONTROL_MODE,
   PROP_NOISE_CONTROL_STRENGTH,
   PROP_SOURCE,
@@ -51,7 +51,7 @@ struct _Zik2Private
   gchar *address;
 
   /* audio */
-  gboolean noise_control_enabled;
+  gboolean noise_control;
   Zik2NoiseControlMode noise_control_mode;
   guint noise_control_strength;
   gchar *source;
@@ -158,9 +158,9 @@ zik2_class_init (Zik2Class * klass)
       g_param_spec_string ("source", "Source", "Zik2 audio source",
           UNKNOWN_STR, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_property (gobject_class, PROP_NOISE_CONTROL_ENABLED,
-      g_param_spec_boolean ("noise-control-enabled", "Noise control enabled",
-          "Zik2 noise control enabled status", FALSE,
+  g_object_class_install_property (gobject_class, PROP_NOISE_CONTROL,
+      g_param_spec_boolean ("noise-control", "Noise control",
+          "Whether the noise control is active or not", FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_property (gobject_class, PROP_NOISE_CONTROL_MODE,
@@ -318,7 +318,7 @@ zik2_get_noise_control (Zik2 * zik2)
     goto out;
   }
 
-  zik2->priv->noise_control_enabled = info->enabled;
+  zik2->priv->noise_control = info->enabled;
 
 out:
   if (reply)
@@ -634,8 +634,8 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
       zik2_get_source (zik2);
       g_value_set_string (value, priv->source);
       break;
-    case PROP_NOISE_CONTROL_ENABLED:
-      g_value_set_boolean (value, priv->noise_control_enabled);
+    case PROP_NOISE_CONTROL:
+      g_value_set_boolean (value, priv->noise_control);
       break;
     case PROP_NOISE_CONTROL_MODE:
       g_value_set_enum (value, priv->noise_control_mode);
@@ -687,13 +687,13 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
     case PROP_ADDRESS:
       priv->address = g_value_dup_string (value);
       break;
-    case PROP_NOISE_CONTROL_ENABLED:
+    case PROP_NOISE_CONTROL:
       {
         gboolean tmp;
 
         tmp = g_value_get_boolean (value);
         if (zik2_set_noise_control (zik2, tmp))
-          priv->noise_control_enabled = tmp;
+          priv->noise_control = tmp;
         else
           g_warning ("failed to set noise control enabled");
       }
