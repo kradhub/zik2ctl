@@ -174,6 +174,21 @@ nc_mode_str (Zik2NoiseControlMode mode)
   return "unknown";
 }
 
+static const gchar *
+color_str (Zik2Color color)
+{
+  switch (color) {
+    case ZIK2_COLOR_BLACK:
+      return "black";
+    case ZIK2_COLOR_BLUE:
+      return "blue";
+    default:
+      break;
+  }
+
+  return "unknown";
+}
+
 static void
 show_zik2 (Zik2 * zik2)
 {
@@ -187,6 +202,7 @@ show_zik2 (Zik2 * zik2)
   guint noise_control_strength;
   guint volume;
   gboolean head_detection;
+  Zik2Color color;
 
   g_object_get (zik2, "serial", &serial,
       "noise-control-enabled", &nc_enabled,
@@ -198,6 +214,7 @@ show_zik2 (Zik2 * zik2)
       "noise-control-strength", &noise_control_strength,
       "volume", &volume,
       "enable-head-detection", &head_detection,
+      "color", &color,
       NULL);
 
   g_print ("audio:\n");
@@ -213,6 +230,7 @@ show_zik2 (Zik2 * zik2)
   g_print ("\nsystem:\n");
   g_print ("  battery state          : %s (remaining: %u%%)\n", bat_state,
       bat_percent);
+  g_print ("  color                  : %s\n", color_str (color));
   g_print ("  head detection enabled : %s\n", head_detection ? "true" : "false");
   g_print ("  serial-number          : %s\n", serial);
 
