@@ -283,55 +283,60 @@ out:
   return ret;
 }
 
+/* send a get request, parse reply and return info for type if found */
+static gpointer
+zik2_request_info (Zik2 * zik2, const gchar * path, GType type)
+{
+  Zik2RequestReplyData *reply = NULL;
+  gpointer info;
+
+  if (!zik2_get_and_parse_reply (zik2, path, &reply))
+    return NULL;
+
+  info = zik2_request_reply_data_find_node_info (reply, type);
+  if (info == NULL)
+    goto out;
+
+  /* make a copy to free reply */
+  info = g_boxed_copy (type, info);
+
+out:
+  zik2_request_reply_data_free (reply);
+
+  return info;
+}
+
 static void
 zik2_get_serial (Zik2 * zik2)
 {
-  Zik2RequestReplyData *reply = NULL;
   Zik2SystemInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_SYSTEM_PI_PATH, &reply)) {
-    g_warning ("failed to get serial");
-    goto out;
-  }
-
-  info = zik2_request_reply_data_find_node_info (reply, ZIK2_SYSTEM_INFO_TYPE);
+  info = zik2_request_info (zik2, ZIK2_API_SYSTEM_PI_PATH,
+      ZIK2_SYSTEM_INFO_TYPE);
   if (info == NULL) {
-    g_warning ("<system> not found");
-    goto out;
+    g_warning ("failed to get serial");
+    return;
   }
 
   g_free (zik2->priv->serial);
   zik2->priv->serial = g_strdup (info->pi);
-
-out:
-  if (reply)
-    zik2_request_reply_data_free (reply);
+  zik2_system_info_free (info);
 }
 
 static void
 zik2_get_noise_control (Zik2 * zik2)
 {
-  Zik2RequestReplyData *reply = NULL;
   Zik2NoiseControlInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_AUDIO_NOISE_CONTROL_ENABLED_PATH,
-        &reply)) {
-    g_warning ("failed to get noise control status");
-    goto out;
-  }
-
-  info = zik2_request_reply_data_find_node_info (reply,
+  info = zik2_request_info (zik2, ZIK2_API_AUDIO_NOISE_CONTROL_ENABLED_PATH,
       ZIK2_NOISE_CONTROL_INFO_TYPE);
   if (info == NULL) {
-    g_warning ("<noise_control> not found");
-    goto out;
+    g_warning ("failed to get noise control status");
+    return;
   }
 
   zik2->priv->noise_control = info->enabled;
-
-out:
-  if (reply)
-    zik2_request_reply_data_free (reply);
+  zik2_noise_control_info_free (info);
 }
 
 static gboolean
@@ -351,22 +356,15 @@ zik2_set_noise_control (Zik2 * zik2, gboolean active)
 static void
 zik2_get_noise_control_mode_and_strength (Zik2 * zik2)
 {
-  Zik2RequestReplyData *reply = NULL;
   Zik2NoiseControlInfo *info;
   GEnumClass *klass;
   GEnumValue *mode;
 
-  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_AUDIO_NOISE_CONTROL_PATH,
-        &reply)) {
-    g_warning ("failed to get noise control status");
-    goto out;
-  }
-
-  info = zik2_request_reply_data_find_node_info (reply,
+  info = zik2_request_info (zik2, ZIK2_API_AUDIO_NOISE_CONTROL_PATH,
       ZIK2_NOISE_CONTROL_INFO_TYPE);
   if (info == NULL) {
-    g_warning ("<noise_control> not found");
-    goto out;
+    g_warning ("failed to get noise control");
+    return;
   }
 
   klass = G_ENUM_CLASS (g_type_class_peek (ZIK2_NOISE_CONTROL_MODE_TYPE));
@@ -379,8 +377,7 @@ zik2_get_noise_control_mode_and_strength (Zik2 * zik2)
   zik2->priv->noise_control_strength = info->value;
 
 out:
-  if (reply)
-    zik2_request_reply_data_free (reply);
+  zik2_noise_control_info_free (info);
 }
 
 static gboolean
@@ -419,126 +416,85 @@ zik2_set_noise_control_mode_and_strength (Zik2 * zik2,
 static void
 zik2_get_software_version (Zik2 * zik2)
 {
-  Zik2RequestReplyData *reply = NULL;
   Zik2SoftwareInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_SOFTWARE_VERSION_PATH, &reply)) {
-    g_warning ("failed to get software");
-    goto out;
-  }
-
-  info = zik2_request_reply_data_find_node_info (reply,
+  info = zik2_request_info (zik2, ZIK2_API_SOFTWARE_VERSION_PATH,
       ZIK2_SOFTWARE_INFO_TYPE);
   if (info == NULL) {
-    g_warning ("<software> not found");
-    goto out;
+    g_warning ("failed to get software info");
+    return;
   }
 
   g_free (zik2->priv->software_version);
   zik2->priv->software_version = g_strdup (info->sip6);
-
-out:
-  if (reply)
-    zik2_request_reply_data_free (reply);
+  zik2_software_info_free (info);
 }
 
 static void
 zik2_get_source (Zik2 * zik2)
 {
-  Zik2RequestReplyData *reply = NULL;
   Zik2SourceInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_AUDIO_SOURCE_PATH, &reply)) {
-    g_warning ("failed to get audio source");
-    goto out;
-  }
-
-  info = zik2_request_reply_data_find_node_info (reply, ZIK2_SOURCE_INFO_TYPE);
+  info = zik2_request_info (zik2, ZIK2_API_AUDIO_SOURCE_PATH,
+      ZIK2_SOURCE_INFO_TYPE);
   if (info == NULL) {
-    g_warning ("<source> not found");
-    goto out;
+    g_warning ("failed to get audio source");
+    return;
   }
 
   g_free (zik2->priv->source);
   zik2->priv->source = g_strdup (info->type);
-
-out:
-  if (reply)
-    zik2_request_reply_data_free (reply);
+  zik2_source_info_free (info);
 }
 
 static void
 zik2_get_battery (Zik2 * zik2)
 {
-  Zik2RequestReplyData *reply = NULL;
   Zik2BatteryInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_SYSTEM_BATTERY_PATH, &reply)) {
-    g_warning ("failed to get system battery");
-    goto out;
-  }
-
-  info = zik2_request_reply_data_find_node_info (reply, ZIK2_BATTERY_INFO_TYPE);
+  info = zik2_request_info (zik2, ZIK2_API_SYSTEM_BATTERY_PATH,
+      ZIK2_BATTERY_INFO_TYPE);
   if (info == NULL) {
-    g_warning ("<battery> not found");
-    goto out;
+    g_warning ("failed to get system battery");
+    return;
   }
 
   g_free (zik2->priv->battery_state);
   zik2->priv->battery_state = g_strdup (info->state);
   zik2->priv->battery_percentage = info->percent;
-
-out:
-  if (reply)
-    zik2_request_reply_data_free (reply);
+  zik2_battery_info_free (info);
 }
 
 static void
 zik2_get_volume (Zik2 * zik2)
 {
-  Zik2RequestReplyData *reply = NULL;
   Zik2VolumeInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_AUDIO_VOLUME_PATH, &reply)) {
+  info = zik2_request_info (zik2, ZIK2_API_AUDIO_VOLUME_PATH,
+      ZIK2_VOLUME_INFO_TYPE);
+  if (info == NULL) {
     g_warning ("failed to get audio volume");
     return;
   }
 
-  info = zik2_request_reply_data_find_node_info (reply, ZIK2_VOLUME_INFO_TYPE);
-  if (info == NULL) {
-    g_warning ("<volume> not found");
-    goto out;
-  }
-
   zik2->priv->volume = info->volume;
-
-out:
-  zik2_request_reply_data_free (reply);
+  zik2_volume_info_free (info);
 }
 
 static void
 zik2_get_head_detection (Zik2 * zik2)
 {
-  Zik2RequestReplyData *reply;
   Zik2HeadDetectionInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2,
-        ZIK2_API_SYSTEM_HEAD_DETECTION_ENABLED_PATH, &reply)) {
+  info = zik2_request_info (zik2, ZIK2_API_SYSTEM_HEAD_DETECTION_ENABLED_PATH,
+    ZIK2_HEAD_DETECTION_INFO_TYPE);
+  if (info == NULL) {
     g_warning ("failed to get head detection");
     return;
   }
 
-  info = zik2_request_reply_data_find_node_info (reply,
-      ZIK2_HEAD_DETECTION_INFO_TYPE);
-  if (info == NULL) {
-    g_warning ("<head_detection> not found");
-    goto out;
-  }
-
   zik2->priv->head_detection = info->enabled;
-
-out:
-  zik2_request_reply_data_free (reply);
+  zik2_head_detection_info_free (info);
 }
 
 static gboolean
@@ -558,48 +514,33 @@ zik2_set_head_detection (Zik2 * zik2, gboolean active)
 static void
 zik2_get_color (Zik2 * zik2)
 {
-  Zik2RequestReplyData *reply;
   Zik2ColorInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_SYSTEM_COLOR_PATH, &reply)) {
+  info = zik2_request_info (zik2, ZIK2_API_SYSTEM_COLOR_PATH,
+      ZIK2_COLOR_INFO_TYPE);
+  if (info == NULL) {
     g_warning ("failed to get color");
     return;
   }
 
-  info = zik2_request_reply_data_find_node_info (reply, ZIK2_COLOR_INFO_TYPE);
-  if (info == NULL) {
-    g_warning ("<color> not found");
-    goto out;
-  }
-
   zik2->priv->color = info->value;
-
-out:
-  zik2_request_reply_data_free (reply);
+  zik2_color_info_free (info);
 }
 
 static void
 zik2_get_flight_mode (Zik2 * zik2)
 {
-  Zik2RequestReplyData *reply;
   Zik2FlightModeInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_FLIGHT_MODE_PATH, &reply)) {
+  info = zik2_request_info (zik2, ZIK2_API_FLIGHT_MODE_PATH,
+      ZIK2_FLIGHT_MODE_INFO_TYPE);
+  if (info == NULL) {
     g_warning ("failed to get flight mode");
     return;
   }
 
-  info = zik2_request_reply_data_find_node_info (reply,
-      ZIK2_FLIGHT_MODE_INFO_TYPE);
-  if (info == NULL) {
-    g_warning ("<flight_mode> not found");
-    goto out;
-  }
-
   zik2->priv->flight_mode = info->enabled;
-
-out:
-  zik2_request_reply_data_free (reply);
+  zik2_flight_mode_info_free (info);
 }
 
 static gboolean
@@ -622,27 +563,18 @@ zik2_set_flight_mode (Zik2 * zik2, gboolean active)
 static void
 zik2_get_friendlyname (Zik2 * zik2)
 {
-  Zik2RequestReplyData *reply;
   Zik2BluetoothInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_BLUETOOTH_FRIENDLY_NAME_PATH,
-        &reply)) {
-    g_warning ("failed to get flight mode");
-    return;
-  }
-
-  info = zik2_request_reply_data_find_node_info (reply,
+  info = zik2_request_info (zik2, ZIK2_API_BLUETOOTH_FRIENDLY_NAME_PATH,
       ZIK2_BLUETOOTH_INFO_TYPE);
   if (info == NULL) {
-    g_warning ("<friendlyname> not found");
-    goto out;
+    g_warning ("failed to get friendly name");
+    return;
   }
 
   g_free (zik2->priv->friendlyname);
   zik2->priv->friendlyname = g_strdup (info->friendlyname);
-
-out:
-  zik2_request_reply_data_free (reply);
+  zik2_bluetooth_info_free (info);
 }
 
 static gboolean
