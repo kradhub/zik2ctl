@@ -536,10 +536,10 @@ check_arguments (void)
   }
 
   if (head_detection_switch)
-    ret = check_switch_argument (head_detection_switch, "head_detection_switch");
+    ret = check_switch_argument (head_detection_switch, "set-head-detection");
 
   if (flight_mode_switch)
-    ret = check_switch_argument (flight_mode_switch, "flight_mode_switch");
+    ret = check_switch_argument (flight_mode_switch, "set-flight-mode");
 
   if (sound_effect_switch)
     ret = check_switch_argument (sound_effect_switch, "set-sound-effect");
