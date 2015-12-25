@@ -43,6 +43,9 @@ static gchar *get_uri = NULL;
 static gchar *head_detection_switch = NULL;
 static gchar *flight_mode_switch = NULL;
 static gchar *friendlyname = NULL;
+static gchar *sound_effect_switch = NULL;
+static gchar *sound_effect_room = NULL;
+static gint sound_effect_angle = -1;
 
 static GOptionEntry entries[] = {
   { "list", 'l', 0, G_OPTION_ARG_NONE, &list_devices, "List Zik2 devices paired", NULL },
@@ -53,6 +56,9 @@ static GOptionEntry entries[] = {
   { "set-head-detection", 0, 0, G_OPTION_ARG_STRING, &head_detection_switch, "Enable the head detection", "<on|off>" },
   { "set-flight-mode", 0, 0, G_OPTION_ARG_STRING, &flight_mode_switch, "Enable/Disable flight mode", "<on|off>" },
   { "set-friendlyname", 0, 0, G_OPTION_ARG_STRING, &friendlyname, "Set the name used to generate bluetooth name", NULL },
+  { "set-sound-effect", 0, 0, G_OPTION_ARG_STRING, &sound_effect_switch, "Enable/Disable sound effect (Concert Hall)", "<on|off>" },
+  { "set-sound-effect-room", 0, 0, G_OPTION_ARG_STRING, &sound_effect_room, "Select room type for Concert Hall", "<silent|living|jazz|concert>" },
+  { "set-sound-effect-angle", 0, 0, G_OPTION_ARG_INT, &sound_effect_angle, "Set the angle for sound effect (Concert Hall)", "<30|60|90|120|150|180>" },
   { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
   { "get-uri", 0, 0, G_OPTION_ARG_STRING, &get_uri, "Get uri and print reply", "/api/..." },
   { NULL, 0, 0, 0, NULL, NULL, NULL }
@@ -209,6 +215,9 @@ show_zik2 (Zik2 * zik2)
   Zik2Color color;
   gboolean flight_mode;
   gchar *friendlyname;
+  gboolean sound_effect;
+  Zik2SoundEffectRoom sound_effect_room;
+  guint sound_effect_angle;
 
   g_object_get (zik2, "serial", &serial,
       "noise-control", &nc_enabled,
@@ -223,12 +232,19 @@ show_zik2 (Zik2 * zik2)
       "color", &color,
       "flight-mode", &flight_mode,
       "friendlyname", &friendlyname,
+      "sound-effect", &sound_effect,
+      "sound-effect-room", &sound_effect_room,
+      "sound-effect-angle", &sound_effect_angle,
       NULL);
 
   g_print ("audio:\n");
   g_print ("  noise control          : %s\n", nc_enabled ? "on" : "off");
   g_print ("  noise control mode     : %s\n", nc_mode_str (noise_control_mode));
   g_print ("  noise control strength : %u\n", noise_control_strength);
+  g_print ("  sound effect           : %s\n", sound_effect ? "on" : "off");
+  g_print ("  sound effect room      : %s\n",
+      zik2_sound_effect_room_name (sound_effect_room));
+  g_print ("  sound effect angle     : %u\n", sound_effect_angle);
   g_print ("  source                 : %s\n", source);
   g_print ("  volume (raw)           : %u\n", volume);
 
@@ -340,6 +356,46 @@ set_friendly_name (Zik2 * zik2)
   return TRUE;
 }
 
+static gboolean
+set_sound_effect_room (Zik2 * zik2)
+{
+  Zik2SoundEffectRoom req_mode;
+  Zik2SoundEffectRoom mode;
+
+  req_mode = zik2_sound_effect_room_from_string (sound_effect_room);
+  if (req_mode == ZIK2_SOUND_EFFECT_ROOM_UNKNOWN)
+    return FALSE;
+
+  g_print ("Setting sound effect room to %s\n", sound_effect_room);
+  g_object_set (zik2, "sound-effect-room", req_mode, NULL);
+  g_object_get (zik2, "sound-effect-room", &mode, NULL);
+
+  if (mode != req_mode) {
+    g_printerr ("failed to set sound effect room to %s\n", sound_effect_room);
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+static gboolean
+set_sound_effect_angle (Zik2 * zik2)
+{
+  guint req_value = sound_effect_angle;
+  guint value;
+
+  g_print ("Setting sound_effect_angle to %u\n", sound_effect_angle);
+  g_object_set (zik2, "sound-effect-angle", req_value, NULL);
+  g_object_get (zik2, "sound-effect-angle", &value, NULL);
+
+  if (value != req_value) {
+    g_printerr ("failed to set sound effect angle to %u\n", sound_effect_angle);
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
 static void
 on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
 {
@@ -380,6 +436,19 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
 
   if (friendlyname)
     set_friendly_name (zik2);
+
+  if (sound_effect_switch) {
+    g_print ("Setting sound effect to %s\n", sound_effect_switch);
+    if (!set_boolean_property_from_string (zik2, "sound-effect",
+          sound_effect_switch))
+      g_printerr ("Failed to set sound effect");
+  }
+
+  if (sound_effect_room)
+    set_sound_effect_room (zik2);
+
+  if (sound_effect_angle > 0)
+    set_sound_effect_angle (zik2);
 
   if (dump_api_xml) {
     for (i = 0; zik2_api[i].name != NULL; i++) {
@@ -471,6 +540,30 @@ check_arguments (void)
 
   if (flight_mode_switch)
     ret = check_switch_argument (flight_mode_switch, "flight_mode_switch");
+
+  if (sound_effect_switch)
+    ret = check_switch_argument (sound_effect_switch, "set-sound-effect");
+
+  if (sound_effect_room) {
+    /* valid values: silent, living, jazz, concert */
+    if (g_strcmp0 (sound_effect_room, "silent") != 0 &&
+        g_strcmp0 (sound_effect_room, "living") != 0 &&
+        g_strcmp0 (sound_effect_room, "jazz") != 0 &&
+        g_strcmp0 (sound_effect_room, "concert") != 0) {
+      g_printerr ("unrecognized 'set-sound-effect-room' value\n");
+      ret = FALSE;
+    }
+  }
+
+  if (sound_effect_angle != -1) {
+    /* valid values: 30, 60, 90, 120, 150, 180 */
+    if (sound_effect_angle != 30 && sound_effect_angle != 60 &&
+        sound_effect_angle != 90 && sound_effect_angle != 120 &&
+        sound_effect_angle != 150 && sound_effect_angle != 180) {
+      g_printerr ("unrecognized 'set-sound-effect-angle' value\n");
+      ret = FALSE;
+    }
+  }
 
   return ret;
 }
