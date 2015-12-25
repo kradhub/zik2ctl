@@ -40,6 +40,7 @@ static gchar *noise_control_switch = NULL;
 static gchar *noise_control_mode = NULL;
 static gint noise_control_strength = 0;
 static gchar *get_uri = NULL;
+static gchar *head_detection_switch = NULL;
 
 static GOptionEntry entries[] = {
   { "list", 'l', 0, G_OPTION_ARG_NONE, &list_devices, "List Zik2 devices paired", NULL },
@@ -47,6 +48,7 @@ static GOptionEntry entries[] = {
   { "set-noise-control", 0, 0, G_OPTION_ARG_STRING, &noise_control_switch, "Enable the noise control", "<on|off>" },
   { "set-noise-control-mode", 0, 0, G_OPTION_ARG_STRING, &noise_control_mode, "Select noise control mode (anc: noise cancelling, aoc: street mode)", "<off|anc|aoc>" },
   { "set-noise-control-strength", 0, 0, G_OPTION_ARG_INT, &noise_control_strength, "Select noise control strength", "<1|2>" },
+  { "set-head-detection", 0, 0, G_OPTION_ARG_STRING, &head_detection_switch, "Enable the head detection", "<on|off>" },
   { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
   { "get-uri", 0, 0, G_OPTION_ARG_STRING, &get_uri, "Get uri and print reply", "/api/..." },
   { NULL, 0, 0, 0, NULL, NULL, NULL }
@@ -184,6 +186,7 @@ show_zik2 (Zik2 * zik2)
   Zik2NoiseControlMode noise_control_mode;
   guint noise_control_strength;
   guint volume;
+  gboolean head_detection;
 
   g_object_get (zik2, "serial", &serial,
       "noise-control-enabled", &nc_enabled,
@@ -194,6 +197,7 @@ show_zik2 (Zik2 * zik2)
       "noise-control-mode", &noise_control_mode,
       "noise-control-strength", &noise_control_strength,
       "volume", &volume,
+      "enable-head-detection", &head_detection,
       NULL);
 
   g_print ("audio:\n");
@@ -209,6 +213,7 @@ show_zik2 (Zik2 * zik2)
   g_print ("\nsystem:\n");
   g_print ("  battery state          : %s (remaining: %u%%)\n", bat_state,
       bat_percent);
+  g_print ("  head detection enabled : %s\n", head_detection ? "true" : "false");
   g_print ("  serial-number          : %s\n", serial);
 
   g_free (serial);
@@ -289,6 +294,32 @@ set_noise_control_strength (Zik2 * zik2)
   return TRUE;
 }
 
+static gboolean
+set_head_detection (Zik2 * zik2)
+{
+  gboolean req_value;
+  gboolean value;
+
+  if (g_strcmp0 (head_detection_switch, "on") == 0)
+    req_value = TRUE;
+  else if (g_strcmp0 (head_detection_switch, "off") == 0)
+    req_value = FALSE;
+  else
+    return FALSE;
+
+  g_print ("%s head detection\n", req_value ? "Enabling" : "Disabling");
+  g_object_set (zik2, "enable-head-detection", req_value, NULL);
+  g_object_get (zik2, "enable-head-detection", &value, NULL);
+
+  if (value != req_value) {
+    g_printerr ("failed to %s head-detection\n",
+        req_value ? "enable" : "disable");
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
 static void
 on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
 {
@@ -308,6 +339,9 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
 
   if (noise_control_strength)
     set_noise_control_strength (zik2);
+
+  if (head_detection_switch)
+    set_head_detection (zik2);
 
   if (dump_api_xml) {
     for (i = 0; zik2_api[i].name != NULL; i++) {
@@ -385,6 +419,15 @@ check_arguments (void)
   if (noise_control_strength) {
     if (noise_control_strength < 1 && noise_control_strength > 2) {
       g_printerr ("unrecognized 'set-noise-control-strength' value\n");
+      ret = FALSE;
+    }
+  }
+
+  if (head_detection_switch) {
+    /* valid values: on, off */
+    if (g_strcmp0 (head_detection_switch, "on") != 0 &&
+        g_strcmp0 (head_detection_switch, "off")) {
+      g_printerr ("unrecognized 'head_detection_switch' value\n");
       ret = FALSE;
     }
   }
