@@ -42,6 +42,7 @@ enum
   PROP_VOLUME,
   PROP_ENABLE_HEAD_DETECTION,
   PROP_COLOR,
+  PROP_FLIGHT_MODE,
 };
 
 struct _Zik2Private
@@ -65,6 +66,9 @@ struct _Zik2Private
   Zik2Color color;
   gboolean enable_head_detection;
   gchar *serial;
+
+  /* others */
+  gboolean flight_mode;
 };
 
 #define ZIK2_NOISE_CONTROL_MODE_TYPE (zik2_noise_control_mode_get_type ())
@@ -192,6 +196,11 @@ zik2_class_init (Zik2Class * klass)
   g_object_class_install_property (gobject_class, PROP_COLOR,
       g_param_spec_enum ("color", "Color", "Zik2 color", ZIK2_COLOR_TYPE,
         ZIK2_COLOR_UNKNOWN, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_FLIGHT_MODE,
+      g_param_spec_boolean ("flight-mode", "Flight mode",
+          "Whether or not flight mode is active", FALSE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -561,6 +570,47 @@ out:
 }
 
 static void
+zik2_get_flight_mode (Zik2 * zik2)
+{
+  Zik2RequestReplyData *reply;
+  Zik2FlightModeInfo *info;
+
+  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_FLIGHT_MODE_PATH, &reply)) {
+    g_warning ("failed to get flight mode");
+    return;
+  }
+
+  info = zik2_request_reply_data_find_node_info (reply,
+      ZIK2_FLIGHT_MODE_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("<flight_mode> not found");
+    goto out;
+  }
+
+  zik2->priv->flight_mode = info->enabled;
+
+out:
+  zik2_request_reply_data_free (reply);
+}
+
+static gboolean
+zik2_set_flight_mode (Zik2 * zik2, gboolean active)
+{
+  Zik2Message *msg;
+  gboolean ret;
+
+  if (active)
+    msg = zik2_message_new_request (ZIK2_API_FLIGHT_MODE_PATH, "enable", NULL);
+  else
+    msg = zik2_message_new_request (ZIK2_API_FLIGHT_MODE_PATH, "disable", NULL);
+
+  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
+  zik2_message_free (msg);
+
+  return ret;
+}
+
+static void
 zik2_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec *pspec)
 {
@@ -612,6 +662,10 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_COLOR:
       zik2_get_color (zik2);
       g_value_set_enum (value, priv->color);
+      break;
+    case PROP_FLIGHT_MODE:
+      zik2_get_flight_mode (zik2);
+      g_value_set_boolean (value, priv->flight_mode);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -677,6 +731,17 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
           priv->enable_head_detection = tmp;
         else
           g_warning ("failed to enable/disable head detection");
+      }
+      break;
+    case PROP_FLIGHT_MODE:
+      {
+        gboolean tmp;
+
+        tmp = g_value_get_boolean (value);
+        if (zik2_set_flight_mode (zik2, tmp))
+          priv->flight_mode = tmp;
+        else
+          g_warning ("failed to enable/disable flight mode");
       }
       break;
     default:

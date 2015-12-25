@@ -27,6 +27,7 @@ static Zik2BatteryInfo *zik2_battery_info_copy (Zik2BatteryInfo * info);
 static Zik2VolumeInfo *zik2_volume_info_copy (Zik2VolumeInfo * info);
 static Zik2HeadDetectionInfo *zik2_head_detection_info_copy (Zik2HeadDetectionInfo * info);
 static Zik2ColorInfo *zik2_color_info_copy (Zik2ColorInfo * info);
+static Zik2FlightModeInfo *zik2_flight_mode_info_copy (Zik2FlightModeInfo * info);
 
 
 #define ZIK2_DEFINE_BOXED_TYPE(TypeName, type_name) \
@@ -42,6 +43,7 @@ ZIK2_DEFINE_BOXED_TYPE (Zik2BatteryInfo, zik2_battery_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2VolumeInfo, zik2_volume_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2HeadDetectionInfo, zik2_head_detection_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2ColorInfo, zik2_color_info);
+ZIK2_DEFINE_BOXED_TYPE (Zik2FlightModeInfo, zik2_flight_mode_info);
 
 Zik2AnswerInfo *
 zik2_answer_info_new (const gchar * path, gboolean error)
@@ -285,4 +287,27 @@ void
 zik2_color_info_free (Zik2ColorInfo * info)
 {
   g_slice_free (Zik2ColorInfo, info);
+}
+
+Zik2FlightModeInfo *
+zik2_flight_mode_info_new (gboolean enabled)
+{
+  Zik2FlightModeInfo *info;
+
+  info = g_slice_new0 (Zik2FlightModeInfo);
+  info->itype = ZIK2_FLIGHT_MODE_INFO_TYPE;
+  info->enabled = enabled;
+  return info;
+}
+
+static Zik2FlightModeInfo *
+zik2_flight_mode_info_copy (Zik2FlightModeInfo * info)
+{
+  return zik2_flight_mode_info_new (info->enabled);
+}
+
+void
+zik2_flight_mode_info_free (Zik2FlightModeInfo * info)
+{
+  g_slice_free (Zik2FlightModeInfo, info);
 }
