@@ -246,27 +246,24 @@ show_zik2 (Zik2 * zik2)
 }
 
 static gboolean
-set_noise_control (Zik2 * zik2)
+set_boolean_property_from_string (Zik2 * zik2, const gchar * property,
+    const gchar * value_str)
 {
   gboolean req_value;
   gboolean value;
 
-  if (g_strcmp0 (noise_control_switch, "on") == 0)
+  if (g_strcmp0 (value_str, "on") == 0)
     req_value = TRUE;
-  else if (g_strcmp0 (noise_control_switch, "off") == 0)
+  else if (g_strcmp0 (value_str, "off") == 0)
     req_value = FALSE;
   else
     return FALSE;
 
-  g_print ("%s noise control\n", req_value ? "Enabling" : "Disabling");
-  g_object_set (zik2, "noise-control-enabled", req_value, NULL);
-  g_object_get (zik2, "noise-control-enabled", &value, NULL);
+  g_object_set (zik2, property, req_value, NULL);
+  g_object_get (zik2, property, &value, NULL);
 
-  if (value != req_value) {
-    g_printerr ("failed to %s noise control\n",
-        req_value ? "enable" : "disable");
+  if (value != req_value)
     return FALSE;
-  }
 
   return TRUE;
 }
@@ -317,57 +314,6 @@ set_noise_control_strength (Zik2 * zik2)
   return TRUE;
 }
 
-static gboolean
-set_head_detection (Zik2 * zik2)
-{
-  gboolean req_value;
-  gboolean value;
-
-  if (g_strcmp0 (head_detection_switch, "on") == 0)
-    req_value = TRUE;
-  else if (g_strcmp0 (head_detection_switch, "off") == 0)
-    req_value = FALSE;
-  else
-    return FALSE;
-
-  g_print ("%s head detection\n", req_value ? "Enabling" : "Disabling");
-  g_object_set (zik2, "enable-head-detection", req_value, NULL);
-  g_object_get (zik2, "enable-head-detection", &value, NULL);
-
-  if (value != req_value) {
-    g_printerr ("failed to %s head-detection\n",
-        req_value ? "enable" : "disable");
-    return FALSE;
-  }
-
-  return TRUE;
-}
-
-static gboolean
-set_flight_mode (Zik2 * zik2)
-{
-  gboolean req_value;
-  gboolean value;
-
-  if (g_strcmp0 (flight_mode_switch, "on") == 0)
-    req_value = TRUE;
-  else if (g_strcmp0 (flight_mode_switch, "off") == 0)
-    req_value = FALSE;
-  else
-    return FALSE;
-
-  g_print ("%s flight mode\n", req_value ? "Enabling" : "Disabling");
-  g_object_set (zik2, "flight-mode", req_value, NULL);
-  g_object_get (zik2, "flight-mode", &value, NULL);
-
-  if (value != req_value) {
-    g_printerr ("failed to %s flight mode\n", req_value ? "enable" : "disable");
-    return FALSE;
-  }
-
-  return TRUE;
-}
-
 static void
 on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
 {
@@ -379,8 +325,12 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
   g_free (name);
 
   /* process set request from user */
-  if (noise_control_switch)
-    set_noise_control (zik2);
+  if (noise_control_switch) {
+    g_print ("Setting noise control to %s\n", noise_control_switch);
+    if (!set_boolean_property_from_string (zik2, "noise-control-enabled",
+        noise_control_switch))
+      g_printerr ("Failed to set noise control");
+  }
 
   if (noise_control_mode)
     set_noise_control_mode (zik2);
@@ -388,11 +338,19 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
   if (noise_control_strength)
     set_noise_control_strength (zik2);
 
-  if (head_detection_switch)
-    set_head_detection (zik2);
+  if (head_detection_switch) {
+    g_print ("Setting head detection to %s\n", head_detection_switch);
+    if (!set_boolean_property_from_string (zik2, "enable-head-detection",
+          head_detection_switch))
+      g_printerr ("Failed to set head detection");
+  }
 
-  if (flight_mode_switch)
-    set_flight_mode (zik2);
+  if (flight_mode_switch) {
+    g_print ("Setting flight mode to %s\n", flight_mode_switch);
+    if (!set_boolean_property_from_string (zik2, "flight-mode",
+          flight_mode_switch))
+      g_printerr ("Failed to set flight mode");
+  }
 
   if (dump_api_xml) {
     for (i = 0; zik2_api[i].name != NULL; i++) {
