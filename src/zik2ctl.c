@@ -42,6 +42,7 @@ static gint noise_control_strength = 0;
 static gchar *get_uri = NULL;
 static gchar *head_detection_switch = NULL;
 static gchar *flight_mode_switch = NULL;
+static gchar *friendlyname = NULL;
 
 static GOptionEntry entries[] = {
   { "list", 'l', 0, G_OPTION_ARG_NONE, &list_devices, "List Zik2 devices paired", NULL },
@@ -51,6 +52,7 @@ static GOptionEntry entries[] = {
   { "set-noise-control-strength", 0, 0, G_OPTION_ARG_INT, &noise_control_strength, "Select noise control strength", "<1|2>" },
   { "set-head-detection", 0, 0, G_OPTION_ARG_STRING, &head_detection_switch, "Enable the head detection", "<on|off>" },
   { "set-flight-mode", 0, 0, G_OPTION_ARG_STRING, &flight_mode_switch, "Enable/Disable flight mode", "<on|off>" },
+  { "set-friendlyname", 0, 0, G_OPTION_ARG_STRING, &friendlyname, "Set the name used to generate bluetooth name", NULL },
   { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
   { "get-uri", 0, 0, G_OPTION_ARG_STRING, &get_uri, "Get uri and print reply", "/api/..." },
   { NULL, 0, 0, 0, NULL, NULL, NULL }
@@ -206,6 +208,7 @@ show_zik2 (Zik2 * zik2)
   gboolean head_detection;
   Zik2Color color;
   gboolean flight_mode;
+  gchar *friendlyname;
 
   g_object_get (zik2, "serial", &serial,
       "noise-control", &nc_enabled,
@@ -219,6 +222,7 @@ show_zik2 (Zik2 * zik2)
       "head-detection", &head_detection,
       "color", &color,
       "flight-mode", &flight_mode,
+      "friendlyname", &friendlyname,
       NULL);
 
   g_print ("audio:\n");
@@ -238,11 +242,13 @@ show_zik2 (Zik2 * zik2)
   g_print ("  flight mode            : %s\n", flight_mode ? "on" : "off");
   g_print ("  head detection         : %s\n", head_detection ? "on" : "off");
   g_print ("  serial-number          : %s\n", serial);
+  g_print ("  friendlyname           : %s\n", friendlyname);
 
   g_free (serial);
   g_free (sw_version);
   g_free (source);
   g_free (bat_state);
+  g_free (friendlyname);
 }
 
 static gboolean
@@ -314,6 +320,26 @@ set_noise_control_strength (Zik2 * zik2)
   return TRUE;
 }
 
+static gboolean
+set_friendly_name (Zik2 * zik2)
+{
+  gchar *req_value = friendlyname;
+  gchar *value;
+
+  g_print ("Setting friendlyname to '%s'\n", req_value);
+  g_object_set (zik2, "friendlyname", req_value, NULL);
+  g_object_get (zik2, "friendlyname", &value, NULL);
+
+  if (g_strcmp0 (value, req_value)) {
+     g_printerr ("failed to set friendlyname to %s\n", req_value);
+     g_free (value);
+     return FALSE;
+  }
+
+  g_free (value);
+  return TRUE;
+}
+
 static void
 on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
 {
@@ -351,6 +377,9 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
           flight_mode_switch))
       g_printerr ("Failed to set flight mode");
   }
+
+  if (friendlyname)
+    set_friendly_name (zik2);
 
   if (dump_api_xml) {
     for (i = 0; zik2_api[i].name != NULL; i++) {
