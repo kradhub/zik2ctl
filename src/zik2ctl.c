@@ -222,7 +222,7 @@ show_zik2 (Zik2 * zik2)
       NULL);
 
   g_print ("audio:\n");
-  g_print ("  noise control enabled  : %s\n", nc_enabled ? "true" : "false");
+  g_print ("  noise control          : %s\n", nc_enabled ? "on" : "off");
   g_print ("  noise control mode     : %s\n", nc_mode_str (noise_control_mode));
   g_print ("  noise control strength : %u\n", noise_control_strength);
   g_print ("  source                 : %s\n", source);
@@ -236,7 +236,7 @@ show_zik2 (Zik2 * zik2)
       bat_percent);
   g_print ("  color                  : %s\n", color_str (color));
   g_print ("  flight mode            : %s\n", flight_mode ? "on" : "off");
-  g_print ("  head detection enabled : %s\n", head_detection ? "true" : "false");
+  g_print ("  head detection         : %s\n", head_detection ? "on" : "off");
   g_print ("  serial-number          : %s\n", serial);
 
   g_free (serial);
