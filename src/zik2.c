@@ -21,6 +21,7 @@
 #include "zik2connection.h"
 #include "zik2message.h"
 #include "zik2info.h"
+#include "zik2api.h"
 
 #define UNKNOWN_STR "unknown"
 #define DEFAULT_NOISE_CONTROL_STRENGTH 1
@@ -206,7 +207,7 @@ zik2_get_serial (Zik2 * zik2)
   Zik2RequestReplyData *reply = NULL;
   Zik2SystemInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2, API_SYSTEM_PI_URI, &reply)) {
+  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_SYSTEM_PI_PATH, &reply)) {
     g_warning ("failed to get serial");
     goto out;
   }
@@ -231,7 +232,7 @@ zik2_get_noise_control (Zik2 * zik2)
   Zik2RequestReplyData *reply = NULL;
   Zik2NoiseControlInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2, API_AUDIO_NOISE_CONTROL_ENABLED_URI,
+  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_AUDIO_NOISE_CONTROL_ENABLED_PATH,
         &reply)) {
     g_warning ("failed to get noise control status");
     goto out;
@@ -257,7 +258,7 @@ zik2_set_noise_control (Zik2 * zik2, gboolean active)
   Zik2Message *msg;
   gboolean ret;
 
-  msg = zik2_message_new_request (API_AUDIO_NOISE_CONTROL_ENABLED_URI, "set",
+  msg = zik2_message_new_request (ZIK2_API_AUDIO_NOISE_CONTROL_ENABLED_PATH, "set",
       active ? "true" : "false");
   ret = zik2_connection_send_message (zik2->conn, msg, NULL);
   zik2_message_free (msg);
@@ -273,7 +274,7 @@ zik2_get_noise_control_mode_and_strength (Zik2 * zik2)
   GEnumClass *klass;
   GEnumValue *mode;
 
-  if (!zik2_get_and_parse_reply (zik2, API_AUDIO_NOISE_CONTROL_URI,
+  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_AUDIO_NOISE_CONTROL_PATH,
         &reply)) {
     g_warning ("failed to get noise control status");
     goto out;
@@ -324,7 +325,7 @@ zik2_set_noise_control_mode_and_strength (Zik2 * zik2,
   }
 
   args = g_strdup_printf ("%s&value=%u", type, strength);
-  msg = zik2_message_new_request (API_AUDIO_NOISE_CONTROL_URI, "set", args);
+  msg = zik2_message_new_request (ZIK2_API_AUDIO_NOISE_CONTROL_PATH, "set", args);
   g_free (args);
 
   ret = zik2_connection_send_message (zik2->conn, msg, NULL);
@@ -339,7 +340,7 @@ zik2_get_software_version (Zik2 * zik2)
   Zik2RequestReplyData *reply = NULL;
   Zik2SoftwareInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2, API_SOFTWARE_VERSION_URI, &reply)) {
+  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_SOFTWARE_VERSION_PATH, &reply)) {
     g_warning ("failed to get software");
     goto out;
   }
@@ -365,7 +366,7 @@ zik2_get_source (Zik2 * zik2)
   Zik2RequestReplyData *reply = NULL;
   Zik2SourceInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2, API_AUDIO_SOURCE_URI, &reply)) {
+  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_AUDIO_SOURCE_PATH, &reply)) {
     g_warning ("failed to get audio source");
     goto out;
   }
@@ -390,7 +391,7 @@ zik2_get_battery (Zik2 * zik2)
   Zik2RequestReplyData *reply = NULL;
   Zik2BatteryInfo *info;
 
-  if (!zik2_get_and_parse_reply (zik2, API_SYSTEM_BATTERY_URI, &reply)) {
+  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_SYSTEM_BATTERY_PATH, &reply)) {
     g_warning ("failed to get system battery");
     goto out;
   }

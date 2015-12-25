@@ -21,37 +21,6 @@
 #include <glib.h>
 #include <glib-object.h>
 
-#define API_AUDIO_TRACK_METADATA_URI "/api/audio/track/metadata"
-#define API_URI "/api"
-#define API_AUDIO_NOISE_CONTROL_ENABLED_URI "/api/audio/noise_control/enabled"
-#define API_AUDIO_NOISE_CONTROL_URI "/api/audio/noise_control"
-#define API_AUDIO_NOISE_CONTROL_PHONE_MODE_URI "/api/audio/noise_control/phone_mode"
-#define API_AUDIO_NOISE_CANCELLATION_ENABLE_URI "api/audio/noise_cancellation/enabled"
-#define API_AUDIO_THUMB_EQUALIZER_VALUE_URI "/api/audio/thumb_equalizer/value"
-#define API_AUDIO_EQUALIZED_ENABLED_URI "/api/audio/equalizer/enabled"
-#define API_AUDIO_SMART_AUDIO_TUNE_URI "/api/audio/smart_audio_tune"
-#define API_AUDIO_PRESET_BYPASS_URI "/api/audio/preset/bypass"
-#define API_AUDIO_PRESET_CURRENT_URI "/api/audio/preset/current"
-#define API_AUDIO_SOUND_EFFECT_ENABLED_URI "/api/audio/sound_effect/enabled"
-#define API_AUDIO_SOUND_EFFECT_URI "/api/audio/sound_effect"
-#define API_AUDIO_NOISE_URI "/api/audio/noise"
-#define API_AUDIO_VOLUME_URI "/api/audio/volume"
-#define API_AUDIO_SOURCE_URI "/api/audio/source"
-
-#define API_SOFTWARE_VERSION_URI "/api/software/version"
-
-#define API_BLUETOOTH_FRIENDLY_NAME_URI "/api/bluetooth/friendlyname"
-
-#define API_SYSTEM_BATTERY_URI "/api/system/battery"
-#define API_SYSTEM_BATTERY_FORECAST_URI "/api/system/battery/forecast"
-#define API_SYSTEM_AUTO_CONNECTION_ENABLED_URI "/api/system/auto_connection/enabled"
-#define API_SYSTEM_ANC_PHONE_MODE_ENABLED_URI "/api/system/anc_phone_mode/enabled"
-#define API_SYSTEM_DEVICE_TYPE_URI "/api/system/device_type"
-#define API_SYSTEM_COLOR_URI "/api/system/color"
-#define API_SYSTEM_PI_URI "/api/system/pi"
-#define API_SYSTEM_HEAD_DETECTION_ENABLED_URI "/api/system/head_detection/enabled"
-#define API_SYSTEM_FLIGHT_MODE_URI "/api/flight_mode"
-
 G_BEGIN_DECLS
 
 typedef struct _Zik2Message Zik2Message;
