@@ -33,8 +33,6 @@
 #define BLUEZ_ADAPTER_IFACE "org.bluez.Adapter1"
 #define BLUEZ_DEVICE_IFACE "org.bluez.Device1"
 
-#define ZIK2_UUID "8b6814d3-6ce7-4498-9700-9312c1711f63"
-
 static gboolean list_devices = FALSE;
 static gchar *device_addr = NULL;
 static gboolean dump_api_xml = FALSE;
@@ -111,7 +109,7 @@ zik2_device_list_new (GDBusObjectManager * manager)
     device = BLUETOOTH_DEVICE1 (interface);
 
     uuids = bluetooth_device1_get_uuids (device);
-    if (g_strv_contains (uuids, ZIK2_UUID)) {
+    if (g_strv_contains (uuids, ZIK2_PROFILE_UUID)) {
       list = g_slist_prepend (list, device);
     }
   }
@@ -471,7 +469,7 @@ main (int argc, char *argv[])
      * so through the main loop */
     g_print ("connecting to Zik2 device '%s'\n",
         bluetooth_device1_get_name (device));
-    bluetooth_device1_call_connect_profile (device, ZIK2_UUID, NULL,
+    bluetooth_device1_call_connect_profile (device, ZIK2_PROFILE_UUID, NULL,
         on_profile_connected, loop);
 
     g_main_loop_run (loop);
