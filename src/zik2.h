@@ -29,14 +29,12 @@ G_BEGIN_DECLS
 #define ZIK2_GET_CLASS(obj) \
   (G_TYPE_INSTANCE_GET_CLASS ((obj), ZIK2_TYPE, Zik2Class))
 
-enum _Zik2NoiseControlMode
-{
-  ZIK2_NOISE_CONTROL_MODE_OFF,
-  ZIK2_NOISE_CONTROL_MODE_ANC,
-  ZIK2_NOISE_CONTROL_MODE_AOC
-};
-
+typedef enum _Zik2Color Zik2Color;
 typedef enum _Zik2NoiseControlMode Zik2NoiseControlMode;
+
+typedef struct _Zik2Class Zik2Class;
+typedef struct _Zik2 Zik2;
+typedef struct _Zik2Private Zik2Private;
 
 enum _Zik2Color
 {
@@ -44,11 +42,13 @@ enum _Zik2Color
   ZIK2_COLOR_BLACK = 0x1,
   ZIK2_COLOR_BLUE = 0x2,
 };
-typedef enum _Zik2Color Zik2Color;
 
-typedef struct _Zik2Class Zik2Class;
-typedef struct _Zik2 Zik2;
-typedef struct _Zik2Private Zik2Private;
+enum _Zik2NoiseControlMode
+{
+  ZIK2_NOISE_CONTROL_MODE_OFF,
+  ZIK2_NOISE_CONTROL_MODE_ANC,
+  ZIK2_NOISE_CONTROL_MODE_AOC
+};
 
 struct _Zik2
 {
