@@ -29,6 +29,7 @@ static Zik2HeadDetectionInfo *zik2_head_detection_info_copy (Zik2HeadDetectionIn
 static Zik2ColorInfo *zik2_color_info_copy (Zik2ColorInfo * info);
 static Zik2FlightModeInfo *zik2_flight_mode_info_copy (Zik2FlightModeInfo * info);
 static Zik2BluetoothInfo *zik2_bluetooth_info_copy (Zik2BluetoothInfo * info);
+static Zik2SoundEffectInfo *zik2_sound_effect_info_copy (Zik2SoundEffectInfo * info);
 
 #define ZIK2_DEFINE_BOXED_TYPE(TypeName, type_name) \
   G_DEFINE_BOXED_TYPE (TypeName, type_name, type_name##_copy, type_name##_free)
@@ -45,6 +46,7 @@ ZIK2_DEFINE_BOXED_TYPE (Zik2HeadDetectionInfo, zik2_head_detection_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2ColorInfo, zik2_color_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2FlightModeInfo, zik2_flight_mode_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2BluetoothInfo, zik2_bluetooth_info);
+ZIK2_DEFINE_BOXED_TYPE (Zik2SoundEffectInfo, zik2_sound_effect_info);
 
 Zik2AnswerInfo *
 zik2_answer_info_new (const gchar * path, gboolean error)
@@ -335,4 +337,32 @@ zik2_bluetooth_info_free (Zik2BluetoothInfo * info)
 {
   g_free (info->friendlyname);
   g_slice_free (Zik2BluetoothInfo, info);
+}
+
+Zik2SoundEffectInfo *
+zik2_sound_effect_info_new (gboolean enabled, const gchar * room_size,
+    guint angle)
+{
+  Zik2SoundEffectInfo *info;
+
+  info = g_slice_new0 (Zik2SoundEffectInfo);
+  info->itype = ZIK2_SOUND_EFFECT_INFO_TYPE;
+  info->enabled = enabled;
+  info->room_size = g_strdup (room_size);
+  info->angle = angle;
+  return info;
+}
+
+static Zik2SoundEffectInfo *
+zik2_sound_effect_info_copy (Zik2SoundEffectInfo * info)
+{
+  return zik2_sound_effect_info_new (info->enabled, info->room_size,
+      info->angle);
+}
+
+void
+zik2_sound_effect_info_free (Zik2SoundEffectInfo * info)
+{
+  g_free (info->room_size);
+  g_slice_free (Zik2SoundEffectInfo, info);
 }

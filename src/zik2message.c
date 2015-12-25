@@ -279,6 +279,28 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
 
     data->parent = g_node_append_data (data->parent,
         zik2_bluetooth_info_new (value));
+  } else if (g_strcmp0 (element_name, "sound_effect") == 0) {
+    gboolean enabled;
+    const gchar *room_size;
+    const gchar *angle;
+
+    if (g_slist_length (stack) < 2 || g_strcmp0 (stack->next->data, "audio")) {
+      g_set_error_literal (error, G_MARKUP_ERROR,
+          G_MARKUP_ERROR_INVALID_CONTENT,
+          "<sound_effect> element should be embedded in <audio>");
+      return;
+    }
+
+    if (!g_markup_collect_attributes (element_name, attribute_names,
+          attribute_values, error,
+          G_MARKUP_COLLECT_BOOLEAN, "enabled", &enabled,
+          G_MARKUP_COLLECT_STRING, "room_size", &room_size,
+          G_MARKUP_COLLECT_STRING, "angle", &angle,
+          G_MARKUP_COLLECT_INVALID))
+      return;
+
+    data->parent = g_node_append_data (data->parent,
+        zik2_sound_effect_info_new (enabled, room_size, atoi (angle)));
   }
 }
 

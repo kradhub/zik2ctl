@@ -31,6 +31,8 @@ G_BEGIN_DECLS
 
 typedef enum _Zik2Color Zik2Color;
 typedef enum _Zik2NoiseControlMode Zik2NoiseControlMode;
+typedef enum _Zik2SoundEffectRoom Zik2SoundEffectRoom;
+typedef enum _Zik2SoundEffectAngle Zik2SoundEffectAngle;
 
 typedef struct _Zik2Class Zik2Class;
 typedef struct _Zik2 Zik2;
@@ -50,6 +52,26 @@ enum _Zik2NoiseControlMode
   ZIK2_NOISE_CONTROL_MODE_AOC
 };
 
+enum _Zik2SoundEffectRoom
+{
+  ZIK2_SOUND_EFFECT_ROOM_UNKNOWN,
+  ZIK2_SOUND_EFFECT_ROOM_SILENT,
+  ZIK2_SOUND_EFFECT_ROOM_LIVING,
+  ZIK2_SOUND_EFFECT_ROOM_JAZZ,
+  ZIK2_SOUND_EFFECT_ROOM_CONCERT
+};
+
+enum _Zik2SoundEffectAngle
+{
+  ZIK2_SOUND_EFFECT_ANGLE_UNKNOWN = 0,
+  ZIK2_SOUND_EFFECT_ANGLE_30 = 30,
+  ZIK2_SOUND_EFFECT_ANGLE_60 = 60,
+  ZIK2_SOUND_EFFECT_ANGLE_90 = 90,
+  ZIK2_SOUND_EFFECT_ANGLE_120 = 120,
+  ZIK2_SOUND_EFFECT_ANGLE_150 = 150,
+  ZIK2_SOUND_EFFECT_ANGLE_180 = 180
+};
+
 struct _Zik2
 {
   GObject parent;
@@ -63,6 +85,9 @@ struct _Zik2Class
 {
   GObjectClass parent_class;
 };
+
+Zik2SoundEffectRoom zik2_sound_effect_room_from_string (const gchar * str);
+const gchar *zik2_sound_effect_room_name (Zik2SoundEffectRoom room);
 
 GType zik2_get_type (void);
 Zik2 *zik2_new (const gchar * name, const gchar * address, Zik2Connection * conn);

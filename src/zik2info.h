@@ -35,6 +35,7 @@ G_BEGIN_DECLS
 #define ZIK2_COLOR_INFO_TYPE (zik2_color_info_get_type ())
 #define ZIK2_FLIGHT_MODE_INFO_TYPE (zik2_flight_mode_info_get_type ())
 #define ZIK2_BLUETOOTH_INFO_TYPE (zik2_bluetooth_info_get_type ())
+#define ZIK2_SOUND_EFFECT_INFO_TYPE (zik2_sound_effect_info_get_type ())
 
 typedef struct _Zik2AnswerInfo Zik2AnswerInfo;
 typedef struct _Zik2AudioInfo Zik2AudioInfo;
@@ -48,6 +49,7 @@ typedef struct _Zik2HeadDetectionInfo Zik2HeadDetectionInfo;
 typedef struct _Zik2ColorInfo Zik2ColorInfo;
 typedef struct _Zik2FlightModeInfo Zik2FlightModeInfo;
 typedef struct _Zik2BluetoothInfo Zik2BluetoothInfo;
+typedef struct _Zik2SoundEffectInfo Zik2SoundEffectInfo;
 
 /* all nodes structures shall begin with:
  * GType itype
@@ -140,6 +142,15 @@ struct _Zik2BluetoothInfo
   gchar *friendlyname;
 };
 
+struct _Zik2SoundEffectInfo
+{
+  GType itype;
+
+  gboolean enabled;
+  gchar *room_size;
+  guint angle;
+};
+
 Zik2AnswerInfo *zik2_answer_info_new (const gchar * path, gboolean error);
 void zik2_answer_info_free (Zik2AnswerInfo * info);
 
@@ -178,6 +189,10 @@ void zik2_flight_mode_info_free (Zik2FlightModeInfo * info);
 Zik2BluetoothInfo *zik2_bluetooth_info_new (const gchar * friendlyname);
 void zik2_bluetooth_info_free (Zik2BluetoothInfo * info);
 
+Zik2SoundEffectInfo *zik2_sound_effect_info_new (gboolean enabled,
+    const gchar * room_size, guint angle);
+void zik2_sound_effect_info_free (Zik2SoundEffectInfo * info);
+
 GType zik2_answer_info_get_type (void);
 GType zik2_audio_info_get_type (void);
 GType zik2_software_info_get_type (void);
@@ -190,6 +205,7 @@ GType zik2_head_detection_info_get_type (void);
 GType zik2_color_info_get_type (void);
 GType zik2_flight_mode_info_get_type (void);
 GType zik2_bluetooth_info_get_type (void);
+GType zik2_sound_effect_info_get_type (void);
 
 G_END_DECLS
 

@@ -44,6 +44,9 @@ enum
   PROP_COLOR,
   PROP_FLIGHT_MODE,
   PROP_FRIENDLYNAME,
+  PROP_SOUND_EFFECT,
+  PROP_SOUND_EFFECT_ROOM,
+  PROP_SOUND_EFFECT_ANGLE,
 };
 
 struct _Zik2Private
@@ -57,6 +60,9 @@ struct _Zik2Private
   guint noise_control_strength;
   gchar *source;
   guint volume;
+  gboolean sound_effect;
+  Zik2SoundEffectRoom sound_effect_room;
+  Zik2SoundEffectAngle sound_effect_angle;
 
   /* software */
   gchar *software_version;
@@ -111,6 +117,80 @@ zik2_color_get_type (void)
 
   if (g_once_init_enter (&type)) {
     GType _type = g_enum_register_static ("Zik2Color", colors);
+    g_once_init_leave (&type, _type);
+  }
+
+  return type;
+}
+
+#define ZIK2_SOUND_EFFECT_ROOM_TYPE (zik2_sound_effect_room_get_type ())
+static GType
+zik2_sound_effect_room_get_type (void)
+{
+  static volatile GType type;
+  static const GEnumValue rooms[] = {
+    { ZIK2_SOUND_EFFECT_ROOM_UNKNOWN, "Unknown", "unknown" },
+    { ZIK2_SOUND_EFFECT_ROOM_SILENT, "Silent", "silent" },
+    { ZIK2_SOUND_EFFECT_ROOM_LIVING, "Living", "living" },
+    { ZIK2_SOUND_EFFECT_ROOM_JAZZ, "Jazz", "jazz" },
+    { ZIK2_SOUND_EFFECT_ROOM_CONCERT, "Concert", "concert" },
+    { 0, NULL, NULL }
+  };
+
+  if (g_once_init_enter (&type)) {
+    GType _type = g_enum_register_static ("ZikSoundEffectRoom", rooms);
+    g_once_init_leave (&type, _type);
+  }
+
+  return type;
+}
+
+Zik2SoundEffectRoom
+zik2_sound_effect_room_from_string (const gchar * str)
+{
+  GEnumClass *klass;
+  GEnumValue *value;
+
+  klass = G_ENUM_CLASS (g_type_class_peek (ZIK2_SOUND_EFFECT_ROOM_TYPE));
+  value = g_enum_get_value_by_nick (klass, str);
+  if (value == NULL)
+    return ZIK2_SOUND_EFFECT_ROOM_UNKNOWN;
+
+  return value->value;
+}
+
+const gchar *
+zik2_sound_effect_room_name (Zik2SoundEffectRoom room)
+{
+  GEnumClass *klass;
+  GEnumValue *value;
+
+  klass = G_ENUM_CLASS (g_type_class_peek (ZIK2_SOUND_EFFECT_ROOM_TYPE));
+  value = g_enum_get_value (klass, room);
+  if (value == NULL)
+    return "unknown";
+
+  return value->value_nick;
+}
+
+#define ZIK2_SOUND_EFFECT_ANGLE_TYPE (zik2_sound_effect_angle_get_type ())
+static GType
+zik2_sound_effect_angle_get_type (void)
+{
+  static volatile GType type;
+  static const GEnumValue angles[] = {
+    { ZIK2_SOUND_EFFECT_ANGLE_UNKNOWN, "0", "0" },
+    { ZIK2_SOUND_EFFECT_ANGLE_30, "30", "30" },
+    { ZIK2_SOUND_EFFECT_ANGLE_60, "60", "60" },
+    { ZIK2_SOUND_EFFECT_ANGLE_90, "90", "90" },
+    { ZIK2_SOUND_EFFECT_ANGLE_120, "120", "120" },
+    { ZIK2_SOUND_EFFECT_ANGLE_150, "150", "150" },
+    { ZIK2_SOUND_EFFECT_ANGLE_180, "180", "150" },
+    { 0, NULL, NULL }
+  };
+
+  if (g_once_init_enter (&type)) {
+    GType _type = g_enum_register_static ("ZikSoundEffectAngle", angles);
     g_once_init_leave (&type, _type);
   }
 
@@ -208,6 +288,23 @@ zik2_class_init (Zik2Class * klass)
       g_param_spec_string ("friendlyname", "Friendlyname",
         "Friendly name used to generate the bluetooth one", UNKNOWN_STR,
         G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_SOUND_EFFECT,
+      g_param_spec_boolean ("sound-effect", "Sound effect",
+          "Whether sound effect (Concert Hall) is active or not", FALSE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_SOUND_EFFECT_ROOM,
+      g_param_spec_enum ("sound-effect-room", "Sound effect room",
+          "Set the room type used by sound effect", ZIK2_SOUND_EFFECT_ROOM_TYPE,
+          ZIK2_SOUND_EFFECT_ROOM_UNKNOWN,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_SOUND_EFFECT_ANGLE,
+      g_param_spec_enum ("sound-effect-angle", "Sound effect angle",
+          "Set the sound effect angle", ZIK2_SOUND_EFFECT_ANGLE_TYPE,
+          ZIK2_SOUND_EFFECT_ANGLE_120,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -592,6 +689,70 @@ zik2_set_friendlyname (Zik2 * zik2, const gchar * name)
 }
 
 static void
+zik2_get_sound_effect (Zik2 * zik2)
+{
+  Zik2SoundEffectInfo *info;
+
+  info = zik2_request_info (zik2, ZIK2_API_AUDIO_SOUND_EFFECT_PATH,
+      ZIK2_SOUND_EFFECT_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("failed to get sound effect info");
+    return;
+  }
+
+  zik2->priv->sound_effect = info->enabled;
+  zik2->priv->sound_effect_room =
+      zik2_sound_effect_room_from_string (info->room_size);
+  zik2->priv->sound_effect_angle = info->angle;
+  zik2_sound_effect_info_free (info);
+}
+
+static gboolean
+zik2_set_sound_effect_active (Zik2 * zik2, gboolean active)
+{
+  Zik2Message *msg;
+  gboolean ret;
+
+  msg = zik2_message_new_request (ZIK2_API_AUDIO_SOUND_EFFECT_ENABLED_PATH,
+      "set", active ? "true" : "false");
+  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
+  zik2_message_free (msg);
+
+  return ret;
+}
+
+static gboolean
+zik2_set_sound_effect_room (Zik2 * zik2, Zik2SoundEffectRoom room)
+{
+  Zik2Message *msg;
+  gboolean ret;
+
+  msg = zik2_message_new_request (ZIK2_API_AUDIO_SOUND_EFFECT_ROOM_SIZE_PATH,
+      "set", zik2_sound_effect_room_name (room));
+  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
+  zik2_message_free (msg);
+
+  return ret;
+}
+
+static gboolean
+zik2_set_sound_effect_angle (Zik2 * zik2, Zik2SoundEffectAngle angle)
+{
+  Zik2Message *msg;
+  gboolean ret;
+  gchar *args;
+
+  args = g_strdup_printf ("%u", angle);
+  msg = zik2_message_new_request (ZIK2_API_AUDIO_SOUND_EFFECT_ANGLE_PATH,
+      "set", args);
+  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
+  zik2_message_free (msg);
+  g_free (args);
+
+  return ret;
+}
+
+static void
 zik2_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec *pspec)
 {
@@ -651,6 +812,15 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_FRIENDLYNAME:
       zik2_get_friendlyname (zik2);
       g_value_set_string (value, priv->friendlyname);
+      break;
+    case PROP_SOUND_EFFECT:
+      g_value_set_boolean (value, priv->sound_effect);
+      break;
+    case PROP_SOUND_EFFECT_ROOM:
+      g_value_set_enum (value, priv->sound_effect_room);
+      break;
+    case PROP_SOUND_EFFECT_ANGLE:
+      g_value_set_enum (value, priv->sound_effect_angle);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -742,6 +912,39 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
         }
       }
       break;
+    case PROP_SOUND_EFFECT:
+      {
+        gboolean tmp;
+
+        tmp = g_value_get_boolean (value);
+        if (zik2_set_sound_effect_active (zik2, tmp))
+          priv->sound_effect = tmp;
+        else
+          g_warning ("failed to enable/disable sound effect");
+      }
+      break;
+    case PROP_SOUND_EFFECT_ROOM:
+      {
+        Zik2SoundEffectRoom tmp;
+
+        tmp = g_value_get_enum (value);
+        if (zik2_set_sound_effect_room (zik2, tmp))
+          priv->sound_effect_room = tmp;
+        else
+          g_warning ("failed to enable/disable sound effect room");
+      }
+      break;
+    case PROP_SOUND_EFFECT_ANGLE:
+      {
+        Zik2SoundEffectAngle tmp;
+
+        tmp = g_value_get_enum (value);
+        if (zik2_set_sound_effect_angle (zik2, tmp))
+          priv->sound_effect_angle = tmp;
+        else
+          g_warning ("failed to enable/disable sound effect angle");
+      }
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -764,6 +967,7 @@ zik2_new (const gchar * name, const gchar * address, Zik2Connection * conn)
   zik2_get_software_version (zik2);
   zik2_get_source (zik2);
   zik2_get_color (zik2);
+  zik2_get_sound_effect (zik2);
 
   return zik2;
 }

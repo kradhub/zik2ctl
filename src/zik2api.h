@@ -29,6 +29,8 @@
 #define ZIK2_API_AUDIO_SMART_AUDIO_TUNE_PATH "/api/audio/smart_audio_tune"
 #define ZIK2_API_AUDIO_SOUND_EFFECT_PATH "/api/audio/sound_effect"
 #define ZIK2_API_AUDIO_SOUND_EFFECT_ENABLED_PATH "/api/audio/sound_effect/enabled"
+#define ZIK2_API_AUDIO_SOUND_EFFECT_ROOM_SIZE_PATH "/api/audio/sound_effect/room_size"
+#define ZIK2_API_AUDIO_SOUND_EFFECT_ANGLE_PATH "/api/audio/sound_effect/angle"
 #define ZIK2_API_AUDIO_SOURCE_PATH "/api/audio/source"
 #define ZIK2_API_AUDIO_THUMB_EQUALIZER_VALUE_PATH "/api/audio/thumb_equalizer/value"
 #define ZIK2_API_AUDIO_TRACK_METADATA_PATH "/api/audio/track/metadata"
