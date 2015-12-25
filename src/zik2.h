@@ -46,30 +46,15 @@ typedef enum _Zik2Color Zik2Color;
 
 typedef struct _Zik2Class Zik2Class;
 typedef struct _Zik2 Zik2;
+typedef struct _Zik2Private Zik2Private;
 
 struct _Zik2
 {
   GObject parent;
 
-  gchar *name;
-  gchar *address;
-
   Zik2Connection *conn;
 
-  gchar *serial;
-  Zik2Color color;
-  gchar *software_version;
-
-  gboolean noise_control_enabled;
-  Zik2NoiseControlMode noise_control_mode;
-  guint noise_control_strength;
-
-  gint noise_level;
-  guint volume;
-  gchar *source;
-  gchar *battery_state;
-  guint battery_percentage;
-  gboolean enable_head_detection;
+  Zik2Private *priv;
 };
 
 struct _Zik2Class

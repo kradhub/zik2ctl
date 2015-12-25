@@ -43,6 +43,29 @@ enum
   PROP_ENABLE_HEAD_DETECTION,
 };
 
+struct _Zik2Private
+{
+  gchar *name;
+  gchar *address;
+
+  /* audio */
+  gboolean noise_control_enabled;
+  Zik2NoiseControlMode noise_control_mode;
+  guint noise_control_strength;
+  gchar *source;
+  guint volume;
+
+  /* software */
+  gchar *software_version;
+
+  /* system */
+  gchar *battery_state;
+  guint battery_percentage;
+  Zik2Color color;
+  gboolean enable_head_detection;
+  gchar *serial;
+};
+
 #define ZIK2_NOISE_CONTROL_MODE_TYPE (zik2_noise_control_mode_get_type ())
 static GType
 zik2_noise_control_mode_get_type (void)
@@ -81,6 +104,8 @@ static void
 zik2_class_init (Zik2Class * klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+  g_type_class_add_private (klass, sizeof (Zik2Private));
 
   gobject_class->finalize = zik2_finalize;
   gobject_class->get_property = zik2_get_property;
@@ -147,25 +172,28 @@ zik2_class_init (Zik2Class * klass)
 static void
 zik2_init (Zik2 * zik2)
 {
-  zik2->serial = g_strdup (UNKNOWN_STR);
-  zik2->software_version = g_strdup (UNKNOWN_STR);
-  zik2->source = g_strdup (UNKNOWN_STR);
-  zik2->battery_state = g_strdup (UNKNOWN_STR);
+  zik2->priv = G_TYPE_INSTANCE_GET_PRIVATE (zik2, ZIK2_TYPE, Zik2Private);
 
-  zik2->noise_control_strength = DEFAULT_NOISE_CONTROL_STRENGTH;
+  zik2->priv->serial = g_strdup (UNKNOWN_STR);
+  zik2->priv->software_version = g_strdup (UNKNOWN_STR);
+  zik2->priv->source = g_strdup (UNKNOWN_STR);
+  zik2->priv->battery_state = g_strdup (UNKNOWN_STR);
+
+  zik2->priv->noise_control_strength = DEFAULT_NOISE_CONTROL_STRENGTH;
 }
 
 static void
 zik2_finalize (GObject * object)
 {
   Zik2 *zik2 = ZIK2 (object);
+  Zik2Private *priv = zik2->priv;
 
-  g_free (zik2->name);
-  g_free (zik2->address);
-  g_free (zik2->serial);
-  g_free (zik2->software_version);
-  g_free (zik2->source);
-  g_free (zik2->battery_state);
+  g_free (priv->name);
+  g_free (priv->address);
+  g_free (priv->serial);
+  g_free (priv->software_version);
+  g_free (priv->source);
+  g_free (priv->battery_state);
 
   if (zik2->conn)
     zik2_connection_free (zik2->conn);
@@ -229,8 +257,8 @@ zik2_get_serial (Zik2 * zik2)
     goto out;
   }
 
-  g_free (zik2->serial);
-  zik2->serial = g_strdup (info->pi);
+  g_free (zik2->priv->serial);
+  zik2->priv->serial = g_strdup (info->pi);
 
 out:
   if (reply)
@@ -256,7 +284,7 @@ zik2_get_noise_control (Zik2 * zik2)
     goto out;
   }
 
-  zik2->noise_control_enabled = info->enabled;
+  zik2->priv->noise_control_enabled = info->enabled;
 
 out:
   if (reply)
@@ -304,8 +332,8 @@ zik2_get_noise_control_mode_and_strength (Zik2 * zik2)
     g_warning ("failed to get enum value associated with '%s'", info->type);
     goto out;
   }
-  zik2->noise_control_mode = mode->value;
-  zik2->noise_control_strength = info->value;
+  zik2->priv->noise_control_mode = mode->value;
+  zik2->priv->noise_control_strength = info->value;
 
 out:
   if (reply)
@@ -363,8 +391,8 @@ zik2_get_software_version (Zik2 * zik2)
     goto out;
   }
 
-  g_free (zik2->software_version);
-  zik2->software_version = g_strdup (info->sip6);
+  g_free (zik2->priv->software_version);
+  zik2->priv->software_version = g_strdup (info->sip6);
 
 out:
   if (reply)
@@ -388,8 +416,8 @@ zik2_get_source (Zik2 * zik2)
     goto out;
   }
 
-  g_free (zik2->source);
-  zik2->source = g_strdup (info->type);
+  g_free (zik2->priv->source);
+  zik2->priv->source = g_strdup (info->type);
 
 out:
   if (reply)
@@ -413,9 +441,9 @@ zik2_get_battery (Zik2 * zik2)
     goto out;
   }
 
-  g_free (zik2->battery_state);
-  zik2->battery_state = g_strdup (info->state);
-  zik2->battery_percentage = info->percent;
+  g_free (zik2->priv->battery_state);
+  zik2->priv->battery_state = g_strdup (info->state);
+  zik2->priv->battery_percentage = info->percent;
 
 out:
   if (reply)
@@ -439,7 +467,7 @@ zik2_get_volume (Zik2 * zik2)
     goto out;
   }
 
-  zik2->volume = info->volume;
+  zik2->priv->volume = info->volume;
 
 out:
   zik2_request_reply_data_free (reply);
@@ -464,7 +492,7 @@ zik2_get_enable_head_detection (Zik2 * zik2)
     goto out;
   }
 
-  zik2->enable_head_detection = info->enabled;
+  zik2->priv->enable_head_detection = info->enabled;
 
 out:
   zik2_request_reply_data_free (reply);
@@ -489,48 +517,49 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec *pspec)
 {
   Zik2 *zik2 = ZIK2 (object);
+  Zik2Private *priv = zik2->priv;
 
   switch (prop_id) {
     case PROP_NAME:
-      g_value_set_string (value, zik2->name);
+      g_value_set_string (value, priv->name);
       break;
     case PROP_ADDRESS:
-      g_value_set_string (value, zik2->address);
+      g_value_set_string (value, priv->address);
       break;
     case PROP_SERIAL:
-      g_value_set_string (value, zik2->serial);
+      g_value_set_string (value, priv->serial);
       break;
     case PROP_SOFTWARE_VERSION:
-      g_value_set_string (value, zik2->software_version);
+      g_value_set_string (value, priv->software_version);
       break;
     case PROP_SOURCE:
       zik2_get_source (zik2);
-      g_value_set_string (value, zik2->source);
+      g_value_set_string (value, priv->source);
       break;
     case PROP_NOISE_CONTROL_ENABLED:
-      g_value_set_boolean (value, zik2->noise_control_enabled);
+      g_value_set_boolean (value, priv->noise_control_enabled);
       break;
     case PROP_NOISE_CONTROL_MODE:
-      g_value_set_enum (value, zik2->noise_control_mode);
+      g_value_set_enum (value, priv->noise_control_mode);
       break;
     case PROP_NOISE_CONTROL_STRENGTH:
-      g_value_set_uint (value, zik2->noise_control_strength);
+      g_value_set_uint (value, priv->noise_control_strength);
       break;
     case PROP_BATTERY_STATE:
       zik2_get_battery (zik2);
-      g_value_set_string (value, zik2->battery_state);
+      g_value_set_string (value, priv->battery_state);
       break;
     case PROP_BATTERY_PERCENT:
       zik2_get_battery (zik2);
-      g_value_set_uint (value, zik2->battery_percentage);
+      g_value_set_uint (value, priv->battery_percentage);
       break;
     case PROP_VOLUME:
       zik2_get_volume (zik2);
-      g_value_set_uint (value, zik2->volume);
+      g_value_set_uint (value, priv->volume);
       break;
     case PROP_ENABLE_HEAD_DETECTION:
       zik2_get_enable_head_detection (zik2);
-      g_value_set_boolean (value, zik2->enable_head_detection);
+      g_value_set_boolean (value, priv->enable_head_detection);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -543,13 +572,14 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
     GParamSpec *pspec)
 {
   Zik2 *zik2 = ZIK2 (object);
+  Zik2Private *priv = zik2->priv;
 
   switch (prop_id) {
     case PROP_NAME:
-      zik2->name = g_value_dup_string (value);
+      priv->name = g_value_dup_string (value);
       break;
     case PROP_ADDRESS:
-      zik2->address = g_value_dup_string (value);
+      priv->address = g_value_dup_string (value);
       break;
     case PROP_NOISE_CONTROL_ENABLED:
       {
@@ -557,7 +587,7 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
 
         tmp = g_value_get_boolean (value);
         if (zik2_set_noise_control (zik2, tmp))
-          zik2->noise_control_enabled = tmp;
+          priv->noise_control_enabled = tmp;
         else
           g_warning ("failed to set noise control enabled");
       }
@@ -568,8 +598,8 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
 
         tmp = g_value_get_enum (value);
         if (zik2_set_noise_control_mode_and_strength (zik2, tmp,
-              zik2->noise_control_strength))
-          zik2->noise_control_mode = tmp;
+              priv->noise_control_strength))
+          priv->noise_control_mode = tmp;
         else
            g_warning ("failed to set noise control mode");
       }
@@ -580,8 +610,8 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
 
         tmp = g_value_get_uint (value);
         if (zik2_set_noise_control_mode_and_strength (zik2,
-              zik2->noise_control_mode, tmp))
-          zik2->noise_control_strength = tmp;
+              priv->noise_control_mode, tmp))
+          priv->noise_control_strength = tmp;
         else
           g_warning ("failed to set noise control strength");
       }
@@ -592,7 +622,7 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
 
         tmp = g_value_get_boolean (value);
         if (zik2_set_enable_head_detection (zik2, tmp))
-          zik2->enable_head_detection = tmp;
+          priv->enable_head_detection = tmp;
         else
           g_warning ("failed to enable/disable head detection");
       }
