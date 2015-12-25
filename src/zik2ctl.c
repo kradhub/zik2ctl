@@ -183,6 +183,7 @@ show_zik2 (Zik2 * zik2)
   guint bat_percent;
   Zik2NoiseControlMode noise_control_mode;
   guint noise_control_strength;
+  guint volume;
 
   g_object_get (zik2, "serial", &serial,
       "noise-control-enabled", &nc_enabled,
@@ -192,6 +193,7 @@ show_zik2 (Zik2 * zik2)
       "battery-percentage", &bat_percent,
       "noise-control-mode", &noise_control_mode,
       "noise-control-strength", &noise_control_strength,
+      "volume", &volume,
       NULL);
 
   g_print ("serial-number          : %s\n", serial);
@@ -202,6 +204,7 @@ show_zik2 (Zik2 * zik2)
   g_print ("audio source           : %s\n", source);
   g_print ("battery state          : %s (remaining: %u%%)\n", bat_state,
       bat_percent);
+  g_print ("volume                 : %u\n", volume);
 
   g_free (serial);
   g_free (sw_version);

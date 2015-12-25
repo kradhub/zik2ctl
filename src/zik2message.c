@@ -194,6 +194,23 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
 
     data->parent = g_node_append_data (data->parent,
         zik2_battery_info_new (state, atoi (percent_str)));
+  } else if (g_strcmp0 (element_name, "volume") == 0) {
+    gchar *value;
+
+    if (g_slist_length (stack) < 2 || g_strcmp0 (stack->next->data, "audio")) {
+      g_set_error_literal (error, G_MARKUP_ERROR,
+          G_MARKUP_ERROR_INVALID_CONTENT,
+          "<volume> element should be embedded in <audio>");
+      return;
+    }
+
+    if (!g_markup_collect_attributes (element_name, attribute_names,
+          attribute_values, error, G_MARKUP_COLLECT_STRING, "value", &value,
+          G_MARKUP_COLLECT_INVALID))
+      return;
+
+    data->parent = g_node_append_data (data->parent,
+        zik2_volume_info_new (atoi (value)));
   }
 }
 

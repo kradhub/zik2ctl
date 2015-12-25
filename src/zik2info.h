@@ -30,6 +30,7 @@ G_BEGIN_DECLS
 #define ZIK2_NOISE_CONTROL_INFO_TYPE (zik2_noise_control_info_get_type ())
 #define ZIK2_SOURCE_INFO_TYPE (zik2_source_info_get_type ())
 #define ZIK2_BATTERY_INFO_TYPE (zik2_battery_info_get_type ())
+#define ZIK2_VOLUME_INFO_TYPE (zik2_volume_info_get_type ())
 
 typedef struct _Zik2AnswerInfo Zik2AnswerInfo;
 typedef struct _Zik2AudioInfo Zik2AudioInfo;
@@ -38,6 +39,7 @@ typedef struct _Zik2SystemInfo Zik2SystemInfo;
 typedef struct _Zik2NoiseControlInfo Zik2NoiseControlInfo;
 typedef struct _Zik2SourceInfo Zik2SourceInfo;
 typedef struct _Zik2BatteryInfo Zik2BatteryInfo;
+typedef struct _Zik2VolumeInfo Zik2VolumeInfo;
 
 /* all nodes structures shall begin with:
  * GType itype
@@ -95,6 +97,13 @@ struct _Zik2BatteryInfo
   guint percent;
 };
 
+struct _Zik2VolumeInfo
+{
+  GType itype;
+
+  guint volume;
+};
+
 Zik2AnswerInfo *zik2_answer_info_new (const gchar * path, gboolean error);
 void zik2_answer_info_free (Zik2AnswerInfo * info);
 
@@ -118,6 +127,9 @@ void zik2_source_info_free (Zik2SourceInfo * info);
 Zik2BatteryInfo *zik2_battery_info_new (const gchar * state, guint percent);
 void zik2_battery_info_free (Zik2BatteryInfo * info);
 
+Zik2VolumeInfo *zik2_volume_info_new (guint volume);
+void zik2_volume_info_free (Zik2VolumeInfo * info);
+
 GType zik2_answer_info_get_type (void);
 GType zik2_audio_info_get_type (void);
 GType zik2_software_info_get_type (void);
@@ -125,6 +137,7 @@ GType zik2_system_info_get_type (void);
 GType zik2_noise_control_info_get_type (void);
 GType zik2_source_info_get_type (void);
 GType zik2_battery_info_get_type (void);
+GType zik2_volume_info_get_type (void);
 
 G_END_DECLS
 

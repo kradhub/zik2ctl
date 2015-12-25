@@ -39,6 +39,7 @@ enum
   PROP_SOURCE,
   PROP_BATTERY_STATE,
   PROP_BATTERY_PERCENT,
+  PROP_VOLUME,
 };
 
 #define ZIK2_NOISE_CONTROL_MODE_TYPE (zik2_noise_control_mode_get_type ())
@@ -130,6 +131,10 @@ zik2_class_init (Zik2Class * klass)
   g_object_class_install_property (gobject_class, PROP_BATTERY_PERCENT,
       g_param_spec_uint ("battery-percentage", "Battery percentage",
         "Battery charge percentage", 0, 100, 0,
+        G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_VOLUME,
+      g_param_spec_uint ("volume", "Volume", "Volume", 0, G_MAXUINT, 0,
         G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 }
 
@@ -412,6 +417,29 @@ out:
 }
 
 static void
+zik2_get_volume (Zik2 * zik2)
+{
+  Zik2RequestReplyData *reply = NULL;
+  Zik2VolumeInfo *info;
+
+  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_AUDIO_VOLUME_PATH, &reply)) {
+    g_warning ("failed to get audio volume");
+    return;
+  }
+
+  info = zik2_request_reply_data_find_node_info (reply, ZIK2_VOLUME_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("<volume> not found");
+    goto out;
+  }
+
+  zik2->volume = info->volume;
+
+out:
+  zik2_request_reply_data_free (reply);
+}
+
+static void
 zik2_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec *pspec)
 {
@@ -450,6 +478,10 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_BATTERY_PERCENT:
       zik2_get_battery (zik2);
       g_value_set_uint (value, zik2->battery_percentage);
+      break;
+    case PROP_VOLUME:
+      zik2_get_volume (zik2);
+      g_value_set_uint (value, zik2->volume);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
