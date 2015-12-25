@@ -28,7 +28,7 @@ static Zik2VolumeInfo *zik2_volume_info_copy (Zik2VolumeInfo * info);
 static Zik2HeadDetectionInfo *zik2_head_detection_info_copy (Zik2HeadDetectionInfo * info);
 static Zik2ColorInfo *zik2_color_info_copy (Zik2ColorInfo * info);
 static Zik2FlightModeInfo *zik2_flight_mode_info_copy (Zik2FlightModeInfo * info);
-
+static Zik2BluetoothInfo *zik2_bluetooth_info_copy (Zik2BluetoothInfo * info);
 
 #define ZIK2_DEFINE_BOXED_TYPE(TypeName, type_name) \
   G_DEFINE_BOXED_TYPE (TypeName, type_name, type_name##_copy, type_name##_free)
@@ -44,6 +44,7 @@ ZIK2_DEFINE_BOXED_TYPE (Zik2VolumeInfo, zik2_volume_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2HeadDetectionInfo, zik2_head_detection_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2ColorInfo, zik2_color_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2FlightModeInfo, zik2_flight_mode_info);
+ZIK2_DEFINE_BOXED_TYPE (Zik2BluetoothInfo, zik2_bluetooth_info);
 
 Zik2AnswerInfo *
 zik2_answer_info_new (const gchar * path, gboolean error)
@@ -310,4 +311,28 @@ void
 zik2_flight_mode_info_free (Zik2FlightModeInfo * info)
 {
   g_slice_free (Zik2FlightModeInfo, info);
+}
+
+Zik2BluetoothInfo *
+zik2_bluetooth_info_new (const gchar * friendlyname)
+{
+  Zik2BluetoothInfo *info;
+
+  info = g_slice_new0 (Zik2BluetoothInfo);
+  info->itype = ZIK2_BLUETOOTH_INFO_TYPE;
+  info->friendlyname = g_strdup (friendlyname);
+  return info;
+}
+
+static Zik2BluetoothInfo *
+zik2_bluetooth_info_copy (Zik2BluetoothInfo * info)
+{
+  return zik2_bluetooth_info_new (info->friendlyname);
+}
+
+void
+zik2_bluetooth_info_free (Zik2BluetoothInfo * info)
+{
+  g_free (info->friendlyname);
+  g_slice_free (Zik2BluetoothInfo, info);
 }

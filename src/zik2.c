@@ -43,6 +43,7 @@ enum
   PROP_HEAD_DETECTION,
   PROP_COLOR,
   PROP_FLIGHT_MODE,
+  PROP_FRIENDLYNAME,
 };
 
 struct _Zik2Private
@@ -69,6 +70,7 @@ struct _Zik2Private
 
   /* others */
   gboolean flight_mode;
+  gchar *friendlyname;  /* the name used to generate the real bluetooth name */
 };
 
 #define ZIK2_NOISE_CONTROL_MODE_TYPE (zik2_noise_control_mode_get_type ())
@@ -201,6 +203,11 @@ zik2_class_init (Zik2Class * klass)
       g_param_spec_boolean ("flight-mode", "Flight mode",
           "Whether or not flight mode is active", FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_FRIENDLYNAME,
+      g_param_spec_string ("friendlyname", "Friendlyname",
+        "Friendly name used to generate the bluetooth one", UNKNOWN_STR,
+        G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -212,6 +219,7 @@ zik2_init (Zik2 * zik2)
   zik2->priv->software_version = g_strdup (UNKNOWN_STR);
   zik2->priv->source = g_strdup (UNKNOWN_STR);
   zik2->priv->battery_state = g_strdup (UNKNOWN_STR);
+  zik2->priv->friendlyname = g_strdup (UNKNOWN_STR);
 
   zik2->priv->noise_control_strength = DEFAULT_NOISE_CONTROL_STRENGTH;
 }
@@ -228,6 +236,7 @@ zik2_finalize (GObject * object)
   g_free (priv->software_version);
   g_free (priv->source);
   g_free (priv->battery_state);
+  g_free (priv->friendlyname);
 
   if (zik2->conn)
     zik2_connection_free (zik2->conn);
@@ -611,6 +620,46 @@ zik2_set_flight_mode (Zik2 * zik2, gboolean active)
 }
 
 static void
+zik2_get_friendlyname (Zik2 * zik2)
+{
+  Zik2RequestReplyData *reply;
+  Zik2BluetoothInfo *info;
+
+  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_BLUETOOTH_FRIENDLY_NAME_PATH,
+        &reply)) {
+    g_warning ("failed to get flight mode");
+    return;
+  }
+
+  info = zik2_request_reply_data_find_node_info (reply,
+      ZIK2_BLUETOOTH_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("<friendlyname> not found");
+    goto out;
+  }
+
+  g_free (zik2->priv->friendlyname);
+  zik2->priv->friendlyname = g_strdup (info->friendlyname);
+
+out:
+  zik2_request_reply_data_free (reply);
+}
+
+static gboolean
+zik2_set_friendlyname (Zik2 * zik2, const gchar * name)
+{
+  Zik2Message *msg;
+  gboolean ret;
+
+  msg = zik2_message_new_request (ZIK2_API_BLUETOOTH_FRIENDLY_NAME_PATH, "set",
+      name);
+  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
+  zik2_message_free (msg);
+
+  return ret;
+}
+
+static void
 zik2_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec *pspec)
 {
@@ -666,6 +715,10 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_FLIGHT_MODE:
       zik2_get_flight_mode (zik2);
       g_value_set_boolean (value, priv->flight_mode);
+      break;
+    case PROP_FRIENDLYNAME:
+      zik2_get_friendlyname (zik2);
+      g_value_set_string (value, priv->friendlyname);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -742,6 +795,19 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
           priv->flight_mode = tmp;
         else
           g_warning ("failed to enable/disable flight mode");
+      }
+      break;
+    case PROP_FRIENDLYNAME:
+      {
+        const gchar *tmp;
+
+        tmp = g_value_get_string (value);
+        if (zik2_set_friendlyname (zik2, tmp)) {
+          g_free (priv->friendlyname);
+          priv->friendlyname = g_strdup (tmp);
+        } else {
+          g_warning ("failed to set friendlyname");
+        }
       }
       break;
     default:

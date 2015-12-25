@@ -262,6 +262,23 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
 
     data->parent = g_node_append_data (data->parent,
         zik2_flight_mode_info_new (value));
+  } else if (g_strcmp0 (element_name, "bluetooth") == 0) {
+    const gchar *value;
+
+    if (g_slist_length (stack) < 2 || g_strcmp0 (stack->next->data, "answer")) {
+      g_set_error_literal (error, G_MARKUP_ERROR,
+          G_MARKUP_ERROR_INVALID_CONTENT,
+          "<bluetooth> element should be embedded in <answer>");
+      return;
+    }
+
+    if (!g_markup_collect_attributes (element_name, attribute_names,
+          attribute_values, error, G_MARKUP_COLLECT_STRING, "friendlyname",
+          &value, G_MARKUP_COLLECT_INVALID))
+      return;
+
+    data->parent = g_node_append_data (data->parent,
+        zik2_bluetooth_info_new (value));
   }
 }
 
