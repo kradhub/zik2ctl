@@ -23,12 +23,13 @@
 
 G_BEGIN_DECLS
 
+#define ZIK2_PROFILE_UUID "8b6814d3-6ce7-4498-9700-9312c1711f63"
+
 #define ZIK2_PROFILE_TYPE (zik2_profile_get_type ())
 #define ZIK2_PROFILE(obj) \
   (G_TYPE_CHECK_INSTANCE_CAST((obj), ZIK2_PROFILE_TYPE, Zik2Profile))
 #define ZIK2_PROFILE_GET_CLASS(obj) \
   (G_TYPE_INSTANCE_GET_CLASS ((obj), ZIK2_PROFILE_TYPE, Zik2ProfileClass))
-
 
 typedef struct _Zik2ProfileClass Zik2ProfileClass;
 typedef struct _Zik2Profile Zik2Profile;

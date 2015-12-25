@@ -27,7 +27,6 @@
 #include "zik2message.h"
 
 #define ZIK2_PATH "/org/bluez/zik2"
-#define ZIK2_UUID "8b6814d3-6ce7-4498-9700-9312c1711f63"
 
 #define BLUEZ_PROFILE_MANAGER_PATH "/org/bluez"
 #define BLUEZ_PROFILE_MANAGER_IFACE "org.bluez.ProfileManager1"
@@ -334,7 +333,8 @@ zik2_profile_install (Zik2Profile * profile, GDBusObjectManager * manager)
   /* 4. register to bluetoothd */
   profile_manager = BLUETOOTH_PROFILE_MANAGER1 (iface);
   if (!bluetooth_profile_manager1_call_register_profile_sync (profile_manager,
-        ZIK2_PATH, ZIK2_UUID, g_variant_dict_end (&dict), NULL, &error)) {
+        ZIK2_PATH, ZIK2_PROFILE_UUID, g_variant_dict_end (&dict), NULL,
+        &error)) {
     g_critical ("failed to register profile on bluetoothd: %s", error->message);
     g_dbus_connection_unregister_object (profile->conn, profile->id);
     g_object_unref (iface);
