@@ -393,18 +393,23 @@ cleanup_profile (Zik2Profile * profile, GDBusObjectManager * manager)
 }
 
 static gboolean
+check_switch_argument (const gchar * sw, const gchar * option_name)
+{
+  if (g_strcmp0 (sw, "on") != 0 && g_strcmp0 (sw, "off")) {
+    g_printerr ("unrecognized '%s' value\n", option_name);
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+static gboolean
 check_arguments (void)
 {
   gboolean ret = TRUE;
 
-  if (noise_control_switch) {
-    /* valid values: on, off */
-    if (g_strcmp0 (noise_control_switch, "on") != 0 &&
-        g_strcmp0 (noise_control_switch, "off")) {
-      g_printerr ("unrecognized 'set-noise-control' value\n");
-      ret = FALSE;
-    }
-  }
+  if (noise_control_switch)
+    ret = check_switch_argument (noise_control_switch, "set-noise-control");
 
   if (noise_control_mode) {
     /* valid values: off, anc, aoc */
@@ -423,14 +428,8 @@ check_arguments (void)
     }
   }
 
-  if (head_detection_switch) {
-    /* valid values: on, off */
-    if (g_strcmp0 (head_detection_switch, "on") != 0 &&
-        g_strcmp0 (head_detection_switch, "off")) {
-      g_printerr ("unrecognized 'head_detection_switch' value\n");
-      ret = FALSE;
-    }
-  }
+  if (head_detection_switch)
+    ret = check_switch_argument (head_detection_switch, "head_detection_switch");
 
   return ret;
 }
