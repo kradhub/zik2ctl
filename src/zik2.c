@@ -15,110 +15,15 @@
  * along with Zik2ctl. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
 #include <string.h>
 
 #include "zik2.h"
 #include "zik2connection.h"
 #include "zik2message.h"
+#include "zik2info.h"
 
 #define UNKNOWN_STR "unknown"
 #define DEFAULT_NOISE_CONTROL_STRENGTH 1
-
-typedef struct
-{
-  gchar *target; /* the desired element attributes */
-
-  gboolean error; /* TRUE if device reject our message */
-  gboolean found; /* TRUE if target has been found */
-
-  /* attributes name and value associated with target element */
-  GPtrArray *attribute_names;
-  GPtrArray *attribute_values;
-} ParserData;
-
-
-static void
-parser_data_init (ParserData * data)
-{
-  data->target = NULL;
-  data->found = FALSE;
-  data->error = FALSE;
-  data->attribute_names = g_ptr_array_new_with_free_func (g_free);
-  data->attribute_values = g_ptr_array_new_with_free_func (g_free);
-}
-
-static void
-parser_data_cleanup (ParserData * data)
-{
-  g_ptr_array_free (data->attribute_names, TRUE);
-  g_ptr_array_free (data->attribute_values, TRUE);
-}
-
-/* XML parser callbacks */
-static void
-zik2_xml_parser_start_element (GMarkupParseContext * context,
-    const gchar * element_name, const gchar ** attribute_names,
-    const gchar ** attribute_values, gpointer userdata, GError ** error)
-{
-  ParserData *data = (ParserData *) userdata;
-  GSList *stack;
-
-  stack = (GSList *) g_markup_parse_context_get_element_stack (context);
-
-  /* no need to parse others elements if answer have error attribute */
-  if (data->error)
-    return;
-
-  if (g_strcmp0 (element_name, "answer") == 0) {
-    if (g_slist_length (stack) > 1) {
-      /* answer shall be first */
-      g_set_error_literal (error, G_MARKUP_ERROR,
-          G_MARKUP_ERROR_INVALID_CONTENT,
-          "<answer> elements can only be top-level element");
-      return;
-    }
-
-    if (g_strv_contains (attribute_names, "error")) {
-      /* when answer have error attribute, it always true so no need to check
-       * value */
-      data->error = TRUE;
-    }
-  }
-
-  if (g_strcmp0 (element_name, data->target) == 0) {
-    guint i;
-
-    for (i = 0; attribute_names[i] != NULL; i++) {
-      g_ptr_array_add (data->attribute_names, g_strdup (attribute_names[i]));
-      g_ptr_array_add (data->attribute_values, g_strdup (attribute_values[i]));
-    }
-
-    data->found = TRUE;
-  }
-}
-
-static void
-zik2_xml_parser_error (GMarkupParseContext * context, GError * error,
-    gpointer userdata)
-{
-  gint line_number;
-  gint char_number;
-
-  g_markup_parse_context_get_position (context, &line_number, &char_number);
-
-  g_prefix_error (&error, "%d:%d: ", line_number, char_number);
-}
-
-static const GMarkupParser zik2_xml_parser_cbs = {
-  .start_element = zik2_xml_parser_start_element,
-  .end_element = NULL,
-  .text = NULL,
-  .passthrough = NULL,
-  .error = zik2_xml_parser_error
-};
-
-/* Zik2 */
 
 enum
 {
@@ -257,43 +162,40 @@ zik2_finalize (GObject * object)
 }
 
 static gboolean
-zik2_get_and_parse_result (Zik2 * zik2, const gchar * uri, ParserData * pdata)
+zik2_get_and_parse_reply (Zik2 * zik2, const gchar * path,
+    Zik2RequestReplyData ** reply)
 {
   Zik2Message *msg;
   Zik2Message *answer = NULL;
-  GMarkupParseContext *parser;
-  GError *error = NULL;
-  gchar *xml;
+  Zik2RequestReplyData *result;
   gboolean ret = FALSE;
 
-  msg = zik2_message_new_request_get (uri);
-  zik2_connection_send_message (zik2->conn, msg, &answer);
-  xml = zik2_message_request_get_request_answer (answer);
+  msg = zik2_message_new_request (path, "get", NULL);
 
-  parser = g_markup_parse_context_new (&zik2_xml_parser_cbs, 0, pdata, NULL);
-  if (!g_markup_parse_context_parse (parser, xml, strlen (xml), &error)) {
-    g_critical ("failed to parse answer: %s", error->message);
+  if (!zik2_connection_send_message (zik2->conn, msg, &answer)) {
+    g_critical ("failed to send get request '%s/get'", path);
     goto out;
   }
 
-  if (!g_markup_parse_context_end_parse (parser, &error))
-    g_error_free (error);
-
-  if (pdata->error) {
-    g_warning ("device returns error with uri '%s'", uri);
-    goto out;
-  } else if (!pdata->found) {
-    g_warning ("target '%s' not found", pdata->target);
+  if (!zik2_message_parse_request_reply (answer, &result)) {
+    g_critical ("failed to parse request reply for '%s/get'", path);
     goto out;
   }
 
+  if (zik2_request_reply_data_error (result)) {
+    g_warning ("device reply with error for '%s/get'", path);
+    zik2_request_reply_data_free (result);
+    goto out;
+  }
+
+  *reply = result;
   ret = TRUE;
 
 out:
-  g_free (xml);
-  g_markup_parse_context_free (parser);
   zik2_message_free (msg);
-  zik2_message_free (answer);
+
+  if (answer)
+    zik2_message_free (answer);
 
   return ret;
 }
@@ -301,58 +203,52 @@ out:
 static void
 zik2_get_serial (Zik2 * zik2)
 {
-  ParserData pdata;
-  guint i;
+  Zik2RequestReplyData *reply = NULL;
+  Zik2SystemInfo *info;
 
-  parser_data_init (&pdata);
-  pdata.target = "system";
-  if (!zik2_get_and_parse_result (zik2, API_SYSTEM_PI_URI, &pdata)) {
+  if (!zik2_get_and_parse_reply (zik2, API_SYSTEM_PI_URI, &reply)) {
     g_warning ("failed to get serial");
     goto out;
   }
 
-  for (i = 0; i < pdata.attribute_names->len; i++) {
-    if (g_strcmp0 (g_ptr_array_index (pdata.attribute_names, i), "pi") == 0) {
-      g_free (zik2->serial);
-      zik2->serial = g_strdup (g_ptr_array_index (pdata.attribute_values, i));
-      break;
-    }
+  info = zik2_request_reply_data_find_node_info (reply, ZIK2_SYSTEM_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("<system> not found");
+    goto out;
   }
 
+  g_free (zik2->serial);
+  zik2->serial = g_strdup (info->pi);
+
 out:
-  parser_data_cleanup (&pdata);
+  if (reply)
+    zik2_request_reply_data_free (reply);
 }
 
 static void
 zik2_get_noise_control (Zik2 * zik2)
 {
-  ParserData pdata;
-  guint i;
+  Zik2RequestReplyData *reply = NULL;
+  Zik2NoiseControlInfo *info;
 
-  parser_data_init (&pdata);
-  pdata.target = "noise_control";
-  if (!zik2_get_and_parse_result (zik2, API_AUDIO_NOISE_CONTROL_ENABLED_URI,
-        &pdata)) {
+  if (!zik2_get_and_parse_reply (zik2, API_AUDIO_NOISE_CONTROL_ENABLED_URI,
+        &reply)) {
     g_warning ("failed to get noise control status");
     goto out;
   }
 
-  for (i = 0; i < pdata.attribute_names->len; i++) {
-    const gchar *name = g_ptr_array_index (pdata.attribute_names, i);
-    const gchar *value = g_ptr_array_index (pdata.attribute_values, i);
-
-    if (g_strcmp0 (name, "enabled") == 0) {
-      if (g_strcmp0 (value, "true") == 0)
-        zik2->noise_control_enabled = TRUE;
-      else
-        zik2->noise_control_enabled = FALSE;
-
-      break;
-    }
+  info = zik2_request_reply_data_find_node_info (reply,
+      ZIK2_NOISE_CONTROL_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("<noise_control> not found");
+    goto out;
   }
 
+  zik2->noise_control_enabled = info->enabled;
+
 out:
-  parser_data_cleanup (&pdata);
+  if (reply)
+    zik2_request_reply_data_free (reply);
 }
 
 static gboolean
@@ -361,8 +257,8 @@ zik2_set_noise_control (Zik2 * zik2, gboolean active)
   Zik2Message *msg;
   gboolean ret;
 
-  msg = zik2_message_new_request_set ("/api/audio/noise_control/enabled/set?arg",
-      active);
+  msg = zik2_message_new_request (API_AUDIO_NOISE_CONTROL_ENABLED_URI, "set",
+      active ? "true" : "false");
   ret = zik2_connection_send_message (zik2->conn, msg, NULL);
   zik2_message_free (msg);
 
@@ -372,39 +268,36 @@ zik2_set_noise_control (Zik2 * zik2, gboolean active)
 static void
 zik2_get_noise_control_mode_and_strength (Zik2 * zik2)
 {
-  ParserData pdata;
-  guint i;
+  Zik2RequestReplyData *reply = NULL;
+  Zik2NoiseControlInfo *info;
+  GEnumClass *klass;
+  GEnumValue *mode;
 
-  parser_data_init (&pdata);
-  pdata.target = "noise_control";
-  if (!zik2_get_and_parse_result (zik2, API_AUDIO_NOISE_CONTROL_URI, &pdata)) {
-    g_warning ("failed to get noise control mode and strength");
+  if (!zik2_get_and_parse_reply (zik2, API_AUDIO_NOISE_CONTROL_URI,
+        &reply)) {
+    g_warning ("failed to get noise control status");
     goto out;
   }
 
-  for (i = 0; i < pdata.attribute_names->len; i++) {
-    const gchar *name = g_ptr_array_index (pdata.attribute_names, i);
-    const gchar *value = g_ptr_array_index (pdata.attribute_values, i);
-
-    if (g_strcmp0 (name, "type") == 0) {
-      GEnumClass *klass;
-      GEnumValue *mode;
-
-      klass = G_ENUM_CLASS (g_type_class_peek (ZIK2_NOISE_CONTROL_MODE_TYPE));
-
-      mode = g_enum_get_value_by_nick (klass, value);
-      if (mode == NULL) {
-        g_warning ("failed to get enum value associated with '%s'", value);
-        goto out;
-      }
-      zik2->noise_control_mode = mode->value;
-    } else if (g_strcmp0 (name, "value") == 0) {
-      zik2->noise_control_strength = atoi (value);
-    }
+  info = zik2_request_reply_data_find_node_info (reply,
+      ZIK2_NOISE_CONTROL_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("<noise_control> not found");
+    goto out;
   }
 
+  klass = G_ENUM_CLASS (g_type_class_peek (ZIK2_NOISE_CONTROL_MODE_TYPE));
+  mode = g_enum_get_value_by_nick (klass, info->type);
+  if (mode == NULL) {
+    g_warning ("failed to get enum value associated with '%s'", info->type);
+    goto out;
+  }
+  zik2->noise_control_mode = mode->value;
+  zik2->noise_control_strength = info->value;
+
 out:
-  parser_data_cleanup (&pdata);
+  if (reply)
+    zik2_request_reply_data_free (reply);
 }
 
 static gboolean
@@ -414,7 +307,7 @@ zik2_set_noise_control_mode_and_strength (Zik2 * zik2,
   Zik2Message *msg;
   gboolean ret;
   const gchar *type;
-  gchar *uri;
+  gchar *args;
 
   switch (mode) {
     case ZIK2_NOISE_CONTROL_MODE_OFF:
@@ -430,10 +323,9 @@ zik2_set_noise_control_mode_and_strength (Zik2 * zik2,
       g_assert_not_reached ();
   }
 
-  uri = g_strdup_printf ("/api/audio/noise_control/set?arg=%s&value=%u", type,
-      strength);
-  msg = zik2_message_new_request_get (uri);
-  g_free (uri);
+  args = g_strdup_printf ("%s&value=%u", type, strength);
+  msg = zik2_message_new_request (API_AUDIO_NOISE_CONTROL_URI, "set", args);
+  g_free (args);
 
   ret = zik2_connection_send_message (zik2->conn, msg, NULL);
   zik2_message_free (msg);
@@ -444,86 +336,78 @@ zik2_set_noise_control_mode_and_strength (Zik2 * zik2,
 static void
 zik2_get_software_version (Zik2 * zik2)
 {
-  ParserData pdata;
-  guint i;
+  Zik2RequestReplyData *reply = NULL;
+  Zik2SoftwareInfo *info;
 
-  parser_data_init (&pdata);
-  pdata.target = "software";
-  if (!zik2_get_and_parse_result (zik2, API_SOFTWARE_VERSION_URI, &pdata)) {
-    g_warning ("failed to get software version");
+  if (!zik2_get_and_parse_reply (zik2, API_SOFTWARE_VERSION_URI, &reply)) {
+    g_warning ("failed to get software");
     goto out;
   }
 
-  for (i = 0; i < pdata.attribute_names->len; i++) {
-    const gchar *name = g_ptr_array_index (pdata.attribute_names, i);
-    const gchar *value = g_ptr_array_index (pdata.attribute_values, i);
-
-    if (g_strcmp0 (name, "sip6") == 0) {
-      g_free (zik2->software_version);
-      zik2->software_version = g_strdup (value);
-      break;
-    }
+  info = zik2_request_reply_data_find_node_info (reply,
+      ZIK2_SOFTWARE_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("<software> not found");
+    goto out;
   }
 
+  g_free (zik2->software_version);
+  zik2->software_version = g_strdup (info->sip6);
+
 out:
-  parser_data_cleanup (&pdata);
+  if (reply)
+    zik2_request_reply_data_free (reply);
 }
 
 static void
 zik2_get_source (Zik2 * zik2)
 {
-  ParserData pdata;
-  guint i;
+  Zik2RequestReplyData *reply = NULL;
+  Zik2SourceInfo *info;
 
-  parser_data_init (&pdata);
-  pdata.target = "source";
-  if (!zik2_get_and_parse_result (zik2, API_AUDIO_SOURCE_URI, &pdata)) {
+  if (!zik2_get_and_parse_reply (zik2, API_AUDIO_SOURCE_URI, &reply)) {
     g_warning ("failed to get audio source");
     goto out;
   }
 
-  for (i = 0; i < pdata.attribute_names->len; i++) {
-    const gchar *name = g_ptr_array_index (pdata.attribute_names, i);
-    const gchar *value = g_ptr_array_index (pdata.attribute_values, i);
-
-    if (g_strcmp0 (name, "type") == 0) {
-      g_free (zik2->source);
-      zik2->source = g_strdup (value);
-      break;
-    }
+  info = zik2_request_reply_data_find_node_info (reply, ZIK2_SOURCE_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("<source> not found");
+    goto out;
   }
 
+  g_free (zik2->source);
+  zik2->source = g_strdup (info->type);
+
 out:
-  parser_data_cleanup (&pdata);
+  if (reply)
+    zik2_request_reply_data_free (reply);
 }
 
 static void
 zik2_get_battery (Zik2 * zik2)
 {
-  ParserData pdata;
-  guint i;
+  Zik2RequestReplyData *reply = NULL;
+  Zik2BatteryInfo *info;
 
-  parser_data_init (&pdata);
-  pdata.target = "battery";
-  if (!zik2_get_and_parse_result (zik2, API_SYSTEM_BATTERY_URI, &pdata)) {
-    g_warning ("failed to get battery status");
+  if (!zik2_get_and_parse_reply (zik2, API_SYSTEM_BATTERY_URI, &reply)) {
+    g_warning ("failed to get system battery");
     goto out;
   }
 
-  for (i = 0; i < pdata.attribute_names->len; i++) {
-    const gchar *name = g_ptr_array_index (pdata.attribute_names, i);
-    const gchar *value = g_ptr_array_index (pdata.attribute_values, i);
-
-    if (g_strcmp0 (name, "state") == 0) {
-      g_free (zik2->battery_state);
-      zik2->battery_state = g_strdup (value);
-    } else if (g_strcmp0 (name, "percent") == 0) {
-      zik2->battery_percentage = atoi (value);
-    }
+  info = zik2_request_reply_data_find_node_info (reply, ZIK2_BATTERY_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("<battery> not found");
+    goto out;
   }
 
+  g_free (zik2->battery_state);
+  zik2->battery_state = g_strdup (info->state);
+  zik2->battery_percentage = info->percent;
+
 out:
-  parser_data_cleanup (&pdata);
+  if (reply)
+    zik2_request_reply_data_free (reply);
 }
 
 static void

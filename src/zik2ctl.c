@@ -144,11 +144,11 @@ zik2_get (Zik2Connection * conn, const gchar * property)
   Zik2Message *answer = NULL;
   gchar *xml;
 
-  msg = zik2_message_new_request_get (property);
+  msg = zik2_message_new_request (property, "get", NULL);
   zik2_connection_send_message (conn, msg, &answer);
   zik2_message_free (msg);
 
-  xml = zik2_message_request_get_request_answer (answer);
+  xml = zik2_message_get_request_reply_xml (answer);
   if (xml) {
     g_print ("got answer: %s\n", xml);
   }
