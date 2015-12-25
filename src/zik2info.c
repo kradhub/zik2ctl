@@ -26,6 +26,8 @@ static Zik2SourceInfo *zik2_source_info_copy (Zik2SourceInfo * info);
 static Zik2BatteryInfo *zik2_battery_info_copy (Zik2BatteryInfo * info);
 static Zik2VolumeInfo *zik2_volume_info_copy (Zik2VolumeInfo * info);
 static Zik2HeadDetectionInfo *zik2_head_detection_info_copy (Zik2HeadDetectionInfo * info);
+static Zik2ColorInfo *zik2_color_info_copy (Zik2ColorInfo * info);
+
 
 #define ZIK2_DEFINE_BOXED_TYPE(TypeName, type_name) \
   G_DEFINE_BOXED_TYPE (TypeName, type_name, type_name##_copy, type_name##_free)
@@ -39,6 +41,7 @@ ZIK2_DEFINE_BOXED_TYPE (Zik2SourceInfo, zik2_source_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2BatteryInfo, zik2_battery_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2VolumeInfo, zik2_volume_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2HeadDetectionInfo, zik2_head_detection_info);
+ZIK2_DEFINE_BOXED_TYPE (Zik2ColorInfo, zik2_color_info);
 
 Zik2AnswerInfo *
 zik2_answer_info_new (const gchar * path, gboolean error)
@@ -259,4 +262,27 @@ void
 zik2_head_detection_info_free (Zik2HeadDetectionInfo * info)
 {
   g_slice_free (Zik2HeadDetectionInfo, info);
+}
+
+Zik2ColorInfo *
+zik2_color_info_new (guint value)
+{
+  Zik2ColorInfo *info;
+
+  info = g_slice_new0 (Zik2ColorInfo);
+  info->itype = ZIK2_COLOR_INFO_TYPE;
+  info->value = value;
+  return info;
+}
+
+static Zik2ColorInfo *
+zik2_color_info_copy (Zik2ColorInfo * info)
+{
+  return zik2_color_info_new (info->value);
+}
+
+void
+zik2_color_info_free (Zik2ColorInfo * info)
+{
+  g_slice_free (Zik2ColorInfo, info);
 }

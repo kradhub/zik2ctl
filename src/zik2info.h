@@ -32,6 +32,7 @@ G_BEGIN_DECLS
 #define ZIK2_BATTERY_INFO_TYPE (zik2_battery_info_get_type ())
 #define ZIK2_VOLUME_INFO_TYPE (zik2_volume_info_get_type ())
 #define ZIK2_HEAD_DETECTION_INFO_TYPE (zik2_head_detection_info_get_type ())
+#define ZIK2_COLOR_INFO_TYPE (zik2_color_info_get_type ())
 
 typedef struct _Zik2AnswerInfo Zik2AnswerInfo;
 typedef struct _Zik2AudioInfo Zik2AudioInfo;
@@ -42,6 +43,7 @@ typedef struct _Zik2SourceInfo Zik2SourceInfo;
 typedef struct _Zik2BatteryInfo Zik2BatteryInfo;
 typedef struct _Zik2VolumeInfo Zik2VolumeInfo;
 typedef struct _Zik2HeadDetectionInfo Zik2HeadDetectionInfo;
+typedef struct _Zik2ColorInfo Zik2ColorInfo;
 
 /* all nodes structures shall begin with:
  * GType itype
@@ -113,6 +115,13 @@ struct _Zik2HeadDetectionInfo
   gboolean enabled;
 };
 
+struct _Zik2ColorInfo
+{
+  GType itype;
+
+  guint value;
+};
+
 Zik2AnswerInfo *zik2_answer_info_new (const gchar * path, gboolean error);
 void zik2_answer_info_free (Zik2AnswerInfo * info);
 
@@ -142,6 +151,9 @@ void zik2_volume_info_free (Zik2VolumeInfo * info);
 Zik2HeadDetectionInfo *zik2_head_detection_info_new (gboolean enabled);
 void zik2_head_detection_info_free (Zik2HeadDetectionInfo * info);
 
+Zik2ColorInfo *zik2_color_info_new (guint value);
+void zik2_color_info_free (Zik2ColorInfo * info);
+
 GType zik2_answer_info_get_type (void);
 GType zik2_audio_info_get_type (void);
 GType zik2_software_info_get_type (void);
@@ -151,6 +163,7 @@ GType zik2_source_info_get_type (void);
 GType zik2_battery_info_get_type (void);
 GType zik2_volume_info_get_type (void);
 GType zik2_head_detection_info_get_type (void);
+GType zik2_color_info_get_type (void);
 
 G_END_DECLS
 

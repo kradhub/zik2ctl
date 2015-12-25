@@ -41,6 +41,7 @@ enum
   PROP_BATTERY_PERCENT,
   PROP_VOLUME,
   PROP_ENABLE_HEAD_DETECTION,
+  PROP_COLOR,
 };
 
 struct _Zik2Private
@@ -84,6 +85,26 @@ zik2_noise_control_mode_get_type (void)
 
     _type = g_enum_register_static ("Zik2NoiseControlMode", modes);
 
+    g_once_init_leave (&type, _type);
+  }
+
+  return type;
+}
+
+#define ZIK2_COLOR_TYPE (zik2_color_get_type ())
+static GType
+zik2_color_get_type (void)
+{
+  static volatile GType type;
+  static const GEnumValue colors[] = {
+    { ZIK2_COLOR_UNKNOWN, "Unknown", "unknown" },
+    { ZIK2_COLOR_BLACK, "Black", "black" },
+    { ZIK2_COLOR_BLUE, "Blue", "blue" },
+    { 0, NULL, NULL }
+  };
+
+  if (g_once_init_enter (&type)) {
+    GType _type = g_enum_register_static ("Zik2Color", colors);
     g_once_init_leave (&type, _type);
   }
 
@@ -167,6 +188,10 @@ zik2_class_init (Zik2Class * klass)
       g_param_spec_boolean ("enable-head-detection", "Enable head detection",
           "Enable the head detection", FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_COLOR,
+      g_param_spec_enum ("color", "Color", "Zik2 color", ZIK2_COLOR_TYPE,
+        ZIK2_COLOR_UNKNOWN, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -513,6 +538,29 @@ zik2_set_enable_head_detection (Zik2 * zik2, gboolean active)
 }
 
 static void
+zik2_get_color (Zik2 * zik2)
+{
+  Zik2RequestReplyData *reply;
+  Zik2ColorInfo *info;
+
+  if (!zik2_get_and_parse_reply (zik2, ZIK2_API_SYSTEM_COLOR_PATH, &reply)) {
+    g_warning ("failed to get color");
+    return;
+  }
+
+  info = zik2_request_reply_data_find_node_info (reply, ZIK2_COLOR_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("<color> not found");
+    goto out;
+  }
+
+  zik2->priv->color = info->value;
+
+out:
+  zik2_request_reply_data_free (reply);
+}
+
+static void
 zik2_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec *pspec)
 {
@@ -560,6 +608,10 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_ENABLE_HEAD_DETECTION:
       zik2_get_enable_head_detection (zik2);
       g_value_set_boolean (value, priv->enable_head_detection);
+      break;
+    case PROP_COLOR:
+      zik2_get_color (zik2);
+      g_value_set_enum (value, priv->color);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -648,6 +700,7 @@ zik2_new (const gchar * name, const gchar * address, Zik2Connection * conn)
   zik2_get_noise_control_mode_and_strength (zik2);
   zik2_get_software_version (zik2);
   zik2_get_source (zik2);
+  zik2_get_color (zik2);
 
   return zik2;
 }

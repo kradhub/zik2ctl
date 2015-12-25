@@ -40,6 +40,8 @@ typedef enum _Zik2NoiseControlMode Zik2NoiseControlMode;
 
 enum _Zik2Color
 {
+  ZIK2_COLOR_UNKNOWN = 0x0,
+  ZIK2_COLOR_BLACK = 0x1,
   ZIK2_COLOR_BLUE = 0x2,
 };
 typedef enum _Zik2Color Zik2Color;
