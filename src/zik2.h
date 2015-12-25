@@ -69,6 +69,7 @@ struct _Zik2
   gchar *source;
   gchar *battery_state;
   guint battery_percentage;
+  gboolean enable_head_detection;
 };
 
 struct _Zik2Class

@@ -40,6 +40,7 @@ enum
   PROP_BATTERY_STATE,
   PROP_BATTERY_PERCENT,
   PROP_VOLUME,
+  PROP_ENABLE_HEAD_DETECTION,
 };
 
 #define ZIK2_NOISE_CONTROL_MODE_TYPE (zik2_noise_control_mode_get_type ())
@@ -136,6 +137,11 @@ zik2_class_init (Zik2Class * klass)
   g_object_class_install_property (gobject_class, PROP_VOLUME,
       g_param_spec_uint ("volume", "Volume", "Volume", 0, G_MAXUINT, 0,
         G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_ENABLE_HEAD_DETECTION,
+      g_param_spec_boolean ("enable-head-detection", "Enable head detection",
+          "Enable the head detection", FALSE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -440,6 +446,45 @@ out:
 }
 
 static void
+zik2_get_enable_head_detection (Zik2 * zik2)
+{
+  Zik2RequestReplyData *reply;
+  Zik2HeadDetectionInfo *info;
+
+  if (!zik2_get_and_parse_reply (zik2,
+        ZIK2_API_SYSTEM_HEAD_DETECTION_ENABLED_PATH, &reply)) {
+    g_warning ("failed to get head detection");
+    return;
+  }
+
+  info = zik2_request_reply_data_find_node_info (reply,
+      ZIK2_HEAD_DETECTION_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("<head_detection> not found");
+    goto out;
+  }
+
+  zik2->enable_head_detection = info->enabled;
+
+out:
+  zik2_request_reply_data_free (reply);
+}
+
+static gboolean
+zik2_set_enable_head_detection (Zik2 * zik2, gboolean active)
+{
+  Zik2Message *msg;
+  gboolean ret;
+
+  msg = zik2_message_new_request (ZIK2_API_SYSTEM_HEAD_DETECTION_ENABLED_PATH,
+      "set", active ? "true" : "false");
+  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
+  zik2_message_free (msg);
+
+  return ret;
+}
+
+static void
 zik2_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec *pspec)
 {
@@ -482,6 +527,10 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_VOLUME:
       zik2_get_volume (zik2);
       g_value_set_uint (value, zik2->volume);
+      break;
+    case PROP_ENABLE_HEAD_DETECTION:
+      zik2_get_enable_head_detection (zik2);
+      g_value_set_boolean (value, zik2->enable_head_detection);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -535,6 +584,17 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
           zik2->noise_control_strength = tmp;
         else
           g_warning ("failed to set noise control strength");
+      }
+      break;
+    case PROP_ENABLE_HEAD_DETECTION:
+      {
+        guint tmp;
+
+        tmp = g_value_get_boolean (value);
+        if (zik2_set_enable_head_detection (zik2, tmp))
+          zik2->enable_head_detection = tmp;
+        else
+          g_warning ("failed to enable/disable head detection");
       }
       break;
     default:

@@ -211,6 +211,23 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
 
     data->parent = g_node_append_data (data->parent,
         zik2_volume_info_new (atoi (value)));
+  } else if (g_strcmp0 (element_name, "head_detection") == 0) {
+    gboolean enabled;
+
+    if (g_slist_length (stack) < 2 || g_strcmp0 (stack->next->data, "system")) {
+      g_set_error_literal (error, G_MARKUP_ERROR,
+          G_MARKUP_ERROR_INVALID_CONTENT,
+          "<head_detection> element should be embedded in <system>");
+      return;
+    }
+
+    if (!g_markup_collect_attributes (element_name, attribute_names,
+          attribute_values, error, G_MARKUP_COLLECT_BOOLEAN, "enabled", &enabled,
+          G_MARKUP_COLLECT_INVALID))
+      return;
+
+    data->parent = g_node_append_data (data->parent,
+        zik2_head_detection_info_new (enabled));
   }
 }
 

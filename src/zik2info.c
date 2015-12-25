@@ -25,6 +25,7 @@ static Zik2NoiseControlInfo *zik2_noise_control_info_copy (Zik2NoiseControlInfo 
 static Zik2SourceInfo *zik2_source_info_copy (Zik2SourceInfo * info);
 static Zik2BatteryInfo *zik2_battery_info_copy (Zik2BatteryInfo * info);
 static Zik2VolumeInfo *zik2_volume_info_copy (Zik2VolumeInfo * info);
+static Zik2HeadDetectionInfo *zik2_head_detection_info_copy (Zik2HeadDetectionInfo * info);
 
 #define ZIK2_DEFINE_BOXED_TYPE(TypeName, type_name) \
   G_DEFINE_BOXED_TYPE (TypeName, type_name, type_name##_copy, type_name##_free)
@@ -37,6 +38,7 @@ ZIK2_DEFINE_BOXED_TYPE (Zik2NoiseControlInfo, zik2_noise_control_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2SourceInfo, zik2_source_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2BatteryInfo, zik2_battery_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2VolumeInfo, zik2_volume_info);
+ZIK2_DEFINE_BOXED_TYPE (Zik2HeadDetectionInfo, zik2_head_detection_info);
 
 Zik2AnswerInfo *
 zik2_answer_info_new (const gchar * path, gboolean error)
@@ -234,4 +236,27 @@ void
 zik2_volume_info_free (Zik2VolumeInfo * info)
 {
   g_slice_free (Zik2VolumeInfo, info);
+}
+
+Zik2HeadDetectionInfo *
+zik2_head_detection_info_new (gboolean enabled)
+{
+  Zik2HeadDetectionInfo *info;
+
+  info = g_slice_new0 (Zik2HeadDetectionInfo);
+  info->itype = ZIK2_HEAD_DETECTION_INFO_TYPE;
+  info->enabled = enabled;
+  return info;
+}
+
+static Zik2HeadDetectionInfo *
+zik2_head_detection_info_copy (Zik2HeadDetectionInfo * info)
+{
+  return zik2_head_detection_info_new (info->enabled);
+}
+
+void
+zik2_head_detection_info_free (Zik2HeadDetectionInfo * info)
+{
+  g_slice_free (Zik2HeadDetectionInfo, info);
 }
