@@ -41,6 +41,7 @@ static gchar *noise_control_mode = NULL;
 static gint noise_control_strength = 0;
 static gchar *get_uri = NULL;
 static gchar *head_detection_switch = NULL;
+static gchar *flight_mode_switch = NULL;
 
 static GOptionEntry entries[] = {
   { "list", 'l', 0, G_OPTION_ARG_NONE, &list_devices, "List Zik2 devices paired", NULL },
@@ -49,6 +50,7 @@ static GOptionEntry entries[] = {
   { "set-noise-control-mode", 0, 0, G_OPTION_ARG_STRING, &noise_control_mode, "Select noise control mode (anc: noise cancelling, aoc: street mode)", "<off|anc|aoc>" },
   { "set-noise-control-strength", 0, 0, G_OPTION_ARG_INT, &noise_control_strength, "Select noise control strength", "<1|2>" },
   { "set-head-detection", 0, 0, G_OPTION_ARG_STRING, &head_detection_switch, "Enable the head detection", "<on|off>" },
+  { "set-flight-mode", 0, 0, G_OPTION_ARG_STRING, &flight_mode_switch, "Enable/Disable flight mode", "<on|off>" },
   { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
   { "get-uri", 0, 0, G_OPTION_ARG_STRING, &get_uri, "Get uri and print reply", "/api/..." },
   { NULL, 0, 0, 0, NULL, NULL, NULL }
@@ -203,6 +205,7 @@ show_zik2 (Zik2 * zik2)
   guint volume;
   gboolean head_detection;
   Zik2Color color;
+  gboolean flight_mode;
 
   g_object_get (zik2, "serial", &serial,
       "noise-control-enabled", &nc_enabled,
@@ -215,6 +218,7 @@ show_zik2 (Zik2 * zik2)
       "volume", &volume,
       "enable-head-detection", &head_detection,
       "color", &color,
+      "flight-mode", &flight_mode,
       NULL);
 
   g_print ("audio:\n");
@@ -231,6 +235,7 @@ show_zik2 (Zik2 * zik2)
   g_print ("  battery state          : %s (remaining: %u%%)\n", bat_state,
       bat_percent);
   g_print ("  color                  : %s\n", color_str (color));
+  g_print ("  flight mode            : %s\n", flight_mode ? "on" : "off");
   g_print ("  head detection enabled : %s\n", head_detection ? "true" : "false");
   g_print ("  serial-number          : %s\n", serial);
 
@@ -338,6 +343,31 @@ set_head_detection (Zik2 * zik2)
   return TRUE;
 }
 
+static gboolean
+set_flight_mode (Zik2 * zik2)
+{
+  gboolean req_value;
+  gboolean value;
+
+  if (g_strcmp0 (flight_mode_switch, "on") == 0)
+    req_value = TRUE;
+  else if (g_strcmp0 (flight_mode_switch, "off") == 0)
+    req_value = FALSE;
+  else
+    return FALSE;
+
+  g_print ("%s flight mode\n", req_value ? "Enabling" : "Disabling");
+  g_object_set (zik2, "flight-mode", req_value, NULL);
+  g_object_get (zik2, "flight-mode", &value, NULL);
+
+  if (value != req_value) {
+    g_printerr ("failed to %s flight mode\n", req_value ? "enable" : "disable");
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
 static void
 on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
 {
@@ -360,6 +390,9 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
 
   if (head_detection_switch)
     set_head_detection (zik2);
+
+  if (flight_mode_switch)
+    set_flight_mode (zik2);
 
   if (dump_api_xml) {
     for (i = 0; zik2_api[i].name != NULL; i++) {
@@ -448,6 +481,9 @@ check_arguments (void)
 
   if (head_detection_switch)
     ret = check_switch_argument (head_detection_switch, "head_detection_switch");
+
+  if (flight_mode_switch)
+    ret = check_switch_argument (flight_mode_switch, "flight_mode_switch");
 
   return ret;
 }
