@@ -63,12 +63,18 @@ zik2_answer_info_new (const gchar * path, gboolean error)
 static Zik2AnswerInfo *
 zik2_answer_info_copy (Zik2AnswerInfo * info)
 {
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_ANSWER_INFO_TYPE, NULL);
+
   return zik2_answer_info_new (info->path, info->error);
 }
 
 void
 zik2_answer_info_free (Zik2AnswerInfo * info)
 {
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_ANSWER_INFO_TYPE);
+
   g_free (info->path);
   g_slice_free (Zik2AnswerInfo, info);
 }
@@ -86,12 +92,18 @@ zik2_audio_info_new (void)
 static Zik2AudioInfo *
 zik2_audio_info_copy (Zik2AudioInfo * info)
 {
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_AUDIO_INFO_TYPE, NULL);
+
   return zik2_audio_info_new ();
 }
 
 void
 zik2_audio_info_free (Zik2AudioInfo * info)
 {
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_AUDIO_INFO_TYPE);
+
   g_slice_free (Zik2AudioInfo, info);
 }
 
@@ -112,12 +124,18 @@ zik2_software_info_new (const gchar * sip6, const gchar * pic,
 static Zik2SoftwareInfo *
 zik2_software_info_copy (Zik2SoftwareInfo * info)
 {
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_SOFTWARE_INFO_TYPE, NULL);
+
   return zik2_software_info_new (info->sip6, info->pic, info->tts);
 }
 
 void
 zik2_software_info_free (Zik2SoftwareInfo * info)
 {
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_SOFTWARE_INFO_TYPE);
+
   g_free (info->sip6);
   g_free (info->pic);
   g_free (info->tts);
@@ -138,12 +156,18 @@ zik2_system_info_new (const gchar * pi)
 static Zik2SystemInfo *
 zik2_system_info_copy (Zik2SystemInfo * info)
 {
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_SYSTEM_INFO_TYPE, NULL);
+
   return zik2_system_info_new (info->pi);
 }
 
 void
 zik2_system_info_free (Zik2SystemInfo * info)
 {
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_SYSTEM_INFO_TYPE);
+
   g_free (info->pi);
   g_slice_free (Zik2SystemInfo, info);
 }
@@ -164,12 +188,18 @@ zik2_noise_control_info_new (gboolean enabled, gchar * type, guint value)
 static Zik2NoiseControlInfo *
 zik2_noise_control_info_copy (Zik2NoiseControlInfo * info)
 {
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_NOISE_CONTROL_INFO_TYPE, NULL);
+
   return zik2_noise_control_info_new (info->enabled, info->type, info->value);
 }
 
 void
 zik2_noise_control_info_free (Zik2NoiseControlInfo * info)
 {
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_NOISE_CONTROL_INFO_TYPE);
+
   g_free (info->type);
   g_slice_free (Zik2NoiseControlInfo, info);
 }
@@ -188,12 +218,18 @@ zik2_source_info_new (const gchar * type)
 static Zik2SourceInfo *
 zik2_source_info_copy (Zik2SourceInfo * info)
 {
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_SOURCE_INFO_TYPE, NULL);
+
   return zik2_source_info_new (info->type);
 }
 
 void
 zik2_source_info_free (Zik2SourceInfo * info)
 {
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_SOURCE_INFO_TYPE);
+
   g_free (info->type);
   g_slice_free (Zik2SourceInfo, info);
 }
@@ -213,12 +249,18 @@ zik2_battery_info_new (const gchar * state, guint percent)
 static Zik2BatteryInfo *
 zik2_battery_info_copy (Zik2BatteryInfo * info)
 {
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_BATTERY_INFO_TYPE, NULL);
+
   return zik2_battery_info_new (info->state, info->percent);
 }
 
 void
 zik2_battery_info_free (Zik2BatteryInfo * info)
 {
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_BATTERY_INFO_TYPE);
+
   g_free (info->state);
   g_slice_free (Zik2BatteryInfo, info);
 }
@@ -237,12 +279,18 @@ zik2_volume_info_new (guint volume)
 static Zik2VolumeInfo *
 zik2_volume_info_copy (Zik2VolumeInfo * info)
 {
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_VOLUME_INFO_TYPE, NULL);
+
   return zik2_volume_info_new (info->volume);
 }
 
 void
 zik2_volume_info_free (Zik2VolumeInfo * info)
 {
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_VOLUME_INFO_TYPE);
+
   g_slice_free (Zik2VolumeInfo, info);
 }
 
@@ -260,12 +308,18 @@ zik2_head_detection_info_new (gboolean enabled)
 static Zik2HeadDetectionInfo *
 zik2_head_detection_info_copy (Zik2HeadDetectionInfo * info)
 {
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_HEAD_DETECTION_INFO_TYPE, NULL);
+
   return zik2_head_detection_info_new (info->enabled);
 }
 
 void
 zik2_head_detection_info_free (Zik2HeadDetectionInfo * info)
 {
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_HEAD_DETECTION_INFO_TYPE);
+
   g_slice_free (Zik2HeadDetectionInfo, info);
 }
 
@@ -283,12 +337,18 @@ zik2_color_info_new (guint value)
 static Zik2ColorInfo *
 zik2_color_info_copy (Zik2ColorInfo * info)
 {
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_COLOR_INFO_TYPE, NULL);
+
   return zik2_color_info_new (info->value);
 }
 
 void
 zik2_color_info_free (Zik2ColorInfo * info)
 {
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_COLOR_INFO_TYPE);
+
   g_slice_free (Zik2ColorInfo, info);
 }
 
@@ -306,12 +366,18 @@ zik2_flight_mode_info_new (gboolean enabled)
 static Zik2FlightModeInfo *
 zik2_flight_mode_info_copy (Zik2FlightModeInfo * info)
 {
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_FLIGHT_MODE_INFO_TYPE, NULL);
+
   return zik2_flight_mode_info_new (info->enabled);
 }
 
 void
 zik2_flight_mode_info_free (Zik2FlightModeInfo * info)
 {
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_FLIGHT_MODE_INFO_TYPE);
+
   g_slice_free (Zik2FlightModeInfo, info);
 }
 
@@ -329,12 +395,18 @@ zik2_bluetooth_info_new (const gchar * friendlyname)
 static Zik2BluetoothInfo *
 zik2_bluetooth_info_copy (Zik2BluetoothInfo * info)
 {
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_BLUETOOTH_INFO_TYPE, NULL);
+
   return zik2_bluetooth_info_new (info->friendlyname);
 }
 
 void
 zik2_bluetooth_info_free (Zik2BluetoothInfo * info)
 {
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_BLUETOOTH_INFO_TYPE);
+
   g_free (info->friendlyname);
   g_slice_free (Zik2BluetoothInfo, info);
 }
@@ -356,6 +428,9 @@ zik2_sound_effect_info_new (gboolean enabled, const gchar * room_size,
 static Zik2SoundEffectInfo *
 zik2_sound_effect_info_copy (Zik2SoundEffectInfo * info)
 {
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_SOUND_EFFECT_INFO_TYPE, NULL);
+
   return zik2_sound_effect_info_new (info->enabled, info->room_size,
       info->angle);
 }
@@ -363,6 +438,9 @@ zik2_sound_effect_info_copy (Zik2SoundEffectInfo * info)
 void
 zik2_sound_effect_info_free (Zik2SoundEffectInfo * info)
 {
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_SOUND_EFFECT_INFO_TYPE);
+
   g_free (info->room_size);
   g_slice_free (Zik2SoundEffectInfo, info);
 }
