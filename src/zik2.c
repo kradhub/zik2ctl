@@ -341,41 +341,49 @@ zik2_finalize (GObject * object)
   G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
+/* reply: allow-none */
 static gboolean
-zik2_get_and_parse_reply (Zik2 * zik2, const gchar * path,
-    Zik2RequestReplyData ** reply)
+zik2_do_request (Zik2 * zik2, const gchar * path, const gchar * method,
+    const gchar * args, Zik2RequestReplyData ** reply_data)
 {
   Zik2Message *msg;
-  Zik2Message *answer = NULL;
+  Zik2Message *reply = NULL;
   Zik2RequestReplyData *result;
   gboolean ret = FALSE;
 
-  msg = zik2_message_new_request (path, "get", NULL);
+  msg = zik2_message_new_request (path, method, args);
 
-  if (!zik2_connection_send_message (zik2->conn, msg, &answer)) {
-    g_critical ("failed to send get request '%s/get'", path);
+  if (!zik2_connection_send_message (zik2->conn, msg, &reply)) {
+    g_critical ("failed to send request '%s/%s with args %s'", path, method,
+        args);
     goto out;
   }
 
-  if (!zik2_message_parse_request_reply (answer, &result)) {
-    g_critical ("failed to parse request reply for '%s/get'", path);
+  if (!zik2_message_parse_request_reply (reply, &result)) {
+    g_critical ("failed to parse request reply '%s/%s with args %s'", path,
+        method, args);
     goto out;
   }
 
   if (zik2_request_reply_data_error (result)) {
-    g_warning ("device reply with error for '%s/get'", path);
+    g_warning ("device reply with error '%s/%s with args %s'", path, method,
+        args);
     zik2_request_reply_data_free (result);
     goto out;
   }
 
-  *reply = result;
+  if (reply_data)
+    *reply_data = result;
+  else
+    zik2_request_reply_data_free (result);
+
   ret = TRUE;
 
 out:
   zik2_message_free (msg);
 
-  if (answer)
-    zik2_message_free (answer);
+  if (reply)
+    zik2_message_free (reply);
 
   return ret;
 }
@@ -387,7 +395,7 @@ zik2_request_info (Zik2 * zik2, const gchar * path, GType type)
   Zik2RequestReplyData *reply = NULL;
   gpointer info;
 
-  if (!zik2_get_and_parse_reply (zik2, path, &reply))
+  if (!zik2_do_request (zik2, path, "get", NULL, &reply))
     return NULL;
 
   info = zik2_request_reply_data_find_node_info (reply, type);
@@ -439,15 +447,8 @@ zik2_get_noise_control (Zik2 * zik2)
 static gboolean
 zik2_set_noise_control (Zik2 * zik2, gboolean active)
 {
-  Zik2Message *msg;
-  gboolean ret;
-
-  msg = zik2_message_new_request (ZIK2_API_AUDIO_NOISE_CONTROL_ENABLED_PATH, "set",
-      active ? "true" : "false");
-  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
-  zik2_message_free (msg);
-
-  return ret;
+  return zik2_do_request (zik2, ZIK2_API_AUDIO_NOISE_CONTROL_ENABLED_PATH,
+      "set", active ? "true" : "false", NULL);
 }
 
 static void
@@ -481,7 +482,6 @@ static gboolean
 zik2_set_noise_control_mode_and_strength (Zik2 * zik2,
     Zik2NoiseControlMode mode, guint strength)
 {
-  Zik2Message *msg;
   gboolean ret;
   const gchar *type;
   gchar *args;
@@ -501,11 +501,9 @@ zik2_set_noise_control_mode_and_strength (Zik2 * zik2,
   }
 
   args = g_strdup_printf ("%s&value=%u", type, strength);
-  msg = zik2_message_new_request (ZIK2_API_AUDIO_NOISE_CONTROL_PATH, "set", args);
+  ret = zik2_do_request (zik2, ZIK2_API_AUDIO_NOISE_CONTROL_PATH, "set", args,
+      NULL);
   g_free (args);
-
-  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
-  zik2_message_free (msg);
 
   return ret;
 }
@@ -597,15 +595,8 @@ zik2_get_head_detection (Zik2 * zik2)
 static gboolean
 zik2_set_head_detection (Zik2 * zik2, gboolean active)
 {
-  Zik2Message *msg;
-  gboolean ret;
-
-  msg = zik2_message_new_request (ZIK2_API_SYSTEM_HEAD_DETECTION_ENABLED_PATH,
-      "set", active ? "true" : "false");
-  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
-  zik2_message_free (msg);
-
-  return ret;
+  return zik2_do_request (zik2, ZIK2_API_SYSTEM_HEAD_DETECTION_ENABLED_PATH,
+      "set", active ? "true" : "false", NULL);
 }
 
 static void
@@ -643,18 +634,14 @@ zik2_get_flight_mode (Zik2 * zik2)
 static gboolean
 zik2_set_flight_mode (Zik2 * zik2, gboolean active)
 {
-  Zik2Message *msg;
-  gboolean ret;
+  const gchar *method;
 
   if (active)
-    msg = zik2_message_new_request (ZIK2_API_FLIGHT_MODE_PATH, "enable", NULL);
+    method = "enable";
   else
-    msg = zik2_message_new_request (ZIK2_API_FLIGHT_MODE_PATH, "disable", NULL);
+    method = "disable";
 
-  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
-  zik2_message_free (msg);
-
-  return ret;
+  return zik2_do_request (zik2, ZIK2_API_FLIGHT_MODE_PATH, method, NULL, NULL);
 }
 
 static void
@@ -677,15 +664,8 @@ zik2_get_friendlyname (Zik2 * zik2)
 static gboolean
 zik2_set_friendlyname (Zik2 * zik2, const gchar * name)
 {
-  Zik2Message *msg;
-  gboolean ret;
-
-  msg = zik2_message_new_request (ZIK2_API_BLUETOOTH_FRIENDLY_NAME_PATH, "set",
-      name);
-  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
-  zik2_message_free (msg);
-
-  return ret;
+  return zik2_do_request (zik2, ZIK2_API_BLUETOOTH_FRIENDLY_NAME_PATH, "set",
+      name, NULL);
 }
 
 static void
@@ -710,43 +690,26 @@ zik2_get_sound_effect (Zik2 * zik2)
 static gboolean
 zik2_set_sound_effect_active (Zik2 * zik2, gboolean active)
 {
-  Zik2Message *msg;
-  gboolean ret;
-
-  msg = zik2_message_new_request (ZIK2_API_AUDIO_SOUND_EFFECT_ENABLED_PATH,
-      "set", active ? "true" : "false");
-  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
-  zik2_message_free (msg);
-
-  return ret;
+  return zik2_do_request (zik2, ZIK2_API_AUDIO_SOUND_EFFECT_ENABLED_PATH, "set",
+      active ? "true" : "false", NULL);
 }
 
 static gboolean
 zik2_set_sound_effect_room (Zik2 * zik2, Zik2SoundEffectRoom room)
 {
-  Zik2Message *msg;
-  gboolean ret;
-
-  msg = zik2_message_new_request (ZIK2_API_AUDIO_SOUND_EFFECT_ROOM_SIZE_PATH,
-      "set", zik2_sound_effect_room_name (room));
-  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
-  zik2_message_free (msg);
-
-  return ret;
+  return zik2_do_request (zik2, ZIK2_API_AUDIO_SOUND_EFFECT_ROOM_SIZE_PATH,
+      "set", zik2_sound_effect_room_name (room), NULL);
 }
 
 static gboolean
 zik2_set_sound_effect_angle (Zik2 * zik2, Zik2SoundEffectAngle angle)
 {
-  Zik2Message *msg;
   gboolean ret;
   gchar *args;
 
   args = g_strdup_printf ("%u", angle);
-  msg = zik2_message_new_request (ZIK2_API_AUDIO_SOUND_EFFECT_ANGLE_PATH,
-      "set", args);
-  ret = zik2_connection_send_message (zik2->conn, msg, NULL);
-  zik2_message_free (msg);
+  ret = zik2_do_request (zik2, ZIK2_API_AUDIO_SOUND_EFFECT_ANGLE_PATH, "set",
+      args, NULL);
   g_free (args);
 
   return ret;
