@@ -92,6 +92,29 @@ const gchar *zik2_sound_effect_room_name (Zik2SoundEffectRoom room);
 GType zik2_get_type (void);
 Zik2 *zik2_new (const gchar * name, const gchar * address, Zik2Connection * conn);
 
+const gchar *zik2_get_name (Zik2 * zik2);
+const gchar *zik2_get_address (Zik2 * zik2);
+
+/* audio */
+gboolean zik2_is_noise_control_active (Zik2 * zik2);
+Zik2NoiseControlMode zik2_get_noise_control_mode (Zik2 * zik2);
+guint zik2_get_noise_control_strength (Zik2 * zik2);
+const gchar *zik2_get_source (Zik2 * zik2);
+guint zik2_get_volume (Zik2 * zik2);
+gboolean zik2_is_sound_effect_active (Zik2 * zik2);
+Zik2SoundEffectRoom zik2_get_sound_effect_room (Zik2 * zik2);
+Zik2SoundEffectAngle zik2_get_sound_effect_angle (Zik2 * zik2);
+
+/* software and system */
+const gchar *zik2_get_software_version (Zik2 * zik2);
+const gchar *zik2_get_battery_state (Zik2 * zik2);
+guint zik2_get_battery_percentage (Zik2 * zik2);
+Zik2Color zik2_get_color (Zik2 * zik2);
+gboolean zik2_is_head_detection_active (Zik2 * zik2);
+const gchar *zik2_get_serial (Zik2 *zik2);
+gboolean zik2_is_flight_mode_active (Zik2 * zik2);
+const gchar *zik2_get_friendlyname (Zik2 * zik2);
+
 G_END_DECLS
 
 #endif

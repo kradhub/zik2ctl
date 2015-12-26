@@ -934,3 +934,116 @@ zik2_new (const gchar * name, const gchar * address, Zik2Connection * conn)
 
   return zik2;
 }
+
+const gchar *
+zik2_get_name (Zik2 * zik2)
+{
+  return zik2->priv->name;
+}
+
+const gchar *
+zik2_get_address (Zik2 * zik2)
+{
+  return zik2->priv->address;
+}
+
+gboolean
+zik2_is_noise_control_active (Zik2 * zik2)
+{
+  return zik2->priv->noise_control;
+}
+
+Zik2NoiseControlMode
+zik2_get_noise_control_mode (Zik2 * zik2)
+{
+  return zik2->priv->noise_control_mode;
+}
+
+guint
+zik2_get_noise_control_strength (Zik2 * zik2)
+{
+  return zik2->priv->noise_control_strength;
+}
+
+const gchar *
+zik2_get_source (Zik2 * zik2)
+{
+  zik2_sync_source (zik2);
+  return zik2->priv->source;
+}
+
+guint
+zik2_get_volume (Zik2 * zik2)
+{
+  zik2_sync_volume (zik2);
+  return zik2->priv->volume;
+}
+
+gboolean
+zik2_is_sound_effect_active (Zik2 * zik2)
+{
+  return zik2->priv->sound_effect;
+}
+
+Zik2SoundEffectRoom
+zik2_get_sound_effect_room (Zik2 * zik2)
+{
+  return zik2->priv->sound_effect_room;
+}
+
+Zik2SoundEffectAngle
+zik2_get_sound_effect_angle (Zik2 * zik2)
+{
+  return zik2->priv->sound_effect_angle;
+}
+
+const gchar *
+zik2_get_software_version (Zik2 * zik2)
+{
+  return zik2->priv->software_version;
+}
+
+const gchar *
+zik2_get_battery_state (Zik2 * zik2)
+{
+  zik2_sync_battery (zik2);
+  return zik2->priv->battery_state;
+}
+
+guint
+zik2_get_battery_percentage (Zik2 * zik2)
+{
+  zik2_sync_battery (zik2);
+  return zik2->priv->battery_percentage;
+}
+
+Zik2Color
+zik2_get_color (Zik2 * zik2)
+{
+  return zik2->priv->color;
+}
+
+gboolean
+zik2_is_head_detection_active (Zik2 * zik2)
+{
+  return zik2->priv->head_detection;
+}
+
+const gchar *
+zik2_get_serial (Zik2 * zik2)
+{
+  return zik2->priv->serial;
+}
+
+gboolean
+zik2_is_flight_mode_active (Zik2 * zik2)
+{
+  return zik2->priv->flight_mode;
+}
+
+const gchar *
+zik2_get_friendlyname (Zik2 * zik2)
+{
+  zik2_sync_friendlyname (zik2);
+  return zik2->priv->friendlyname;
+}
