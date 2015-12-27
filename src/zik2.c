@@ -720,70 +720,61 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec *pspec)
 {
   Zik2 *zik2 = ZIK2 (object);
-  Zik2Private *priv = zik2->priv;
 
   switch (prop_id) {
     case PROP_NAME:
-      g_value_set_string (value, priv->name);
+      g_value_set_string (value, zik2_get_name (zik2));
       break;
     case PROP_ADDRESS:
-      g_value_set_string (value, priv->address);
+      g_value_set_string (value, zik2_get_address (zik2));
       break;
     case PROP_SERIAL:
-      g_value_set_string (value, priv->serial);
+      g_value_set_string (value, zik2_get_serial (zik2));
       break;
     case PROP_SOFTWARE_VERSION:
-      g_value_set_string (value, priv->software_version);
+      g_value_set_string (value, zik2_get_software_version (zik2));
       break;
     case PROP_SOURCE:
-      zik2_sync_source (zik2);
-      g_value_set_string (value, priv->source);
+      g_value_set_string (value, zik2_get_source (zik2));
       break;
     case PROP_NOISE_CONTROL:
-      g_value_set_boolean (value, priv->noise_control);
+      g_value_set_boolean (value, zik2_is_noise_control_active (zik2));
       break;
     case PROP_NOISE_CONTROL_MODE:
-      g_value_set_enum (value, priv->noise_control_mode);
+      g_value_set_enum (value, zik2_get_noise_control_mode (zik2));
       break;
     case PROP_NOISE_CONTROL_STRENGTH:
-      g_value_set_uint (value, priv->noise_control_strength);
+      g_value_set_uint (value, zik2_get_noise_control_strength (zik2));
       break;
     case PROP_BATTERY_STATE:
-      zik2_sync_battery (zik2);
-      g_value_set_string (value, priv->battery_state);
+      g_value_set_string (value, zik2_get_battery_state (zik2));
       break;
     case PROP_BATTERY_PERCENT:
-      zik2_sync_battery (zik2);
-      g_value_set_uint (value, priv->battery_percentage);
+      g_value_set_uint (value, zik2_get_battery_percentage (zik2));
       break;
     case PROP_VOLUME:
-      zik2_sync_volume (zik2);
-      g_value_set_uint (value, priv->volume);
+      g_value_set_uint (value, zik2_get_volume (zik2));
       break;
     case PROP_HEAD_DETECTION:
-      zik2_sync_head_detection (zik2);
-      g_value_set_boolean (value, priv->head_detection);
+      g_value_set_boolean (value, zik2_is_head_detection_active (zik2));
       break;
     case PROP_COLOR:
-      zik2_sync_color (zik2);
-      g_value_set_enum (value, priv->color);
+      g_value_set_enum (value, zik2_get_color (zik2));
       break;
     case PROP_FLIGHT_MODE:
-      zik2_sync_flight_mode (zik2);
-      g_value_set_boolean (value, priv->flight_mode);
+      g_value_set_boolean (value, zik2_is_flight_mode_active (zik2));
       break;
     case PROP_FRIENDLYNAME:
-      zik2_sync_friendlyname (zik2);
-      g_value_set_string (value, priv->friendlyname);
+      g_value_set_string (value, zik2_get_friendlyname (zik2));
       break;
     case PROP_SOUND_EFFECT:
-      g_value_set_boolean (value, priv->sound_effect);
+      g_value_set_boolean (value, zik2_is_sound_effect_active (zik2));
       break;
     case PROP_SOUND_EFFECT_ROOM:
-      g_value_set_enum (value, priv->sound_effect_room);
+      g_value_set_enum (value, zik2_get_sound_effect_room (zik2));
       break;
     case PROP_SOUND_EFFECT_ANGLE:
-      g_value_set_enum (value, priv->sound_effect_angle);
+      g_value_set_enum (value, zik2_get_sound_effect_angle (zik2));
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
