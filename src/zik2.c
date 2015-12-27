@@ -869,6 +869,7 @@ zik2_set_noise_control_mode (Zik2 * zik2, Zik2NoiseControlMode mode)
   if (ret) {
     /* resync noise control status as it is modified by this call */
     zik2_sync_noise_control (zik2);
+    zik2_sync_noise_control_mode_and_strength (zik2);
     zik2->priv->noise_control_mode = mode;
   }
 
