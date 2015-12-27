@@ -261,7 +261,6 @@ static gboolean
 set_noise_control_mode (Zik2 * zik2)
 {
   Zik2NoiseControlMode req_mode;
-  Zik2NoiseControlMode mode;
 
   if (g_strcmp0 (noise_control_mode, "off") == 0)
     req_mode = ZIK2_NOISE_CONTROL_MODE_OFF;
@@ -273,10 +272,7 @@ set_noise_control_mode (Zik2 * zik2)
     return FALSE;
 
   g_print ("Setting noise control mode to %s\n", noise_control_mode);
-  g_object_set (zik2, "noise-control-mode", req_mode, NULL);
-  g_object_get (zik2, "noise-control-mode", &mode, NULL);
-
-  if (mode != req_mode) {
+  if (!zik2_set_noise_control_mode (zik2, req_mode)) {
     g_printerr ("failed to set noise control mode to %s\n", noise_control_mode);
     return FALSE;
   }
@@ -288,15 +284,10 @@ static gboolean
 set_noise_control_strength (Zik2 * zik2)
 {
   guint req_value = noise_control_strength;
-  guint value;
 
-  g_print ("Setting noise control strength to %u\n", noise_control_strength);
-  g_object_set (zik2, "noise-control-strength", req_value, NULL);
-  g_object_get (zik2, "noise-control-strength", &value, NULL);
-
-  if (value != req_value) {
-    g_printerr ("failed to set noise control strength to %u\n",
-        noise_control_strength);
+  g_print ("Setting noise control strength to %u\n", req_value);
+  if (!zik2_set_noise_control_strength (zik2, req_value)) {
+    g_printerr ("failed to set noise control strength to %u\n", req_value);
     return FALSE;
   }
 
@@ -307,19 +298,13 @@ static gboolean
 set_friendly_name (Zik2 * zik2)
 {
   gchar *req_value = friendlyname;
-  gchar *value;
 
   g_print ("Setting friendlyname to '%s'\n", req_value);
-  g_object_set (zik2, "friendlyname", req_value, NULL);
-  g_object_get (zik2, "friendlyname", &value, NULL);
-
-  if (g_strcmp0 (value, req_value)) {
+  if (!zik2_set_friendlyname (zik2, req_value)) {
      g_printerr ("failed to set friendlyname to %s\n", req_value);
-     g_free (value);
      return FALSE;
   }
 
-  g_free (value);
   return TRUE;
 }
 
@@ -327,17 +312,13 @@ static gboolean
 set_sound_effect_room (Zik2 * zik2)
 {
   Zik2SoundEffectRoom req_mode;
-  Zik2SoundEffectRoom mode;
 
   req_mode = zik2_sound_effect_room_from_string (sound_effect_room);
   if (req_mode == ZIK2_SOUND_EFFECT_ROOM_UNKNOWN)
     return FALSE;
 
   g_print ("Setting sound effect room to %s\n", sound_effect_room);
-  g_object_set (zik2, "sound-effect-room", req_mode, NULL);
-  g_object_get (zik2, "sound-effect-room", &mode, NULL);
-
-  if (mode != req_mode) {
+  if (!zik2_set_sound_effect_room (zik2, req_mode)) {
     g_printerr ("failed to set sound effect room to %s\n", sound_effect_room);
     return FALSE;
   }
@@ -349,13 +330,9 @@ static gboolean
 set_sound_effect_angle (Zik2 * zik2)
 {
   guint req_value = sound_effect_angle;
-  guint value;
 
   g_print ("Setting sound_effect_angle to %u\n", sound_effect_angle);
-  g_object_set (zik2, "sound-effect-angle", req_value, NULL);
-  g_object_get (zik2, "sound-effect-angle", &value, NULL);
-
-  if (value != req_value) {
+  if (!zik2_set_sound_effect_angle (zik2, req_value)) {
     g_printerr ("failed to set sound effect angle to %u\n", sound_effect_angle);
     return FALSE;
   }
