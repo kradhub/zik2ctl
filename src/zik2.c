@@ -914,6 +914,25 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
   }
 }
 
+/* Static properties are the one which not change at all or only change
+ * with user action */
+static void
+zik2_sync_static_properties (Zik2 * zik2)
+{
+  /* audio */
+  zik2_sync_noise_control (zik2);
+  zik2_sync_noise_control_mode_and_strength (zik2);
+  zik2_sync_sound_effect (zik2);
+
+  /* software and system */
+  zik2_sync_software_version (zik2);
+  zik2_sync_color (zik2);
+  zik2_sync_serial (zik2);
+  zik2_sync_head_detection (zik2);
+  zik2_sync_flight_mode (zik2);
+  zik2_sync_friendlyname (zik2);
+}
+
 /* @conn: (transfer full) */
 Zik2 *
 zik2_new (const gchar * name, const gchar * address, Zik2Connection * conn)
@@ -923,14 +942,7 @@ zik2_new (const gchar * name, const gchar * address, Zik2Connection * conn)
   zik2 = g_object_new (ZIK2_TYPE, "name", name, "address", address, NULL);
   zik2->conn = conn;
 
-  /* sync with devices */
-  zik2_sync_serial (zik2);
-  zik2_sync_noise_control (zik2);
-  zik2_sync_noise_control_mode_and_strength (zik2);
-  zik2_sync_software_version (zik2);
-  zik2_sync_source (zik2);
-  zik2_sync_color (zik2);
-  zik2_sync_sound_effect (zik2);
+  zik2_sync_static_properties (zik2);
 
   return zik2;
 }
