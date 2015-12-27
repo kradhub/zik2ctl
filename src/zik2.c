@@ -843,8 +843,12 @@ zik2_set_noise_control_active (Zik2 * zik2, gboolean active)
 
   ret = zik2_do_request (zik2, ZIK2_API_AUDIO_NOISE_CONTROL_ENABLED_PATH, "set",
       active ? "true" : "false", NULL);
-  if (ret)
+  if (ret) {
+    /* resync all noise controls mode and strength because their are modified
+     * by set_active call */
+    zik2_sync_noise_control_mode_and_strength (zik2);
     zik2->priv->noise_control = active;
+  }
 
   return ret;
 }
@@ -862,8 +866,11 @@ zik2_set_noise_control_mode (Zik2 * zik2, Zik2NoiseControlMode mode)
 
   ret = zik2_set_noise_control_mode_and_strength (zik2, mode,
       zik2->priv->noise_control_strength);
-  if (ret)
+  if (ret) {
+    /* resync noise control status as it is modified by this call */
+    zik2_sync_noise_control (zik2);
     zik2->priv->noise_control_mode = mode;
+  }
 
   return ret;
 }
