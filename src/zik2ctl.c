@@ -46,6 +46,7 @@ static gchar *friendlyname = NULL;
 static gchar *sound_effect_switch = NULL;
 static gchar *sound_effect_room = NULL;
 static gint sound_effect_angle = -1;
+static gchar *auto_connection_switch = NULL;
 
 static GOptionEntry entries[] = {
   { "list", 'l', 0, G_OPTION_ARG_NONE, &list_devices, "List Zik2 devices paired", NULL },
@@ -59,6 +60,7 @@ static GOptionEntry entries[] = {
   { "set-sound-effect", 0, 0, G_OPTION_ARG_STRING, &sound_effect_switch, "Enable/Disable sound effect (Concert Hall)", "<on|off>" },
   { "set-sound-effect-room", 0, 0, G_OPTION_ARG_STRING, &sound_effect_room, "Select room type for Concert Hall", "<silent|living|jazz|concert>" },
   { "set-sound-effect-angle", 0, 0, G_OPTION_ARG_INT, &sound_effect_angle, "Set the angle for sound effect (Concert Hall)", "<30|60|90|120|150|180>" },
+  { "set-auto-connection", 0, 0, G_OPTION_ARG_STRING, &auto_connection_switch, "Enable/Disable device auto-connection", "<on|off>" },
   { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
   { "get-uri", 0, 0, G_OPTION_ARG_STRING, &get_uri, "Get uri and print reply", "/api/..." },
   { NULL, 0, 0, 0, NULL, NULL, NULL }
@@ -232,6 +234,8 @@ show_zik2 (Zik2 * zik2)
       zik2_is_head_detection_active (zik2) ? "on" : "off");
   g_print ("  serial-number          : %s\n", zik2_get_serial (zik2));
   g_print ("  friendlyname           : %s\n", zik2_get_friendlyname (zik2));
+  g_print ("  auto-connection        : %s\n",
+      zik2_is_auto_connection_active (zik2) ? "on" : "off");
 }
 
 static gboolean
@@ -394,6 +398,13 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
   if (sound_effect_angle > 0)
     set_sound_effect_angle (zik2);
 
+  if (auto_connection_switch) {
+    g_print ("Setting auto-connection to %s\n", auto_connection_switch);
+    if (!set_boolean_property_from_string (zik2, "auto-connection",
+          auto_connection_switch))
+      g_printerr ("Failed to set auto-connection\n");
+  }
+
   if (dump_api_xml) {
     for (i = 0; zik2_api[i].name != NULL; i++) {
       g_print ("- %s\n", zik2_api[i].name);
@@ -508,6 +519,9 @@ check_arguments (void)
       ret = FALSE;
     }
   }
+
+  if (auto_connection_switch)
+    ret = check_switch_argument (auto_connection_switch, "set-auto-connection");
 
   return ret;
 }
