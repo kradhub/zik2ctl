@@ -886,6 +886,12 @@ zik2_set_noise_control_strength (Zik2 * zik2, guint strength)
 {
   gboolean ret;
 
+  /* Setting strength while noise control is off has no effect, but device
+   * doesn't reply with error, so make return false here. */
+  if (!zik2->priv->noise_control ||
+      zik2->priv->noise_control_mode == ZIK2_NOISE_CONTROL_MODE_OFF)
+    return FALSE;
+
   ret = zik2_set_noise_control_mode_and_strength (zik2,
       zik2->priv->noise_control_mode, strength);
   if (ret)
