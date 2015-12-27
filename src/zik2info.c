@@ -30,6 +30,7 @@ static Zik2ColorInfo *zik2_color_info_copy (Zik2ColorInfo * info);
 static Zik2FlightModeInfo *zik2_flight_mode_info_copy (Zik2FlightModeInfo * info);
 static Zik2BluetoothInfo *zik2_bluetooth_info_copy (Zik2BluetoothInfo * info);
 static Zik2SoundEffectInfo *zik2_sound_effect_info_copy (Zik2SoundEffectInfo * info);
+static Zik2AutoConnectionInfo *zik2_auto_connection_info_copy (Zik2AutoConnectionInfo * info);
 
 #define ZIK2_DEFINE_BOXED_TYPE(TypeName, type_name) \
   G_DEFINE_BOXED_TYPE (TypeName, type_name, type_name##_copy, type_name##_free)
@@ -47,6 +48,7 @@ ZIK2_DEFINE_BOXED_TYPE (Zik2ColorInfo, zik2_color_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2FlightModeInfo, zik2_flight_mode_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2BluetoothInfo, zik2_bluetooth_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2SoundEffectInfo, zik2_sound_effect_info);
+ZIK2_DEFINE_BOXED_TYPE (Zik2AutoConnectionInfo, zik2_auto_connection_info);
 
 Zik2AnswerInfo *
 zik2_answer_info_new (const gchar * path, gboolean error)
@@ -443,4 +445,33 @@ zik2_sound_effect_info_free (Zik2SoundEffectInfo * info)
 
   g_free (info->room_size);
   g_slice_free (Zik2SoundEffectInfo, info);
+}
+
+Zik2AutoConnectionInfo *
+zik2_auto_connection_info_new (gboolean enabled)
+{
+  Zik2AutoConnectionInfo *info;
+
+  info = g_slice_new0 (Zik2AutoConnectionInfo);
+  info->itype = ZIK2_AUTO_CONNECTION_INFO_TYPE;
+  info->enabled = enabled;
+  return info;
+}
+
+static Zik2AutoConnectionInfo *
+zik2_auto_connection_info_copy (Zik2AutoConnectionInfo * info)
+{
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_AUTO_CONNECTION_INFO_TYPE, NULL);
+
+  return zik2_auto_connection_info_new (info->enabled);
+}
+
+void
+zik2_auto_connection_info_free (Zik2AutoConnectionInfo * info)
+{
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_AUTO_CONNECTION_INFO_TYPE);
+
+  g_slice_free (Zik2AutoConnectionInfo, info);
 }

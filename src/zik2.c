@@ -47,6 +47,7 @@ enum
   PROP_SOUND_EFFECT,
   PROP_SOUND_EFFECT_ROOM,
   PROP_SOUND_EFFECT_ANGLE,
+  PROP_AUTO_CONNECTION,
 };
 
 struct _Zik2Private
@@ -73,6 +74,7 @@ struct _Zik2Private
   Zik2Color color;
   gboolean head_detection;
   gchar *serial;
+  gboolean auto_connection;
 
   /* others */
   gboolean flight_mode;
@@ -304,6 +306,11 @@ zik2_class_init (Zik2Class * klass)
       g_param_spec_enum ("sound-effect-angle", "Sound effect angle",
           "Set the sound effect angle", ZIK2_SOUND_EFFECT_ANGLE_TYPE,
           ZIK2_SOUND_EFFECT_ANGLE_120,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_AUTO_CONNECTION,
+      g_param_spec_boolean ("auto-connection", "Auto connection",
+          "Whether device should connect automatically", FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
@@ -654,6 +661,22 @@ zik2_sync_sound_effect (Zik2 * zik2)
 }
 
 static void
+zik2_sync_auto_connection (Zik2 * zik2)
+{
+  Zik2AutoConnectionInfo *info;
+
+  info = zik2_request_info (zik2, ZIK2_API_SYSTEM_AUTO_CONNECTION_ENABLED_PATH,
+      ZIK2_AUTO_CONNECTION_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("failed to get auto-connection info");
+    return;
+  }
+
+  zik2->priv->auto_connection = info->enabled;
+  zik2_auto_connection_info_free (info);
+}
+
+static void
 zik2_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec *pspec)
 {
@@ -714,6 +737,8 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_SOUND_EFFECT_ANGLE:
       g_value_set_enum (value, zik2_get_sound_effect_angle (zik2));
       break;
+    case PROP_AUTO_CONNECTION:
+      g_value_set_boolean (value, zik2_is_auto_connection_active (zik2));
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -779,6 +804,11 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
         g_warning ("failed to enable/disable sound effect angle");
 
       break;
+    case PROP_AUTO_CONNECTION:
+      if (!zik2_set_auto_connection_active (zik2, g_value_get_boolean (value)))
+        g_warning ("failed to enable/disable auto-connection");
+
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -802,6 +832,7 @@ zik2_sync_static_properties (Zik2 * zik2)
   zik2_sync_head_detection (zik2);
   zik2_sync_flight_mode (zik2);
   zik2_sync_friendlyname (zik2);
+  zik2_sync_auto_connection (zik2);
 }
 
 /* @conn: (transfer full) */
@@ -1071,6 +1102,25 @@ zik2_set_friendlyname (Zik2 * zik2, const gchar * name)
     g_free (zik2->priv->friendlyname);
     zik2->priv->friendlyname = g_strdup (name);
   }
+
+  return ret;
+}
+
+gboolean
+zik2_is_auto_connection_active (Zik2 * zik2)
+{
+  return zik2->priv->auto_connection;
+}
+
+gboolean
+zik2_set_auto_connection_active (Zik2 * zik2, gboolean active)
+{
+  gboolean ret;
+
+  ret = zik2_do_request (zik2, ZIK2_API_SYSTEM_AUTO_CONNECTION_ENABLED_PATH,
+      "set", active ? "true" : "false", NULL);
+  if (ret)
+    zik2->priv->auto_connection = active;
 
   return ret;
 }

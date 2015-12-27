@@ -134,6 +134,9 @@ gboolean zik2_set_flight_mode_active (Zik2 * zik2, gboolean active);
 const gchar *zik2_get_friendlyname (Zik2 * zik2);
 gboolean zik2_set_friendlyname (Zik2 * zik2, const gchar * name);
 
+gboolean zik2_is_auto_connection_active (Zik2 * zik2);
+gboolean zik2_set_auto_connection_active (Zik2 * zik2, gboolean active);
+
 G_END_DECLS
 
 #endif

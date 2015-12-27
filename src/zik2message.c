@@ -301,6 +301,24 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
 
     data->parent = g_node_append_data (data->parent,
         zik2_sound_effect_info_new (enabled, room_size, atoi (angle)));
+  } else if (g_strcmp0 (element_name, "auto_connection") == 0) {
+    gboolean enabled;
+
+    if (g_slist_length (stack) < 2 || g_strcmp0 (stack->next->data, "system")) {
+      g_set_error_literal (error, G_MARKUP_ERROR,
+          G_MARKUP_ERROR_INVALID_CONTENT,
+          "<auto_connection> element should be embedded in <system>");
+      return;
+    }
+
+    if (!g_markup_collect_attributes (element_name, attribute_names,
+          attribute_values, error,
+          G_MARKUP_COLLECT_BOOLEAN, "enabled", &enabled,
+          G_MARKUP_COLLECT_INVALID))
+      return;
+
+    data->parent = g_node_append_data (data->parent,
+        zik2_auto_connection_info_new (enabled));
   }
 }
 
