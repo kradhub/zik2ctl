@@ -412,7 +412,7 @@ out:
 }
 
 static void
-zik2_get_serial (Zik2 * zik2)
+zik2_sync_serial (Zik2 * zik2)
 {
   Zik2SystemInfo *info;
 
@@ -429,7 +429,7 @@ zik2_get_serial (Zik2 * zik2)
 }
 
 static void
-zik2_get_noise_control (Zik2 * zik2)
+zik2_sync_noise_control (Zik2 * zik2)
 {
   Zik2NoiseControlInfo *info;
 
@@ -452,7 +452,7 @@ zik2_set_noise_control (Zik2 * zik2, gboolean active)
 }
 
 static void
-zik2_get_noise_control_mode_and_strength (Zik2 * zik2)
+zik2_sync_noise_control_mode_and_strength (Zik2 * zik2)
 {
   Zik2NoiseControlInfo *info;
   GEnumClass *klass;
@@ -509,7 +509,7 @@ zik2_set_noise_control_mode_and_strength (Zik2 * zik2,
 }
 
 static void
-zik2_get_software_version (Zik2 * zik2)
+zik2_sync_software_version (Zik2 * zik2)
 {
   Zik2SoftwareInfo *info;
 
@@ -526,7 +526,7 @@ zik2_get_software_version (Zik2 * zik2)
 }
 
 static void
-zik2_get_source (Zik2 * zik2)
+zik2_sync_source (Zik2 * zik2)
 {
   Zik2SourceInfo *info;
 
@@ -543,7 +543,7 @@ zik2_get_source (Zik2 * zik2)
 }
 
 static void
-zik2_get_battery (Zik2 * zik2)
+zik2_sync_battery (Zik2 * zik2)
 {
   Zik2BatteryInfo *info;
 
@@ -561,7 +561,7 @@ zik2_get_battery (Zik2 * zik2)
 }
 
 static void
-zik2_get_volume (Zik2 * zik2)
+zik2_sync_volume (Zik2 * zik2)
 {
   Zik2VolumeInfo *info;
 
@@ -577,7 +577,7 @@ zik2_get_volume (Zik2 * zik2)
 }
 
 static void
-zik2_get_head_detection (Zik2 * zik2)
+zik2_sync_head_detection (Zik2 * zik2)
 {
   Zik2HeadDetectionInfo *info;
 
@@ -600,7 +600,7 @@ zik2_set_head_detection (Zik2 * zik2, gboolean active)
 }
 
 static void
-zik2_get_color (Zik2 * zik2)
+zik2_sync_color (Zik2 * zik2)
 {
   Zik2ColorInfo *info;
 
@@ -616,7 +616,7 @@ zik2_get_color (Zik2 * zik2)
 }
 
 static void
-zik2_get_flight_mode (Zik2 * zik2)
+zik2_sync_flight_mode (Zik2 * zik2)
 {
   Zik2FlightModeInfo *info;
 
@@ -645,7 +645,7 @@ zik2_set_flight_mode (Zik2 * zik2, gboolean active)
 }
 
 static void
-zik2_get_friendlyname (Zik2 * zik2)
+zik2_sync_friendlyname (Zik2 * zik2)
 {
   Zik2BluetoothInfo *info;
 
@@ -669,7 +669,7 @@ zik2_set_friendlyname (Zik2 * zik2, const gchar * name)
 }
 
 static void
-zik2_get_sound_effect (Zik2 * zik2)
+zik2_sync_sound_effect (Zik2 * zik2)
 {
   Zik2SoundEffectInfo *info;
 
@@ -736,7 +736,7 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
       g_value_set_string (value, priv->software_version);
       break;
     case PROP_SOURCE:
-      zik2_get_source (zik2);
+      zik2_sync_source (zik2);
       g_value_set_string (value, priv->source);
       break;
     case PROP_NOISE_CONTROL:
@@ -749,31 +749,31 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
       g_value_set_uint (value, priv->noise_control_strength);
       break;
     case PROP_BATTERY_STATE:
-      zik2_get_battery (zik2);
+      zik2_sync_battery (zik2);
       g_value_set_string (value, priv->battery_state);
       break;
     case PROP_BATTERY_PERCENT:
-      zik2_get_battery (zik2);
+      zik2_sync_battery (zik2);
       g_value_set_uint (value, priv->battery_percentage);
       break;
     case PROP_VOLUME:
-      zik2_get_volume (zik2);
+      zik2_sync_volume (zik2);
       g_value_set_uint (value, priv->volume);
       break;
     case PROP_HEAD_DETECTION:
-      zik2_get_head_detection (zik2);
+      zik2_sync_head_detection (zik2);
       g_value_set_boolean (value, priv->head_detection);
       break;
     case PROP_COLOR:
-      zik2_get_color (zik2);
+      zik2_sync_color (zik2);
       g_value_set_enum (value, priv->color);
       break;
     case PROP_FLIGHT_MODE:
-      zik2_get_flight_mode (zik2);
+      zik2_sync_flight_mode (zik2);
       g_value_set_boolean (value, priv->flight_mode);
       break;
     case PROP_FRIENDLYNAME:
-      zik2_get_friendlyname (zik2);
+      zik2_sync_friendlyname (zik2);
       g_value_set_string (value, priv->friendlyname);
       break;
     case PROP_SOUND_EFFECT:
@@ -924,13 +924,13 @@ zik2_new (const gchar * name, const gchar * address, Zik2Connection * conn)
   zik2->conn = conn;
 
   /* sync with devices */
-  zik2_get_serial (zik2);
-  zik2_get_noise_control (zik2);
-  zik2_get_noise_control_mode_and_strength (zik2);
-  zik2_get_software_version (zik2);
-  zik2_get_source (zik2);
-  zik2_get_color (zik2);
-  zik2_get_sound_effect (zik2);
+  zik2_sync_serial (zik2);
+  zik2_sync_noise_control (zik2);
+  zik2_sync_noise_control_mode_and_strength (zik2);
+  zik2_sync_software_version (zik2);
+  zik2_sync_source (zik2);
+  zik2_sync_color (zik2);
+  zik2_sync_sound_effect (zik2);
 
   return zik2;
 }
