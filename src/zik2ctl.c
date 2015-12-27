@@ -202,69 +202,36 @@ color_str (Zik2Color color)
 static void
 show_zik2 (Zik2 * zik2)
 {
-  gchar *serial;
-  gchar *sw_version;
-  gboolean nc_enabled;
-  gchar *source;
-  gchar *bat_state;
-  guint bat_percent;
-  Zik2NoiseControlMode noise_control_mode;
-  guint noise_control_strength;
-  guint volume;
-  gboolean head_detection;
-  Zik2Color color;
-  gboolean flight_mode;
-  gchar *friendlyname;
-  gboolean sound_effect;
-  Zik2SoundEffectRoom sound_effect_room;
-  guint sound_effect_angle;
-
-  g_object_get (zik2, "serial", &serial,
-      "noise-control", &nc_enabled,
-      "source", &source,
-      "software-version", &sw_version,
-      "battery-state", &bat_state,
-      "battery-percentage", &bat_percent,
-      "noise-control-mode", &noise_control_mode,
-      "noise-control-strength", &noise_control_strength,
-      "volume", &volume,
-      "head-detection", &head_detection,
-      "color", &color,
-      "flight-mode", &flight_mode,
-      "friendlyname", &friendlyname,
-      "sound-effect", &sound_effect,
-      "sound-effect-room", &sound_effect_room,
-      "sound-effect-angle", &sound_effect_angle,
-      NULL);
-
   g_print ("audio:\n");
-  g_print ("  noise control          : %s\n", nc_enabled ? "on" : "off");
-  g_print ("  noise control mode     : %s\n", nc_mode_str (noise_control_mode));
-  g_print ("  noise control strength : %u\n", noise_control_strength);
-  g_print ("  sound effect           : %s\n", sound_effect ? "on" : "off");
+  g_print ("  noise control          : %s\n",
+      zik2_is_noise_control_active (zik2) ? "on" : "off");
+  g_print ("  noise control mode     : %s\n",
+      nc_mode_str (zik2_get_noise_control_mode (zik2)));
+  g_print ("  noise control strength : %u\n",
+      zik2_get_noise_control_strength (zik2));
+  g_print ("  sound effect           : %s\n",
+      zik2_is_sound_effect_active (zik2) ? "on" : "off");
   g_print ("  sound effect room      : %s\n",
-      zik2_sound_effect_room_name (sound_effect_room));
-  g_print ("  sound effect angle     : %u\n", sound_effect_angle);
-  g_print ("  source                 : %s\n", source);
-  g_print ("  volume (raw)           : %u\n", volume);
+      zik2_sound_effect_room_name (zik2_get_sound_effect_room (zik2)));
+  g_print ("  sound effect angle     : %u\n",
+      zik2_get_sound_effect_angle (zik2));
+  g_print ("  source                 : %s\n", zik2_get_source (zik2));
+  g_print ("  volume (raw)           : %u\n", zik2_get_volume (zik2));
 
   g_print ("\nsoftware:\n");
-  g_print ("  software version       : %s\n", sw_version);
+  g_print ("  software version       : %s\n", zik2_get_software_version (zik2));
 
   g_print ("\nsystem:\n");
-  g_print ("  battery state          : %s (remaining: %u%%)\n", bat_state,
-      bat_percent);
-  g_print ("  color                  : %s\n", color_str (color));
-  g_print ("  flight mode            : %s\n", flight_mode ? "on" : "off");
-  g_print ("  head detection         : %s\n", head_detection ? "on" : "off");
-  g_print ("  serial-number          : %s\n", serial);
-  g_print ("  friendlyname           : %s\n", friendlyname);
-
-  g_free (serial);
-  g_free (sw_version);
-  g_free (source);
-  g_free (bat_state);
-  g_free (friendlyname);
+  g_print ("  battery state          : %s (remaining: %u%%)\n",
+      zik2_get_battery_state (zik2), zik2_get_battery_percentage (zik2));
+  g_print ("  color                  : %s\n",
+      color_str (zik2_get_color (zik2)));
+  g_print ("  flight mode            : %s\n",
+      zik2_is_flight_mode_active (zik2) ? "on" : "off");
+  g_print ("  head detection         : %s\n",
+      zik2_is_head_detection_active (zik2) ? "on" : "off");
+  g_print ("  serial-number          : %s\n", zik2_get_serial (zik2));
+  g_print ("  friendlyname           : %s\n", zik2_get_friendlyname (zik2));
 }
 
 static gboolean
