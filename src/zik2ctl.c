@@ -359,7 +359,7 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
     g_print ("Setting noise control to %s\n", noise_control_switch);
     if (!set_boolean_property_from_string (zik2, "noise-control",
           noise_control_switch))
-      g_printerr ("Failed to set noise control");
+      g_printerr ("Failed to set noise control\n");
   }
 
   if (noise_control_mode)
@@ -372,14 +372,14 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
     g_print ("Setting head detection to %s\n", head_detection_switch);
     if (!set_boolean_property_from_string (zik2, "head-detection",
           head_detection_switch))
-      g_printerr ("Failed to set head detection");
+      g_printerr ("Failed to set head detection\n");
   }
 
   if (flight_mode_switch) {
     g_print ("Setting flight mode to %s\n", flight_mode_switch);
     if (!set_boolean_property_from_string (zik2, "flight-mode",
           flight_mode_switch))
-      g_printerr ("Failed to set flight mode");
+      g_printerr ("Failed to set flight mode\n");
   }
 
   if (friendlyname)
@@ -389,7 +389,7 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
     g_print ("Setting sound effect to %s\n", sound_effect_switch);
     if (!set_boolean_property_from_string (zik2, "sound-effect",
           sound_effect_switch))
-      g_printerr ("Failed to set sound effect");
+      g_printerr ("Failed to set sound effect\n");
   }
 
   if (sound_effect_room)
