@@ -947,8 +947,10 @@ zik2_set_sound_effect_room (Zik2 * zik2, Zik2SoundEffectRoom room)
 
   ret = zik2_do_request (zik2, ZIK2_API_AUDIO_SOUND_EFFECT_ROOM_SIZE_PATH,
       "set", zik2_sound_effect_room_name (room), NULL);
-  if (ret)
+  if (ret) {
+    zik2_sync_sound_effect (zik2);
     zik2->priv->sound_effect_room = room;
+  }
 
   return ret;
 }
@@ -968,8 +970,10 @@ zik2_set_sound_effect_angle (Zik2 * zik2, Zik2SoundEffectAngle angle)
   args = g_strdup_printf ("%u", angle);
   ret = zik2_do_request (zik2, ZIK2_API_AUDIO_SOUND_EFFECT_ANGLE_PATH, "set",
       args, NULL);
-  if (ret)
+  if (ret) {
+    zik2_sync_sound_effect (zik2);
     zik2->priv->sound_effect_angle = angle;
+  }
 
   g_free (args);
   return ret;
