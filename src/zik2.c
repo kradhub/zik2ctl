@@ -1047,6 +1047,5 @@ zik2_is_flight_mode_active (Zik2 * zik2)
 const gchar *
 zik2_get_friendlyname (Zik2 * zik2)
 {
-  zik2_sync_friendlyname (zik2);
   return zik2->priv->friendlyname;
 }
