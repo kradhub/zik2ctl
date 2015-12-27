@@ -444,13 +444,6 @@ zik2_sync_noise_control (Zik2 * zik2)
   zik2_noise_control_info_free (info);
 }
 
-static gboolean
-zik2_set_noise_control (Zik2 * zik2, gboolean active)
-{
-  return zik2_do_request (zik2, ZIK2_API_AUDIO_NOISE_CONTROL_ENABLED_PATH,
-      "set", active ? "true" : "false", NULL);
-}
-
 static void
 zik2_sync_noise_control_mode_and_strength (Zik2 * zik2)
 {
@@ -592,13 +585,6 @@ zik2_sync_head_detection (Zik2 * zik2)
   zik2_head_detection_info_free (info);
 }
 
-static gboolean
-zik2_set_head_detection (Zik2 * zik2, gboolean active)
-{
-  return zik2_do_request (zik2, ZIK2_API_SYSTEM_HEAD_DETECTION_ENABLED_PATH,
-      "set", active ? "true" : "false", NULL);
-}
-
 static void
 zik2_sync_color (Zik2 * zik2)
 {
@@ -631,19 +617,6 @@ zik2_sync_flight_mode (Zik2 * zik2)
   zik2_flight_mode_info_free (info);
 }
 
-static gboolean
-zik2_set_flight_mode (Zik2 * zik2, gboolean active)
-{
-  const gchar *method;
-
-  if (active)
-    method = "enable";
-  else
-    method = "disable";
-
-  return zik2_do_request (zik2, ZIK2_API_FLIGHT_MODE_PATH, method, NULL, NULL);
-}
-
 static void
 zik2_sync_friendlyname (Zik2 * zik2)
 {
@@ -659,13 +632,6 @@ zik2_sync_friendlyname (Zik2 * zik2)
   g_free (zik2->priv->friendlyname);
   zik2->priv->friendlyname = g_strdup (info->friendlyname);
   zik2_bluetooth_info_free (info);
-}
-
-static gboolean
-zik2_set_friendlyname (Zik2 * zik2, const gchar * name)
-{
-  return zik2_do_request (zik2, ZIK2_API_BLUETOOTH_FRIENDLY_NAME_PATH, "set",
-      name, NULL);
 }
 
 static void
@@ -685,34 +651,6 @@ zik2_sync_sound_effect (Zik2 * zik2)
       zik2_sound_effect_room_from_string (info->room_size);
   zik2->priv->sound_effect_angle = info->angle;
   zik2_sound_effect_info_free (info);
-}
-
-static gboolean
-zik2_set_sound_effect_active (Zik2 * zik2, gboolean active)
-{
-  return zik2_do_request (zik2, ZIK2_API_AUDIO_SOUND_EFFECT_ENABLED_PATH, "set",
-      active ? "true" : "false", NULL);
-}
-
-static gboolean
-zik2_set_sound_effect_room (Zik2 * zik2, Zik2SoundEffectRoom room)
-{
-  return zik2_do_request (zik2, ZIK2_API_AUDIO_SOUND_EFFECT_ROOM_SIZE_PATH,
-      "set", zik2_sound_effect_room_name (room), NULL);
-}
-
-static gboolean
-zik2_set_sound_effect_angle (Zik2 * zik2, Zik2SoundEffectAngle angle)
-{
-  gboolean ret;
-  gchar *args;
-
-  args = g_strdup_printf ("%u", angle);
-  ret = zik2_do_request (zik2, ZIK2_API_AUDIO_SOUND_EFFECT_ANGLE_PATH, "set",
-      args, NULL);
-  g_free (args);
-
-  return ret;
 }
 
 static void
@@ -797,107 +735,49 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
       priv->address = g_value_dup_string (value);
       break;
     case PROP_NOISE_CONTROL:
-      {
-        gboolean tmp;
+      if (!zik2_set_noise_control_active (zik2, g_value_get_boolean (value)))
+        g_warning ("failed to set noise control enabled");
 
-        tmp = g_value_get_boolean (value);
-        if (zik2_set_noise_control (zik2, tmp))
-          priv->noise_control = tmp;
-        else
-          g_warning ("failed to set noise control enabled");
-      }
       break;
     case PROP_NOISE_CONTROL_MODE:
-      {
-        Zik2NoiseControlMode tmp;
+      if (!zik2_set_noise_control_mode (zik2, g_value_get_enum (value)))
+        g_warning ("failed to set noise control mode");
 
-        tmp = g_value_get_enum (value);
-        if (zik2_set_noise_control_mode_and_strength (zik2, tmp,
-              priv->noise_control_strength))
-          priv->noise_control_mode = tmp;
-        else
-           g_warning ("failed to set noise control mode");
-      }
       break;
     case PROP_NOISE_CONTROL_STRENGTH:
-      {
-        guint tmp;
+      if (!zik2_set_noise_control_strength (zik2, g_value_get_uint (value)))
+        g_warning ("failed to set noise control strength");
 
-        tmp = g_value_get_uint (value);
-        if (zik2_set_noise_control_mode_and_strength (zik2,
-              priv->noise_control_mode, tmp))
-          priv->noise_control_strength = tmp;
-        else
-          g_warning ("failed to set noise control strength");
-      }
       break;
     case PROP_HEAD_DETECTION:
-      {
-        guint tmp;
+      if (!zik2_set_head_detection_active (zik2, g_value_get_boolean (value)))
+        g_warning ("failed to enable/disable head detection");
 
-        tmp = g_value_get_boolean (value);
-        if (zik2_set_head_detection (zik2, tmp))
-          priv->head_detection = tmp;
-        else
-          g_warning ("failed to enable/disable head detection");
-      }
       break;
     case PROP_FLIGHT_MODE:
-      {
-        gboolean tmp;
+      if (!zik2_set_flight_mode_active (zik2, g_value_get_boolean (value)))
+        g_warning ("failed to enable/disable flight mode");
 
-        tmp = g_value_get_boolean (value);
-        if (zik2_set_flight_mode (zik2, tmp))
-          priv->flight_mode = tmp;
-        else
-          g_warning ("failed to enable/disable flight mode");
-      }
       break;
     case PROP_FRIENDLYNAME:
-      {
-        const gchar *tmp;
+      if (!zik2_set_friendlyname (zik2, g_value_get_string (value)))
+        g_warning ("failed to set friendlyname");
 
-        tmp = g_value_get_string (value);
-        if (zik2_set_friendlyname (zik2, tmp)) {
-          g_free (priv->friendlyname);
-          priv->friendlyname = g_strdup (tmp);
-        } else {
-          g_warning ("failed to set friendlyname");
-        }
-      }
       break;
     case PROP_SOUND_EFFECT:
-      {
-        gboolean tmp;
+      if (!zik2_set_sound_effect_active (zik2, g_value_get_boolean (value)))
+        g_warning ("failed to enable/disable sound effect");
 
-        tmp = g_value_get_boolean (value);
-        if (zik2_set_sound_effect_active (zik2, tmp))
-          priv->sound_effect = tmp;
-        else
-          g_warning ("failed to enable/disable sound effect");
-      }
       break;
     case PROP_SOUND_EFFECT_ROOM:
-      {
-        Zik2SoundEffectRoom tmp;
+      if (!zik2_set_sound_effect_room (zik2, g_value_get_enum (value)))
+        g_warning ("failed to enable/disable sound effect room");
 
-        tmp = g_value_get_enum (value);
-        if (zik2_set_sound_effect_room (zik2, tmp))
-          priv->sound_effect_room = tmp;
-        else
-          g_warning ("failed to enable/disable sound effect room");
-      }
       break;
     case PROP_SOUND_EFFECT_ANGLE:
-      {
-        Zik2SoundEffectAngle tmp;
+      if (!zik2_set_sound_effect_angle (zik2, g_value_get_enum (value)))
+        g_warning ("failed to enable/disable sound effect angle");
 
-        tmp = g_value_get_enum (value);
-        if (zik2_set_sound_effect_angle (zik2, tmp))
-          priv->sound_effect_angle = tmp;
-        else
-          g_warning ("failed to enable/disable sound effect angle");
-      }
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -956,16 +836,55 @@ zik2_is_noise_control_active (Zik2 * zik2)
   return zik2->priv->noise_control;
 }
 
+gboolean
+zik2_set_noise_control_active (Zik2 * zik2, gboolean active)
+{
+  gboolean ret;
+
+  ret = zik2_do_request (zik2, ZIK2_API_AUDIO_NOISE_CONTROL_ENABLED_PATH, "set",
+      active ? "true" : "false", NULL);
+  if (ret)
+    zik2->priv->noise_control = active;
+
+  return ret;
+}
+
 Zik2NoiseControlMode
 zik2_get_noise_control_mode (Zik2 * zik2)
 {
   return zik2->priv->noise_control_mode;
 }
 
+gboolean
+zik2_set_noise_control_mode (Zik2 * zik2, Zik2NoiseControlMode mode)
+{
+  gboolean ret;
+
+  ret = zik2_set_noise_control_mode_and_strength (zik2, mode,
+      zik2->priv->noise_control_strength);
+  if (ret)
+    zik2->priv->noise_control_mode = mode;
+
+  return ret;
+}
+
 guint
 zik2_get_noise_control_strength (Zik2 * zik2)
 {
   return zik2->priv->noise_control_strength;
+}
+
+gboolean
+zik2_set_noise_control_strength (Zik2 * zik2, guint strength)
+{
+  gboolean ret;
+
+  ret = zik2_set_noise_control_mode_and_strength (zik2,
+      zik2->priv->noise_control_mode, strength);
+  if (ret)
+    zik2->priv->noise_control_strength = strength;
+
+  return ret;
 }
 
 const gchar *
@@ -988,16 +907,58 @@ zik2_is_sound_effect_active (Zik2 * zik2)
   return zik2->priv->sound_effect;
 }
 
+gboolean
+zik2_set_sound_effect_active (Zik2 * zik2, gboolean active)
+{
+  gboolean ret;
+
+  ret = zik2_do_request (zik2, ZIK2_API_AUDIO_SOUND_EFFECT_ENABLED_PATH, "set",
+      active ? "true" : "false", NULL);
+  if (ret)
+    zik2->priv->sound_effect = active;
+
+  return ret;
+}
+
 Zik2SoundEffectRoom
 zik2_get_sound_effect_room (Zik2 * zik2)
 {
   return zik2->priv->sound_effect_room;
 }
 
+gboolean
+zik2_set_sound_effect_room (Zik2 * zik2, Zik2SoundEffectRoom room)
+{
+  gboolean ret;
+
+  ret = zik2_do_request (zik2, ZIK2_API_AUDIO_SOUND_EFFECT_ROOM_SIZE_PATH,
+      "set", zik2_sound_effect_room_name (room), NULL);
+  if (ret)
+    zik2->priv->sound_effect_room = room;
+
+  return ret;
+}
+
 Zik2SoundEffectAngle
 zik2_get_sound_effect_angle (Zik2 * zik2)
 {
   return zik2->priv->sound_effect_angle;
+}
+
+gboolean
+zik2_set_sound_effect_angle (Zik2 * zik2, Zik2SoundEffectAngle angle)
+{
+  gboolean ret;
+  gchar *args;
+
+  args = g_strdup_printf ("%u", angle);
+  ret = zik2_do_request (zik2, ZIK2_API_AUDIO_SOUND_EFFECT_ANGLE_PATH, "set",
+      args, NULL);
+  if (ret)
+    zik2->priv->sound_effect_angle = angle;
+
+  g_free (args);
+  return ret;
 }
 
 const gchar *
@@ -1032,6 +993,19 @@ zik2_is_head_detection_active (Zik2 * zik2)
   return zik2->priv->head_detection;
 }
 
+gboolean
+zik2_set_head_detection_active (Zik2 * zik2, gboolean active)
+{
+  gboolean ret;
+
+  ret = zik2_do_request (zik2, ZIK2_API_SYSTEM_HEAD_DETECTION_ENABLED_PATH,
+      "set", active ? "true" : "false", NULL);
+  if (ret)
+    zik2->priv->head_detection = active;
+
+  return ret;
+}
+
 const gchar *
 zik2_get_serial (Zik2 * zik2)
 {
@@ -1044,8 +1018,41 @@ zik2_is_flight_mode_active (Zik2 * zik2)
   return zik2->priv->flight_mode;
 }
 
+gboolean
+zik2_set_flight_mode_active (Zik2 * zik2, gboolean active)
+{
+  gboolean ret;
+  const gchar *method;
+
+  if (active)
+    method = "enable";
+  else
+    method = "disable";
+
+  ret = zik2_do_request (zik2, ZIK2_API_FLIGHT_MODE_PATH, method, NULL, NULL);
+  if (ret)
+    zik2->priv->flight_mode = active;
+
+  return ret;
+}
+
 const gchar *
 zik2_get_friendlyname (Zik2 * zik2)
 {
   return zik2->priv->friendlyname;
+}
+
+gboolean
+zik2_set_friendlyname (Zik2 * zik2, const gchar * name)
+{
+  gboolean ret;
+
+  ret = zik2_do_request (zik2, ZIK2_API_BLUETOOTH_FRIENDLY_NAME_PATH, "set",
+      name, NULL);
+  if (ret) {
+    g_free (zik2->priv->friendlyname);
+    zik2->priv->friendlyname = g_strdup (name);
+  }
+
+  return ret;
 }

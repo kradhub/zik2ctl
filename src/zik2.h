@@ -97,23 +97,42 @@ const gchar *zik2_get_address (Zik2 * zik2);
 
 /* audio */
 gboolean zik2_is_noise_control_active (Zik2 * zik2);
+gboolean zik2_set_noise_control_active (Zik2 * zik2, gboolean active);
+
 Zik2NoiseControlMode zik2_get_noise_control_mode (Zik2 * zik2);
+gboolean zik2_set_noise_control_mode (Zik2 * zik2, Zik2NoiseControlMode mode);
+
 guint zik2_get_noise_control_strength (Zik2 * zik2);
+gboolean zik2_set_noise_control_strength (Zik2 * zik2, guint strength);
+
 const gchar *zik2_get_source (Zik2 * zik2);
 guint zik2_get_volume (Zik2 * zik2);
+
 gboolean zik2_is_sound_effect_active (Zik2 * zik2);
+gboolean zik2_set_sound_effect_active (Zik2 * zik2, gboolean active);
+
 Zik2SoundEffectRoom zik2_get_sound_effect_room (Zik2 * zik2);
+gboolean zik2_set_sound_effect_room (Zik2 * zik2, Zik2SoundEffectRoom room);
+
 Zik2SoundEffectAngle zik2_get_sound_effect_angle (Zik2 * zik2);
+gboolean zik2_set_sound_effect_angle (Zik2 * zik2, Zik2SoundEffectAngle angle);
 
 /* software and system */
 const gchar *zik2_get_software_version (Zik2 * zik2);
 const gchar *zik2_get_battery_state (Zik2 * zik2);
 guint zik2_get_battery_percentage (Zik2 * zik2);
 Zik2Color zik2_get_color (Zik2 * zik2);
+
 gboolean zik2_is_head_detection_active (Zik2 * zik2);
+gboolean zik2_set_head_detection_active (Zik2 * zik2, gboolean active);
+
 const gchar *zik2_get_serial (Zik2 *zik2);
+
 gboolean zik2_is_flight_mode_active (Zik2 * zik2);
+gboolean zik2_set_flight_mode_active (Zik2 * zik2, gboolean active);
+
 const gchar *zik2_get_friendlyname (Zik2 * zik2);
+gboolean zik2_set_friendlyname (Zik2 * zik2, const gchar * name);
 
 G_END_DECLS
 
