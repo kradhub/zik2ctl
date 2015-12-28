@@ -319,6 +319,41 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
 
     data->parent = g_node_append_data (data->parent,
         zik2_auto_connection_info_new (enabled));
+  } else if (g_strcmp0 (element_name, "track") == 0) {
+    if (g_slist_length (stack) < 2 || g_strcmp0 (stack->next->data, "audio")) {
+      g_set_error_literal (error, G_MARKUP_ERROR,
+          G_MARKUP_ERROR_INVALID_CONTENT,
+          "<track> element should be embedded in <audio>");
+      return;
+    }
+
+    data->parent = g_node_append_data (data->parent, zik2_track_info_new ());
+  } else if (g_strcmp0 (element_name, "metadata") == 0) {
+    gboolean playing;
+    const gchar *title;
+    const gchar *artist;
+    const gchar *album;
+    const gchar *genre;
+
+    if (g_slist_length (stack) < 2 || g_strcmp0 (stack->next->data, "track")) {
+      g_set_error_literal (error, G_MARKUP_ERROR,
+          G_MARKUP_ERROR_INVALID_CONTENT,
+          "<metadata> element should be embedded in <track>");
+      return;
+    }
+
+    if (!g_markup_collect_attributes (element_name, attribute_names,
+          attribute_values, error,
+          G_MARKUP_COLLECT_BOOLEAN, "playing", &playing,
+          G_MARKUP_COLLECT_STRING, "title", &title,
+          G_MARKUP_COLLECT_STRING, "artist", &artist,
+          G_MARKUP_COLLECT_STRING, "album", &album,
+          G_MARKUP_COLLECT_STRING, "genre", &genre,
+          G_MARKUP_COLLECT_INVALID))
+      return;
+
+    data->parent = g_node_append_data (data->parent,
+        zik2_metadata_info_new (playing, title, artist, album, genre));
   }
 }
 

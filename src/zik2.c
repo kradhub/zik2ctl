@@ -48,6 +48,7 @@ enum
   PROP_SOUND_EFFECT_ROOM,
   PROP_SOUND_EFFECT_ANGLE,
   PROP_AUTO_CONNECTION,
+  PROP_TRACK_METADATA,
 };
 
 struct _Zik2Private
@@ -64,6 +65,7 @@ struct _Zik2Private
   gboolean sound_effect;
   Zik2SoundEffectRoom sound_effect_room;
   Zik2SoundEffectAngle sound_effect_angle;
+  Zik2MetadataInfo *track_metadata;
 
   /* software */
   gchar *software_version;
@@ -312,6 +314,18 @@ zik2_class_init (Zik2Class * klass)
       g_param_spec_boolean ("auto-connection", "Auto connection",
           "Whether device should connect automatically", FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  /* GVariant dictionnary: a{sv}
+   * playing --> <boolean>
+   * title --> <string>
+   * artist --> <string>
+   * album --> <string>
+   * genre --> <string>
+   */
+  g_object_class_install_property (gobject_class, PROP_TRACK_METADATA,
+      g_param_spec_variant ("track-metadata", "Track metadata",
+        "Current metadata of the played song", G_VARIANT_TYPE_VARDICT,
+        NULL, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -341,6 +355,9 @@ zik2_finalize (GObject * object)
   g_free (priv->source);
   g_free (priv->battery_state);
   g_free (priv->friendlyname);
+
+  if (priv->track_metadata)
+    zik2_metadata_info_free (priv->track_metadata);
 
   if (zik2->conn)
     zik2_connection_free (zik2->conn);
@@ -677,6 +694,24 @@ zik2_sync_auto_connection (Zik2 * zik2)
 }
 
 static void
+zik2_sync_track_metadata (Zik2 * zik2)
+{
+  Zik2MetadataInfo *info;
+
+  info = zik2_request_info (zik2, ZIK2_API_AUDIO_TRACK_METADATA_PATH,
+      ZIK2_METADATA_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("failed to get track metadata");
+    return;
+  }
+
+  if (zik2->priv->track_metadata)
+    zik2_metadata_info_free (zik2->priv->track_metadata);
+
+  zik2->priv->track_metadata = info;
+}
+
+static void
 zik2_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec *pspec)
 {
@@ -739,6 +774,27 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
       break;
     case PROP_AUTO_CONNECTION:
       g_value_set_boolean (value, zik2_is_auto_connection_active (zik2));
+    case PROP_TRACK_METADATA:
+      {
+        const Zik2MetadataInfo *info;
+        GVariant *var;
+        const gchar *var_format =
+            "{%s:<%b>, %s:<%s>, %s:<%s>, %s:<%s>, %s:<%s>}";
+
+        zik2_sync_track_metadata (zik2);
+        info = zik2->priv->track_metadata;
+        if (info != NULL) {
+          var = g_variant_new_parsed (var_format, "playing", info->playing,
+              "title", info->title, "artist", info->artist, "album",
+              info->album, "genre", info->genre);
+        } else {
+          var = g_variant_new_parsed (var_format, "playing", FALSE, "title",
+              NULL, "artist", NULL, "album", NULL, "genre", NULL);
+        }
+
+        g_value_set_variant (value, var);
+        break;
+      }
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -1123,4 +1179,31 @@ zik2_set_auto_connection_active (Zik2 * zik2, gboolean active)
     zik2->priv->auto_connection = active;
 
   return ret;
+}
+
+void
+zik2_get_track_metadata (Zik2 * zik2, gboolean * playing, const gchar ** title,
+    const gchar ** artist, const gchar ** album, const gchar ** genre)
+{
+  const Zik2MetadataInfo *info;
+
+  zik2_sync_track_metadata (zik2);
+  info = zik2->priv->track_metadata;
+  if (info == NULL)
+    return;
+
+  if (playing)
+    *playing = info->playing;
+
+  if (title)
+    *title = info->title;
+
+  if (artist)
+    *artist = info->artist;
+
+  if (album)
+    *album = info->album;
+
+  if (genre)
+    *genre = info->genre;
 }

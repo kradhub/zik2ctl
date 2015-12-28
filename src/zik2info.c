@@ -31,6 +31,8 @@ static Zik2FlightModeInfo *zik2_flight_mode_info_copy (Zik2FlightModeInfo * info
 static Zik2BluetoothInfo *zik2_bluetooth_info_copy (Zik2BluetoothInfo * info);
 static Zik2SoundEffectInfo *zik2_sound_effect_info_copy (Zik2SoundEffectInfo * info);
 static Zik2AutoConnectionInfo *zik2_auto_connection_info_copy (Zik2AutoConnectionInfo * info);
+static Zik2TrackInfo *zik2_track_info_copy (Zik2TrackInfo * info);
+static Zik2MetadataInfo *zik2_metadata_info_copy (Zik2MetadataInfo * info);
 
 #define ZIK2_DEFINE_BOXED_TYPE(TypeName, type_name) \
   G_DEFINE_BOXED_TYPE (TypeName, type_name, type_name##_copy, type_name##_free)
@@ -49,6 +51,8 @@ ZIK2_DEFINE_BOXED_TYPE (Zik2FlightModeInfo, zik2_flight_mode_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2BluetoothInfo, zik2_bluetooth_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2SoundEffectInfo, zik2_sound_effect_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2AutoConnectionInfo, zik2_auto_connection_info);
+ZIK2_DEFINE_BOXED_TYPE (Zik2TrackInfo, zik2_track_info);
+ZIK2_DEFINE_BOXED_TYPE (Zik2MetadataInfo, zik2_metadata_info);
 
 Zik2AnswerInfo *
 zik2_answer_info_new (const gchar * path, gboolean error)
@@ -474,4 +478,71 @@ zik2_auto_connection_info_free (Zik2AutoConnectionInfo * info)
   g_return_if_fail (info->itype == ZIK2_AUTO_CONNECTION_INFO_TYPE);
 
   g_slice_free (Zik2AutoConnectionInfo, info);
+}
+
+Zik2TrackInfo *
+zik2_track_info_new (void)
+{
+  Zik2TrackInfo *info;
+
+  info = g_slice_new0 (Zik2TrackInfo);
+  info->itype = ZIK2_TRACK_INFO_TYPE;
+  return info;
+}
+
+Zik2TrackInfo *
+zik2_track_info_copy (Zik2TrackInfo * info)
+{
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_TRACK_INFO_TYPE, NULL);
+
+  return zik2_track_info_new ();
+}
+
+void
+zik2_track_info_free (Zik2TrackInfo * info)
+{
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_TRACK_INFO_TYPE);
+
+  g_slice_free (Zik2TrackInfo, info);
+}
+
+Zik2MetadataInfo *
+zik2_metadata_info_new (gboolean playing, const gchar * title,
+    const gchar * artist, const gchar * album, const gchar * genre)
+{
+  Zik2MetadataInfo *info;
+
+  info = g_slice_new0 (Zik2MetadataInfo);
+  info->itype = ZIK2_METADATA_INFO_TYPE;
+  info->playing = playing;
+  info->title = g_strdup (title);
+  info->artist = g_strdup (artist);
+  info->album = g_strdup (album);
+  info->genre = g_strdup (genre);
+  return info;
+}
+
+static Zik2MetadataInfo *
+zik2_metadata_info_copy (Zik2MetadataInfo * info)
+{
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_METADATA_INFO_TYPE, NULL);
+
+  return zik2_metadata_info_new (info->playing, info->title, info->artist,
+      info->album, info->genre);
+}
+
+void
+zik2_metadata_info_free (Zik2MetadataInfo * info)
+{
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_METADATA_INFO_TYPE);
+
+  g_free (info->title);
+  g_free (info->artist);
+  g_free (info->album);
+  g_free (info->genre);
+  g_slice_free (Zik2MetadataInfo, info);
 }

@@ -137,6 +137,10 @@ gboolean zik2_set_friendlyname (Zik2 * zik2, const gchar * name);
 gboolean zik2_is_auto_connection_active (Zik2 * zik2);
 gboolean zik2_set_auto_connection_active (Zik2 * zik2, gboolean active);
 
+void zik2_get_track_metadata (Zik2 * zik2, gboolean * playing,
+    const gchar ** title, const gchar ** artist, const gchar ** album,
+    const gchar ** genre);
+
 G_END_DECLS
 
 #endif
