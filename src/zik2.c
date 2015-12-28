@@ -49,6 +49,7 @@ enum
   PROP_SOUND_EFFECT_ANGLE,
   PROP_AUTO_CONNECTION,
   PROP_TRACK_METADATA,
+  PROP_EQUALIZER,
 };
 
 struct _Zik2Private
@@ -66,6 +67,7 @@ struct _Zik2Private
   Zik2SoundEffectRoom sound_effect_room;
   Zik2SoundEffectAngle sound_effect_angle;
   Zik2MetadataInfo *track_metadata;
+  gboolean equalizer;
 
   /* software */
   gchar *software_version;
@@ -326,6 +328,11 @@ zik2_class_init (Zik2Class * klass)
       g_param_spec_variant ("track-metadata", "Track metadata",
         "Current metadata of the played song", G_VARIANT_TYPE_VARDICT,
         NULL, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_EQUALIZER,
+      g_param_spec_boolean ("equalizer", "Equalizer",
+          "Whether equalizer is active or not", FALSE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -712,6 +719,22 @@ zik2_sync_track_metadata (Zik2 * zik2)
 }
 
 static void
+zik2_sync_equalizer (Zik2 * zik2)
+{
+  Zik2EqualizerInfo *info;
+
+  info = zik2_request_info (zik2, ZIK2_API_AUDIO_EQUALIZER_ENABLED_PATH,
+      ZIK2_EQUALIZER_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("failed to get equalizer status");
+    return;
+  }
+
+  zik2->priv->equalizer = info->enabled;
+  zik2_equalizer_info_free (info);
+}
+
+static void
 zik2_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec *pspec)
 {
@@ -795,6 +818,9 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
         g_value_set_variant (value, var);
         break;
       }
+    case PROP_EQUALIZER:
+      g_value_set_boolean (value, zik2_is_equalizer_active (zik2));
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -865,6 +891,11 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
         g_warning ("failed to enable/disable auto-connection");
 
       break;
+    case PROP_EQUALIZER:
+      if (!zik2_set_equalizer_active (zik2, g_value_get_boolean (value)))
+        g_warning ("failed to enable/disable equalizer");
+
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -880,6 +911,7 @@ zik2_sync_static_properties (Zik2 * zik2)
   zik2_sync_noise_control (zik2);
   zik2_sync_noise_control_mode_and_strength (zik2);
   zik2_sync_sound_effect (zik2);
+  zik2_sync_equalizer (zik2);
 
   /* software and system */
   zik2_sync_software_version (zik2);
@@ -1206,4 +1238,23 @@ zik2_get_track_metadata (Zik2 * zik2, gboolean * playing, const gchar ** title,
 
   if (genre)
     *genre = info->genre;
+}
+
+gboolean
+zik2_is_equalizer_active (Zik2 * zik2)
+{
+  return zik2->priv->equalizer;
+}
+
+gboolean
+zik2_set_equalizer_active (Zik2 * zik2, gboolean active)
+{
+  gboolean ret;
+
+  ret = zik2_do_request (zik2, ZIK2_API_AUDIO_EQUALIZER_ENABLED_PATH, "set",
+      active ? "true" : "false", NULL);
+  if (ret)
+    zik2->priv->equalizer = active;
+
+  return ret;
 }

@@ -141,6 +141,9 @@ void zik2_get_track_metadata (Zik2 * zik2, gboolean * playing,
     const gchar ** title, const gchar ** artist, const gchar ** album,
     const gchar ** genre);
 
+gboolean zik2_is_equalizer_active (Zik2 * zik2);
+gboolean zik2_set_equalizer_active (Zik2 * zik2, gboolean active);
+
 G_END_DECLS
 
 #endif

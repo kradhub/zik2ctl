@@ -39,6 +39,7 @@ G_BEGIN_DECLS
 #define ZIK2_AUTO_CONNECTION_INFO_TYPE (zik2_auto_connection_info_get_type ())
 #define ZIK2_TRACK_INFO_TYPE (zik2_track_info_get_type ())
 #define ZIK2_METADATA_INFO_TYPE (zik2_metadata_info_get_type ())
+#define ZIK2_EQUALIZER_INFO_TYPE (zik2_equalizer_info_get_type ())
 
 typedef struct _Zik2AnswerInfo Zik2AnswerInfo;
 typedef struct _Zik2AudioInfo Zik2AudioInfo;
@@ -56,6 +57,7 @@ typedef struct _Zik2SoundEffectInfo Zik2SoundEffectInfo;
 typedef struct _Zik2AutoConnectionInfo Zik2AutoConnectionInfo;
 typedef struct _Zik2TrackInfo Zik2TrackInfo;
 typedef struct _Zik2MetadataInfo Zik2MetadataInfo;
+typedef struct _Zik2EqualizerInfo Zik2EqualizerInfo;
 
 /* all nodes structures shall begin with:
  * GType itype
@@ -180,6 +182,13 @@ struct _Zik2MetadataInfo
   gchar *genre;
 };
 
+struct _Zik2EqualizerInfo
+{
+  GType itype;
+
+  gboolean enabled;
+};
+
 Zik2AnswerInfo *zik2_answer_info_new (const gchar * path, gboolean error);
 void zik2_answer_info_free (Zik2AnswerInfo * info);
 
@@ -232,6 +241,9 @@ Zik2MetadataInfo *zik2_metadata_info_new (gboolean playing, const gchar * title,
     const gchar * artist, const gchar * album, const gchar * genre);
 void zik2_metadata_info_free (Zik2MetadataInfo * info);
 
+Zik2EqualizerInfo *zik2_equalizer_info_new (gboolean enabled);
+void zik2_equalizer_info_free (Zik2EqualizerInfo * info);
+
 GType zik2_answer_info_get_type (void);
 GType zik2_audio_info_get_type (void);
 GType zik2_software_info_get_type (void);
@@ -248,6 +260,7 @@ GType zik2_sound_effect_info_get_type (void);
 GType zik2_auto_connection_info_get_type (void);
 GType zik2_track_info_get_type (void);
 GType zik2_metadata_info_get_type (void);
+GType zik2_equalizer_info_get_type (void);
 
 G_END_DECLS
 
