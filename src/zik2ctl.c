@@ -204,6 +204,15 @@ color_str (Zik2Color color)
 static void
 show_zik2 (Zik2 * zik2)
 {
+  gboolean metadata_playing;
+  const gchar *metadata_title;
+  const gchar *metadata_artist;
+  const gchar *metadata_album;
+  const gchar *metadata_genre;
+
+  zik2_get_track_metadata (zik2, &metadata_playing, &metadata_title,
+      &metadata_artist, &metadata_album, &metadata_genre);
+
   g_print ("audio:\n");
   g_print ("  noise control          : %s\n",
       zik2_is_noise_control_active (zik2) ? "on" : "off");
@@ -219,6 +228,13 @@ show_zik2 (Zik2 * zik2)
       zik2_get_sound_effect_angle (zik2));
   g_print ("  source                 : %s\n", zik2_get_source (zik2));
   g_print ("  volume (raw)           : %u\n", zik2_get_volume (zik2));
+
+  g_print ("\ntrack metadata\n");
+  g_print ("  playing                : %s\n", metadata_playing ? "yes" : "no");
+  g_print ("  title                  : %s\n", metadata_title);
+  g_print ("  artist                 : %s\n", metadata_artist);
+  g_print ("  album                  : %s\n", metadata_album);
+  g_print ("  genre                  : %s\n", metadata_genre);
 
   g_print ("\nsoftware:\n");
   g_print ("  software version       : %s\n", zik2_get_software_version (zik2));
