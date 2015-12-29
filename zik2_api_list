@@ -1,78 +1,83 @@
 Extracted from zik_release_2.05.plf
 
-/api/audio/track/metadata/get
-/api/audio/noise_control/enabled/get
-/api/audio/noise_control/enabled/set?arg
-/api/audio/noise_control/get
-/api/audio/noise_control/set?arg
-/api/audio/noise_control/phone_mode/get
-/api/audio/noise_control/phone_mode/set?arg
-/api/audio/noise_cancellation/enabled/get          --> error (not implemented ?)
-/api/audio/noise_cancellation/enabled/set?arg
-/api/audio/thumb_equalizer/value/set?arg
-/api/audio/thumb_equalizer/value/get
-/api/audio/equalizer/enabled/get
-/api/audio/equalizer/enabled/set?arg
-/api/audio/param_equalizer/value/set?arg
-/api/audio/smart_audio_tune/set?arg
-/api/audio/smart_audio_tune/get
-/api/audio/preset/bypass/set?arg
-/api/audio/preset/bypass/get
-/api/audio/preset/download?name
-/api/audio/preset/activate?id
-/api/audio/preset/save?name
-/api/audio/preset/remove?id
-/api/audio/preset/counter/get
-/api/audio/preset/clear_all
-/api/audio/preset/synchro/start
-/api/audio/preset/synchro/stop
-/api/audio/preset/current/get
-/api/audio/preset/cancel_producer
-/api/audio/sound_effect/enabled/get
-/api/audio/sound_effect/enabled/set?arg
-/api/audio/sound_effect/angle/get
-/api/audio/sound_effect/angle/set?arg
-/api/audio/sound_effect/room_size/get
-/api/audio/sound_effect/room_size/set?arg
-/api/audio/sound_effect/get
-/api/audio/noise/get
-/api/audio/volume/get
-/api/software/version/get
-/api/software/version_checking/get
-/api/bluetooth/friendlyname/get
-/api/bluetooth/friendlyname/set?arg
-/api/software/download_size/set?arg
-/api/software/download_check_state/get
-/api/system/battery/forecast/get
-/api/system/battery/get
-/api/audio/track/metadata/get
-/api/audio/track/metadata/force?artist
-/api/audio/source/get
-/api/system/auto_connection/enabled/get
-/api/system/auto_connection/enabled/set?arg
-/api/system/factory_reset
-/api/system/anc_phone_mode/enabled/get             --> error (not implemented ?)
-/api/system/anc_phone_mode/enabled/set?arg
-/api/system/device_type/get
-/api/system/color/get
-/api/system/pi/get
-/api/system/auto_power_off/presets_list/get
-/api/system/auto_power_off/get
-/api/system/auto_power_off/set?arg
-/api/system/head_detection/enabled/get
-/api/system/head_detection/enabled/set?arg
-/api/audio/specific_mode/enabled/get
-/api/audio/specific_mode/enabled/set?arg
-/api/system/bt_address/get
-/api/appli_version/set?arg
-/api/system/calibrate
-/api/account/username/get
-/api/account/username/set?arg
-/api/audio/equalizer/preset_id/set?arg
-/api/audio/equalizer/preset_value/set?arg
-/api/software/tts/enable
-/api/software/tts/disable
-/api/software/tts/get
-/api/flight_mode/enable
-/api/flight_mode/disable
-/api/flight_mode/get
+/api/account/username/get                          -- not implemented (useless ?)
+/api/account/username/set?arg                      -- not implemented (useless ?)
+
+/api/appli_version/set?arg                         -- not implemented (useless ?)
+
+/api/audio/track/metadata/get                      -- implemented
+/api/audio/track/metadata/force?artist             -- not implemented (can just force the artist ?)
+/api/audio/noise_control/enabled/get               -- implemented
+/api/audio/noise_control/enabled/set?arg           -- implemented
+/api/audio/noise_control/get                       -- implemented
+/api/audio/noise_control/set?arg                   -- implemented
+/api/audio/noise_control/phone_mode/get            -- not implemented
+/api/audio/noise_control/phone_mode/set?arg        -- not implemented
+/api/audio/noise_cancellation/enabled/get          -- not implemented (useful compared to noise control ?)
+/api/audio/noise_cancellation/enabled/set?arg      -- not implemented (useful compared to noise control ?)
+/api/audio/thumb_equalizer/value/set?arg           -- wip (which arg to set ?)
+/api/audio/thumb_equalizer/value/get               -- wip
+/api/audio/equalizer/enabled/get                   -- implemented
+/api/audio/equalizer/enabled/set?arg               -- implemented
+/api/audio/equalizer/preset_id/set?arg             -- not implemented
+/api/audio/equalizer/preset_value/set?arg          -- not implemented
+/api/audio/param_equalizer/value/set?arg           -- not implemented
+/api/audio/smart_audio_tune/set?arg                -- implemented
+/api/audio/smart_audio_tune/get                    -- implemented
+/api/audio/preset/bypass/set?arg                   -- not implemented
+/api/audio/preset/bypass/get                       -- not implemented
+/api/audio/preset/download?name                    -- not implemented
+/api/audio/preset/activate?id                      -- not implemented
+/api/audio/preset/save?name                        -- not implemented
+/api/audio/preset/remove?id                        -- not implemented
+/api/audio/preset/counter/get                      -- not implemented
+/api/audio/preset/clear_all                        -- not implemented
+/api/audio/preset/synchro/start                    -- not implemented
+/api/audio/preset/synchro/stop                     -- not implemented
+/api/audio/preset/current/get                      -- not implemented
+/api/audio/preset/cancel_producer                  -- not implemented
+/api/audio/sound_effect/enabled/get                -- implemented
+/api/audio/sound_effect/enabled/set?arg            -- implemented
+/api/audio/sound_effect/angle/get                  -- implemented
+/api/audio/sound_effect/angle/set?arg              -- implemented
+/api/audio/sound_effect/room_size/get              -- implemented
+/api/audio/sound_effect/room_size/set?arg          -- implemented
+/api/audio/sound_effect/get                        -- implemented
+/api/audio/noise/get                               -- not implemented (not useful as value seems stuck to -1)
+/api/audio/volume/get                              -- implemented (raw value not interpreted, between 330 and ~400 ?)
+/api/audio/source/get                              -- implemented
+/api/audio/specific_mode/enabled/get               -- not implemented (empty reply)
+/api/audio/specific_mode/enabled/set?arg           -- not implemented
+
+/api/bluetooth/friendlyname/get                    -- implemented
+/api/bluetooth/friendlyname/set?arg                -- implemented
+
+/api/flight_mode/enable                            -- implemented
+/api/flight_mode/disable                           -- implemented
+/api/flight_mode/get                               -- implemented
+
+/api/software/version/get                          -- implemented
+/api/software/version_checking/get                 -- not implemented
+/api/software/download_size/set?arg                -- not implemented (used for update ?)
+/api/software/download_check_state/get             -- not implemented (used for update ?)
+/api/software/tts/enable                           -- not implemented (text to speech)
+/api/software/tts/disable                          -- not implemented (text to speech)
+/api/software/tts/get                              -- not implemented (text to speech)
+
+/api/system/battery/forecast/get                   -- not implemented (may be not useful as values seems to be always -1)
+/api/system/battery/get                            -- implemented
+/api/system/auto_connection/enabled/get            -- implemented
+/api/system/auto_connection/enabled/set?arg        -- implemented
+/api/system/factory_reset                          -- not implemented
+/api/system/anc_phone_mode/enabled/get             -- not implemented
+/api/system/anc_phone_mode/enabled/set?arg         -- not implemented
+/api/system/device_type/get                        -- not implemented (identify zik1, zik2 and zik3 ?)
+/api/system/color/get                              -- implemented
+/api/system/pi/get                                 -- implemented (serial number)
+/api/system/auto_power_off/presets_list/get        -- not implemented (what are presets ?)
+/api/system/auto_power_off/get                     -- not implemented
+/api/system/auto_power_off/set?arg                 -- not implemented
+/api/system/head_detection/enabled/get             -- implemented
+/api/system/head_detection/enabled/set?arg         -- implemented
+/api/system/bt_address/get                         -- not implemented (useless, we have it through bluetooth stack)
+/api/system/calibrate                              -- not implemented (calibrate what?)
