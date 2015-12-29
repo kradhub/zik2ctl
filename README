@@ -5,6 +5,21 @@ Zik2ctl is a command line tools to display and configure Parrot Zik2 Headphones
 for GNU/Linux environment. It is currently released under the term of the
 LGPLv3, see COPYING and COPYING.LESSER for more informations.
 
+Features supported
+------------------
+
+- Noise control (music, not phone)
+- Concert Hall (Sound effect)
+- Equalizer activation
+- Smart audio tune activation
+- Headphones volume (raw value only)
+- Bluetooth name setup
+- Battery status
+- Software status
+- Auto-connection activation
+- Head-detection activation
+- Flight mode activatation
+
 Usage
 -----
 First Zik2 device should be paired with host.
