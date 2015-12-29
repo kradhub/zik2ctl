@@ -50,6 +50,7 @@ enum
   PROP_AUTO_CONNECTION,
   PROP_TRACK_METADATA,
   PROP_EQUALIZER,
+  PROP_SMART_AUDIO_TUNE,
 };
 
 struct _Zik2Private
@@ -68,6 +69,7 @@ struct _Zik2Private
   Zik2SoundEffectAngle sound_effect_angle;
   Zik2MetadataInfo *track_metadata;
   gboolean equalizer;
+  gboolean smart_audio_tune;
 
   /* software */
   gchar *software_version;
@@ -332,6 +334,11 @@ zik2_class_init (Zik2Class * klass)
   g_object_class_install_property (gobject_class, PROP_EQUALIZER,
       g_param_spec_boolean ("equalizer", "Equalizer",
           "Whether equalizer is active or not", FALSE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_SMART_AUDIO_TUNE,
+      g_param_spec_boolean ("smart-audio-tune", "Smart audio tune",
+          "Whether smart audio tune is active or not", FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
@@ -735,6 +742,22 @@ zik2_sync_equalizer (Zik2 * zik2)
 }
 
 static void
+zik2_sync_smart_audio_tune (Zik2 * zik2)
+{
+  Zik2SmartAudioTuneInfo *info;
+
+  info = zik2_request_info (zik2, ZIK2_API_AUDIO_SMART_AUDIO_TUNE_PATH,
+      ZIK2_SMART_AUDIO_TUNE_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("failed to get smart audio tune status");
+    return;
+  }
+
+  zik2->priv->smart_audio_tune = info->enabled;
+  zik2_smart_audio_tune_info_free (info);
+}
+
+static void
 zik2_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec *pspec)
 {
@@ -821,6 +844,9 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_EQUALIZER:
       g_value_set_boolean (value, zik2_is_equalizer_active (zik2));
       break;
+    case PROP_SMART_AUDIO_TUNE:
+      g_value_set_boolean (value, zik2_is_smart_audio_tune_active (zik2));
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -896,6 +922,12 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
         g_warning ("failed to enable/disable equalizer");
 
       break;
+
+    case PROP_SMART_AUDIO_TUNE:
+      if (!zik2_set_smart_audio_tune_active (zik2, g_value_get_boolean (value)))
+        g_warning ("failed to enable/disable smart audio tune");
+
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -912,6 +944,7 @@ zik2_sync_static_properties (Zik2 * zik2)
   zik2_sync_noise_control_mode_and_strength (zik2);
   zik2_sync_sound_effect (zik2);
   zik2_sync_equalizer (zik2);
+  zik2_sync_smart_audio_tune (zik2);
 
   /* software and system */
   zik2_sync_software_version (zik2);
@@ -1255,6 +1288,25 @@ zik2_set_equalizer_active (Zik2 * zik2, gboolean active)
       active ? "true" : "false", NULL);
   if (ret)
     zik2->priv->equalizer = active;
+
+  return ret;
+}
+
+gboolean
+zik2_is_smart_audio_tune_active (Zik2 * zik2)
+{
+  return zik2->priv->smart_audio_tune;
+}
+
+gboolean
+zik2_set_smart_audio_tune_active (Zik2 * zik2, gboolean active)
+{
+  gboolean ret;
+
+  ret = zik2_do_request (zik2, ZIK2_API_AUDIO_SMART_AUDIO_TUNE_PATH, "set",
+      active ? "true" : "false", NULL);
+  if (ret)
+    zik2->priv->smart_audio_tune = active;
 
   return ret;
 }

@@ -34,6 +34,7 @@ static Zik2AutoConnectionInfo *zik2_auto_connection_info_copy (Zik2AutoConnectio
 static Zik2TrackInfo *zik2_track_info_copy (Zik2TrackInfo * info);
 static Zik2MetadataInfo *zik2_metadata_info_copy (Zik2MetadataInfo * info);
 static Zik2EqualizerInfo *zik2_equalizer_info_copy (Zik2EqualizerInfo * info);
+static Zik2SmartAudioTuneInfo *zik2_smart_audio_tune_info_copy (Zik2SmartAudioTuneInfo * info);
 
 #define ZIK2_DEFINE_BOXED_TYPE(TypeName, type_name) \
   G_DEFINE_BOXED_TYPE (TypeName, type_name, type_name##_copy, type_name##_free)
@@ -55,6 +56,7 @@ ZIK2_DEFINE_BOXED_TYPE (Zik2AutoConnectionInfo, zik2_auto_connection_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2TrackInfo, zik2_track_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2MetadataInfo, zik2_metadata_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2EqualizerInfo, zik2_equalizer_info);
+ZIK2_DEFINE_BOXED_TYPE (Zik2SmartAudioTuneInfo, zik2_smart_audio_tune_info);
 
 Zik2AnswerInfo *
 zik2_answer_info_new (const gchar * path, gboolean error)
@@ -576,4 +578,33 @@ zik2_equalizer_info_free (Zik2EqualizerInfo * info)
   g_return_if_fail (info->itype == ZIK2_EQUALIZER_INFO_TYPE);
 
   g_slice_free (Zik2EqualizerInfo, info);
+}
+
+Zik2SmartAudioTuneInfo *
+zik2_smart_audio_tune_info_new (gboolean enabled)
+{
+  Zik2SmartAudioTuneInfo *info;
+
+  info = g_slice_new0 (Zik2SmartAudioTuneInfo);
+  info->itype = ZIK2_SMART_AUDIO_TUNE_INFO_TYPE;
+  info->enabled = enabled;
+  return info;
+}
+
+static Zik2SmartAudioTuneInfo *
+zik2_smart_audio_tune_info_copy (Zik2SmartAudioTuneInfo * info)
+{
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_SMART_AUDIO_TUNE_INFO_TYPE, NULL);
+
+  return zik2_smart_audio_tune_info_new (info->enabled);
+}
+
+void
+zik2_smart_audio_tune_info_free (Zik2SmartAudioTuneInfo * info)
+{
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_SMART_AUDIO_TUNE_INFO_TYPE);
+
+  g_slice_free (Zik2SmartAudioTuneInfo, info);
 }

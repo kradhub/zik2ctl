@@ -372,6 +372,24 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
 
     data->parent = g_node_append_data (data->parent,
         zik2_equalizer_info_new (enabled));
+  } else if (g_strcmp0 (element_name, "smart_audio_tune") == 0) {
+    gboolean enabled;
+
+    if (g_slist_length (stack) < 2 || g_strcmp0 (stack->next->data, "audio")) {
+      g_set_error_literal (error, G_MARKUP_ERROR,
+          G_MARKUP_ERROR_INVALID_CONTENT,
+          "<smart_audio_tune> element should be embedded in <audio>");
+      return;
+    }
+
+    if (!g_markup_collect_attributes (element_name, attribute_names,
+          attribute_values, error,
+          G_MARKUP_COLLECT_BOOLEAN, "enabled", &enabled,
+          G_MARKUP_COLLECT_INVALID))
+      return;
+
+    data->parent = g_node_append_data (data->parent,
+        zik2_smart_audio_tune_info_new (enabled));
   }
 }
 
