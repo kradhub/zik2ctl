@@ -48,6 +48,7 @@ static gchar *sound_effect_room = NULL;
 static gint sound_effect_angle = -1;
 static gchar *auto_connection_switch = NULL;
 static gchar *equalizer_switch = NULL;
+static gchar *smart_audio_tune_switch = NULL;
 
 static GOptionEntry entries[] = {
   { "list", 'l', 0, G_OPTION_ARG_NONE, &list_devices, "List Zik2 devices paired", NULL },
@@ -63,6 +64,8 @@ static GOptionEntry entries[] = {
   { "set-sound-effect-angle", 0, 0, G_OPTION_ARG_INT, &sound_effect_angle, "Set the angle for sound effect (Concert Hall)", "<30|60|90|120|150|180>" },
   { "set-auto-connection", 0, 0, G_OPTION_ARG_STRING, &auto_connection_switch, "Enable/Disable device auto-connection", "<on|off>" },
   { "set-equalizer", 0, 0, G_OPTION_ARG_STRING, &equalizer_switch, "Enable/Disable device equalizer", "<on|off>" },
+  { "set-smart-audio-tune", 0, 0, G_OPTION_ARG_STRING, &smart_audio_tune_switch, "Enable/Disable smart audio tune", "<on|off>" },
+  { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
   { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
   { "get-uri", 0, 0, G_OPTION_ARG_STRING, &get_uri, "Get uri and print reply", "/api/..." },
   { NULL, 0, 0, 0, NULL, NULL, NULL }
@@ -230,6 +233,8 @@ show_zik2 (Zik2 * zik2)
       zik2_get_sound_effect_angle (zik2));
   g_print ("  equalizer              : %s\n",
       zik2_is_equalizer_active (zik2) ? "on" : "off");
+  g_print ("  smart audio tune       : %s\n",
+      zik2_is_smart_audio_tune_active (zik2) ? "on" : "off");
   g_print ("  source                 : %s\n", zik2_get_source (zik2));
   g_print ("  volume (raw)           : %u\n", zik2_get_volume (zik2));
 
@@ -431,6 +436,13 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
       g_printerr ("Failed to set equalizer\n");
   }
 
+  if (smart_audio_tune_switch) {
+    g_print ("Setting smart audio tune to %s\n", smart_audio_tune_switch);
+    if (!set_boolean_property_from_string (zik2, "smart-audio-tune",
+          smart_audio_tune_switch))
+      g_printerr ("Failed to set smart audio tune\n");
+  }
+
   if (dump_api_xml) {
     for (i = 0; zik2_api[i].name != NULL; i++) {
       g_print ("- %s\n", zik2_api[i].name);
@@ -551,6 +563,10 @@ check_arguments (void)
 
   if (equalizer_switch)
     ret = check_switch_argument (equalizer_switch, "set-equalizer");
+
+  if (smart_audio_tune_switch)
+    ret = check_switch_argument (smart_audio_tune_switch,
+        "set-smart-audio-tune");
 
   return ret;
 }
