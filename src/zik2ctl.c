@@ -39,7 +39,6 @@ static gboolean dump_api_xml = FALSE;
 static gchar *noise_control_switch = NULL;
 static gchar *noise_control_mode = NULL;
 static gint noise_control_strength = 0;
-static gchar *get_uri = NULL;
 static gchar *head_detection_switch = NULL;
 static gchar *flight_mode_switch = NULL;
 static gchar *friendlyname = NULL;
@@ -49,6 +48,10 @@ static gint sound_effect_angle = -1;
 static gchar *auto_connection_switch = NULL;
 static gchar *equalizer_switch = NULL;
 static gchar *smart_audio_tune_switch = NULL;
+
+static gchar *request_path = NULL;
+static gchar *request_method = NULL;
+static gchar *request_args = NULL;
 
 static GOptionEntry entries[] = {
   { "list", 'l', 0, G_OPTION_ARG_NONE, &list_devices, "List Zik2 devices paired", NULL },
@@ -67,7 +70,9 @@ static GOptionEntry entries[] = {
   { "set-smart-audio-tune", 0, 0, G_OPTION_ARG_STRING, &smart_audio_tune_switch, "Enable/Disable smart audio tune", "<on|off>" },
   { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
   { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
-  { "get-uri", 0, 0, G_OPTION_ARG_STRING, &get_uri, "Get uri and print reply", "/api/..." },
+  { "request-path", 0, 0, G_OPTION_ARG_STRING, &request_path, "custom request path (development/debug purpose)", "/api/..." },
+  { "request-method", 0, 0, G_OPTION_ARG_STRING, &request_method, "custom method to call (development/debug purpose)", "get" },
+  { "request-args", 0, 0, G_OPTION_ARG_STRING, &request_args, "custom args (development/debug purpose)", "true" },
   { NULL, 0, 0, 0, NULL, NULL, NULL }
 };
 
@@ -155,23 +160,27 @@ lookup_device_by_addr (GSList * list, const gchar * addr)
 }
 
 static void
-zik2_get (Zik2Connection * conn, const gchar * property)
+custom_request (Zik2 * zik2, const gchar * path, const gchar * method,
+    const gchar * args)
 {
   Zik2Message *msg;
-  Zik2Message *answer = NULL;
+  Zik2Message *reply;
   gchar *xml;
 
-  msg = zik2_message_new_request (property, "get", NULL);
-  zik2_connection_send_message (conn, msg, &answer);
+  msg = zik2_message_new_request (path, method, args);
+  zik2_connection_send_message (zik2->conn, msg, &reply);
   zik2_message_free (msg);
 
-  xml = zik2_message_get_request_reply_xml (answer);
-  if (xml) {
-    g_print ("got answer: %s\n", xml);
-  }
-  g_free (xml);
+  g_print ("custom request '%s/%s?arg=%s' reply:\n", path, method, args);
+  xml = zik2_message_get_request_reply_xml (reply);
+  if (xml)
+    g_print ("%s\n", xml);
+  else
+    g_print ("no reply...\n");
 
-  zik2_message_free (answer);
+  g_free (xml);
+  zik2_message_free (reply);
+
 }
 
 static const gchar *
@@ -446,10 +455,10 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
   if (dump_api_xml) {
     for (i = 0; zik2_api[i].name != NULL; i++) {
       g_print ("- %s\n", zik2_api[i].name);
-      zik2_get (zik2->conn, zik2_api[i].get_uri);
+      custom_request (zik2, zik2_api[i].get_uri, "get", NULL);
     }
-  } else if (get_uri) {
-    zik2_get (zik2->conn, get_uri);
+  } else if (request_path) {
+    custom_request (zik2, request_path, request_method, request_args);
   } else {
     show_zik2 (zik2);
   }
@@ -567,6 +576,12 @@ check_arguments (void)
   if (smart_audio_tune_switch)
     ret = check_switch_argument (smart_audio_tune_switch,
         "set-smart-audio-tune");
+
+  if ((request_path && request_method == NULL) ||
+      (request_path == NULL && request_method)) {
+    g_printerr ("request-path and request-method shall be used together\n");
+    ret = FALSE;
+  }
 
   return ret;
 }
