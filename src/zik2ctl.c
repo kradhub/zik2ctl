@@ -69,7 +69,6 @@ static GOptionEntry entries[] = {
   { "set-equalizer", 0, 0, G_OPTION_ARG_STRING, &equalizer_switch, "Enable/Disable device equalizer", "<on|off>" },
   { "set-smart-audio-tune", 0, 0, G_OPTION_ARG_STRING, &smart_audio_tune_switch, "Enable/Disable smart audio tune", "<on|off>" },
   { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
-  { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
   { "request-path", 0, 0, G_OPTION_ARG_STRING, &request_path, "custom request path (development/debug purpose)", "/api/..." },
   { "request-method", 0, 0, G_OPTION_ARG_STRING, &request_method, "custom method to call (development/debug purpose)", "get" },
   { "request-args", 0, 0, G_OPTION_ARG_STRING, &request_args, "custom args (development/debug purpose)", "true" },
