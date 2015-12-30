@@ -48,6 +48,7 @@ static gint sound_effect_angle = -1;
 static gchar *auto_connection_switch = NULL;
 static gchar *equalizer_switch = NULL;
 static gchar *smart_audio_tune_switch = NULL;
+static gint auto_power_off_timeout = -1;
 
 static gchar *request_path = NULL;
 static gchar *request_method = NULL;
@@ -68,6 +69,7 @@ static GOptionEntry entries[] = {
   { "set-auto-connection", 0, 0, G_OPTION_ARG_STRING, &auto_connection_switch, "Enable/Disable device auto-connection", "<on|off>" },
   { "set-equalizer", 0, 0, G_OPTION_ARG_STRING, &equalizer_switch, "Enable/Disable device equalizer", "<on|off>" },
   { "set-smart-audio-tune", 0, 0, G_OPTION_ARG_STRING, &smart_audio_tune_switch, "Enable/Disable smart audio tune", "<on|off>" },
+  { "set-auto-power-off-timeout", 0, 0, G_OPTION_ARG_INT, &auto_power_off_timeout, "Set device auto-power-off timeout in minutes", "<5|10|15|30|60>" },
   { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
   { "request-path", 0, 0, G_OPTION_ARG_STRING, &request_path, "custom request path (development/debug purpose)", "/api/..." },
   { "request-method", 0, 0, G_OPTION_ARG_STRING, &request_method, "custom method to call (development/debug purpose)", "get" },
@@ -222,9 +224,11 @@ show_zik2 (Zik2 * zik2)
   const gchar *metadata_artist;
   const gchar *metadata_album;
   const gchar *metadata_genre;
+  guint auto_power_off_timeout;
 
   zik2_get_track_metadata (zik2, &metadata_playing, &metadata_title,
       &metadata_artist, &metadata_album, &metadata_genre);
+  auto_power_off_timeout = zik2_get_auto_power_off_timeout (zik2);
 
   g_print ("audio:\n");
   g_print ("  noise control          : %s\n",
@@ -269,6 +273,11 @@ show_zik2 (Zik2 * zik2)
   g_print ("  friendlyname           : %s\n", zik2_get_friendlyname (zik2));
   g_print ("  auto-connection        : %s\n",
       zik2_is_auto_connection_active (zik2) ? "on" : "off");
+
+  if (auto_power_off_timeout > 0)
+    g_print ("  auto power off timeout : %u minutes\n", auto_power_off_timeout);
+  else
+    g_print ("  auto power off timeout : off\n");
 }
 
 static gboolean
@@ -451,6 +460,9 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
       g_printerr ("Failed to set smart audio tune\n");
   }
 
+  if (auto_power_off_timeout != -1)
+    zik2_set_auto_power_off_timeout (zik2, auto_power_off_timeout);
+
   if (dump_api_xml) {
     for (i = 0; zik2_api[i].name != NULL; i++) {
       g_print ("- %s\n", zik2_api[i].name);
@@ -580,6 +592,16 @@ check_arguments (void)
       (request_path == NULL && request_method)) {
     g_printerr ("request-path and request-method shall be used together\n");
     ret = FALSE;
+  }
+
+  if (auto_power_off_timeout != -1) {
+    /* valid value 0, 5, 10, 15, 30, 60 */
+    if (auto_power_off_timeout != 0 && auto_power_off_timeout != 5 &&
+        auto_power_off_timeout != 10 && auto_power_off_timeout != 15 &&
+        auto_power_off_timeout != 30 && auto_power_off_timeout != 60) {
+      g_printerr ("unrecognized 'auto_power_off_timeout' value");
+      ret = FALSE;
+    }
   }
 
   return ret;
