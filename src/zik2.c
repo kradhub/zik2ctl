@@ -371,7 +371,7 @@ zik2_finalize (GObject * object)
   g_free (priv->friendlyname);
 
   if (priv->track_metadata)
-    zik2_metadata_info_free (priv->track_metadata);
+    zik2_metadata_info_unref (priv->track_metadata);
 
   if (zik2->conn)
     zik2_connection_free (zik2->conn);
@@ -463,7 +463,7 @@ zik2_sync_serial (Zik2 * zik2)
 
   g_free (zik2->priv->serial);
   zik2->priv->serial = g_strdup (info->pi);
-  zik2_system_info_free (info);
+  zik2_system_info_unref (info);
 }
 
 static void
@@ -479,7 +479,7 @@ zik2_sync_noise_control (Zik2 * zik2)
   }
 
   zik2->priv->noise_control = info->enabled;
-  zik2_noise_control_info_free (info);
+  zik2_noise_control_info_unref (info);
 }
 
 static void
@@ -506,7 +506,7 @@ zik2_sync_noise_control_mode_and_strength (Zik2 * zik2)
   zik2->priv->noise_control_strength = info->value;
 
 out:
-  zik2_noise_control_info_free (info);
+  zik2_noise_control_info_unref (info);
 }
 
 static gboolean
@@ -553,7 +553,7 @@ zik2_sync_software_version (Zik2 * zik2)
 
   g_free (zik2->priv->software_version);
   zik2->priv->software_version = g_strdup (info->sip6);
-  zik2_software_info_free (info);
+  zik2_software_info_unref (info);
 }
 
 static void
@@ -570,7 +570,7 @@ zik2_sync_source (Zik2 * zik2)
 
   g_free (zik2->priv->source);
   zik2->priv->source = g_strdup (info->type);
-  zik2_source_info_free (info);
+  zik2_source_info_unref (info);
 }
 
 static void
@@ -588,7 +588,7 @@ zik2_sync_battery (Zik2 * zik2)
   g_free (zik2->priv->battery_state);
   zik2->priv->battery_state = g_strdup (info->state);
   zik2->priv->battery_percentage = info->percent;
-  zik2_battery_info_free (info);
+  zik2_battery_info_unref (info);
 }
 
 static void
@@ -604,7 +604,7 @@ zik2_sync_volume (Zik2 * zik2)
   }
 
   zik2->priv->volume = info->volume;
-  zik2_volume_info_free (info);
+  zik2_volume_info_unref (info);
 }
 
 static void
@@ -620,7 +620,7 @@ zik2_sync_head_detection (Zik2 * zik2)
   }
 
   zik2->priv->head_detection = info->enabled;
-  zik2_head_detection_info_free (info);
+  zik2_head_detection_info_unref (info);
 }
 
 static void
@@ -636,7 +636,7 @@ zik2_sync_color (Zik2 * zik2)
   }
 
   zik2->priv->color = info->value;
-  zik2_color_info_free (info);
+  zik2_color_info_unref (info);
 }
 
 static void
@@ -652,7 +652,7 @@ zik2_sync_flight_mode (Zik2 * zik2)
   }
 
   zik2->priv->flight_mode = info->enabled;
-  zik2_flight_mode_info_free (info);
+  zik2_flight_mode_info_unref (info);
 }
 
 static void
@@ -669,7 +669,7 @@ zik2_sync_friendlyname (Zik2 * zik2)
 
   g_free (zik2->priv->friendlyname);
   zik2->priv->friendlyname = g_strdup (info->friendlyname);
-  zik2_bluetooth_info_free (info);
+  zik2_bluetooth_info_unref (info);
 }
 
 static void
@@ -688,7 +688,7 @@ zik2_sync_sound_effect (Zik2 * zik2)
   zik2->priv->sound_effect_room =
       zik2_sound_effect_room_from_string (info->room_size);
   zik2->priv->sound_effect_angle = info->angle;
-  zik2_sound_effect_info_free (info);
+  zik2_sound_effect_info_unref (info);
 }
 
 static void
@@ -704,7 +704,7 @@ zik2_sync_auto_connection (Zik2 * zik2)
   }
 
   zik2->priv->auto_connection = info->enabled;
-  zik2_auto_connection_info_free (info);
+  zik2_auto_connection_info_unref (info);
 }
 
 static void
@@ -720,7 +720,7 @@ zik2_sync_track_metadata (Zik2 * zik2)
   }
 
   if (zik2->priv->track_metadata)
-    zik2_metadata_info_free (zik2->priv->track_metadata);
+    zik2_metadata_info_unref (zik2->priv->track_metadata);
 
   zik2->priv->track_metadata = info;
 }
@@ -738,7 +738,7 @@ zik2_sync_equalizer (Zik2 * zik2)
   }
 
   zik2->priv->equalizer = info->enabled;
-  zik2_equalizer_info_free (info);
+  zik2_equalizer_info_unref (info);
 }
 
 static void
@@ -754,7 +754,7 @@ zik2_sync_smart_audio_tune (Zik2 * zik2)
   }
 
   zik2->priv->smart_audio_tune = info->enabled;
-  zik2_smart_audio_tune_info_free (info);
+  zik2_smart_audio_tune_info_unref (info);
 }
 
 static void

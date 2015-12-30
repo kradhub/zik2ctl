@@ -67,6 +67,7 @@ typedef struct _Zik2SmartAudioTuneInfo Zik2SmartAudioTuneInfo;
 struct _Zik2AnswerInfo
 {
   GType itype;
+  gint ref_count;
 
   gchar *path;
   gboolean error;
@@ -75,11 +76,13 @@ struct _Zik2AnswerInfo
 struct _Zik2AudioInfo
 {
   GType itype;
+  gint ref_count;
 };
 
 struct _Zik2SoftwareInfo
 {
   GType itype;
+  gint ref_count;
 
   gchar *sip6;
   gchar *pic;
@@ -89,6 +92,7 @@ struct _Zik2SoftwareInfo
 struct _Zik2SystemInfo
 {
   GType itype;
+  gint ref_count;
 
   gchar *pi;
 };
@@ -96,6 +100,7 @@ struct _Zik2SystemInfo
 struct _Zik2NoiseControlInfo
 {
   GType itype;
+  gint ref_count;
 
   gboolean enabled;
   gchar *type;
@@ -105,6 +110,7 @@ struct _Zik2NoiseControlInfo
 struct _Zik2SourceInfo
 {
   GType itype;
+  gint ref_count;
 
   gchar *type;
 };
@@ -112,6 +118,7 @@ struct _Zik2SourceInfo
 struct _Zik2BatteryInfo
 {
   GType itype;
+  gint ref_count;
 
   gchar *state;
   guint percent;
@@ -120,6 +127,7 @@ struct _Zik2BatteryInfo
 struct _Zik2VolumeInfo
 {
   GType itype;
+  gint ref_count;
 
   guint volume;
 };
@@ -127,6 +135,7 @@ struct _Zik2VolumeInfo
 struct _Zik2HeadDetectionInfo
 {
   GType itype;
+  gint ref_count;
 
   gboolean enabled;
 };
@@ -134,6 +143,7 @@ struct _Zik2HeadDetectionInfo
 struct _Zik2ColorInfo
 {
   GType itype;
+  gint ref_count;
 
   guint value;
 };
@@ -141,6 +151,7 @@ struct _Zik2ColorInfo
 struct _Zik2FlightModeInfo
 {
   GType itype;
+  gint ref_count;
 
   gboolean enabled;
 };
@@ -148,6 +159,7 @@ struct _Zik2FlightModeInfo
 struct _Zik2BluetoothInfo
 {
   GType itype;
+  gint ref_count;
 
   gchar *friendlyname;
 };
@@ -155,6 +167,7 @@ struct _Zik2BluetoothInfo
 struct _Zik2SoundEffectInfo
 {
   GType itype;
+  gint ref_count;
 
   gboolean enabled;
   gchar *room_size;
@@ -164,6 +177,7 @@ struct _Zik2SoundEffectInfo
 struct _Zik2AutoConnectionInfo
 {
   GType itype;
+  gint ref_count;
 
   gboolean enabled;
 };
@@ -171,11 +185,13 @@ struct _Zik2AutoConnectionInfo
 struct _Zik2TrackInfo
 {
   GType itype;
+  gint ref_count;
 };
 
 struct _Zik2MetadataInfo
 {
   GType itype;
+  gint ref_count;
 
   gboolean playing;
   gchar *title;
@@ -187,6 +203,7 @@ struct _Zik2MetadataInfo
 struct _Zik2EqualizerInfo
 {
   GType itype;
+  gint ref_count;
 
   gboolean enabled;
 };
@@ -194,67 +211,86 @@ struct _Zik2EqualizerInfo
 struct _Zik2SmartAudioTuneInfo
 {
   GType itype;
+  gint ref_count;
 
   gboolean enabled;
 };
 
 Zik2AnswerInfo *zik2_answer_info_new (const gchar * path, gboolean error);
-void zik2_answer_info_free (Zik2AnswerInfo * info);
+Zik2AnswerInfo *zik2_answer_info_ref (Zik2AnswerInfo * info);
+void zik2_answer_info_unref (Zik2AnswerInfo * info);
 
 Zik2AudioInfo *zik2_audio_info_new (void);
-void zik2_audio_info_free (Zik2AudioInfo * info);
+Zik2AudioInfo *zik2_audio_info_ref (Zik2AudioInfo * info);
+void zik2_audio_info_unref (Zik2AudioInfo * info);
 
 Zik2SoftwareInfo *zik2_software_info_new (const gchar * sip6, const gchar * pic,
     const gchar * tts);
-void zik2_software_info_free (Zik2SoftwareInfo * info);
+Zik2SoftwareInfo *zik2_software_info_ref (Zik2SoftwareInfo * info);
+void zik2_software_info_unref (Zik2SoftwareInfo * info);
 
 Zik2SystemInfo *zik2_system_info_new (const gchar * pi);
-void zik2_system_info_free (Zik2SystemInfo * info);
+Zik2SystemInfo *zik2_system_info_ref (Zik2SystemInfo * info);
+void zik2_system_info_unref (Zik2SystemInfo * info);
 
 Zik2NoiseControlInfo * zik2_noise_control_info_new (gboolean enabled,
     gchar * type, guint value);
-void zik2_noise_control_info_free (Zik2NoiseControlInfo * info);
+Zik2NoiseControlInfo *zik2_noise_control_info_ref (Zik2NoiseControlInfo * info);
+void zik2_noise_control_info_unref (Zik2NoiseControlInfo * info);
 
 Zik2SourceInfo * zik2_source_info_new (const gchar * type);
-void zik2_source_info_free (Zik2SourceInfo * info);
+Zik2SourceInfo *zik2_source_info_ref (Zik2SourceInfo * info);
+void zik2_source_info_unref (Zik2SourceInfo * info);
 
 Zik2BatteryInfo *zik2_battery_info_new (const gchar * state, guint percent);
-void zik2_battery_info_free (Zik2BatteryInfo * info);
+Zik2BatteryInfo *zik2_battery_info_ref (Zik2BatteryInfo * info);
+void zik2_battery_info_unref (Zik2BatteryInfo * info);
 
 Zik2VolumeInfo *zik2_volume_info_new (guint volume);
-void zik2_volume_info_free (Zik2VolumeInfo * info);
+Zik2VolumeInfo *zik2_volume_info_ref (Zik2VolumeInfo * info);
+void zik2_volume_info_unref (Zik2VolumeInfo * info);
 
 Zik2HeadDetectionInfo *zik2_head_detection_info_new (gboolean enabled);
-void zik2_head_detection_info_free (Zik2HeadDetectionInfo * info);
+Zik2HeadDetectionInfo *zik2_head_detection_info_ref (Zik2HeadDetectionInfo * info);
+void zik2_head_detection_info_unref (Zik2HeadDetectionInfo * info);
 
 Zik2ColorInfo *zik2_color_info_new (guint value);
-void zik2_color_info_free (Zik2ColorInfo * info);
+Zik2ColorInfo *zik2_color_info_ref (Zik2ColorInfo * info);
+void zik2_color_info_unref (Zik2ColorInfo * info);
 
 Zik2FlightModeInfo *zik2_flight_mode_info_new (gboolean enabled);
-void zik2_flight_mode_info_free (Zik2FlightModeInfo * info);
+Zik2FlightModeInfo *zik2_flight_mode_info_ref (Zik2FlightModeInfo * info);
+void zik2_flight_mode_info_unref (Zik2FlightModeInfo * info);
 
 Zik2BluetoothInfo *zik2_bluetooth_info_new (const gchar * friendlyname);
-void zik2_bluetooth_info_free (Zik2BluetoothInfo * info);
+Zik2BluetoothInfo *zik2_bluetooth_info_ref (Zik2BluetoothInfo * info);
+void zik2_bluetooth_info_unref (Zik2BluetoothInfo * info);
 
 Zik2SoundEffectInfo *zik2_sound_effect_info_new (gboolean enabled,
     const gchar * room_size, guint angle);
-void zik2_sound_effect_info_free (Zik2SoundEffectInfo * info);
+Zik2SoundEffectInfo *zik2_sound_effect_info_ref (Zik2SoundEffectInfo * info);
+void zik2_sound_effect_info_unref (Zik2SoundEffectInfo * info);
 
 Zik2AutoConnectionInfo *zik2_auto_connection_info_new (gboolean enabled);
-void zik2_auto_connection_info_free (Zik2AutoConnectionInfo * info);
+Zik2AutoConnectionInfo *zik2_auto_connection_info_ref (Zik2AutoConnectionInfo * info);
+void zik2_auto_connection_info_unref (Zik2AutoConnectionInfo * info);
 
 Zik2TrackInfo *zik2_track_info_new (void);
-void zik2_track_info_free (Zik2TrackInfo * info);
+Zik2TrackInfo *zik2_track_info_ref (Zik2TrackInfo * info);
+void zik2_track_info_unref (Zik2TrackInfo * info);
 
 Zik2MetadataInfo *zik2_metadata_info_new (gboolean playing, const gchar * title,
     const gchar * artist, const gchar * album, const gchar * genre);
-void zik2_metadata_info_free (Zik2MetadataInfo * info);
+Zik2MetadataInfo *zik2_metadata_info_ref (Zik2MetadataInfo * info);
+void zik2_metadata_info_unref (Zik2MetadataInfo * info);
 
 Zik2EqualizerInfo *zik2_equalizer_info_new (gboolean enabled);
-void zik2_equalizer_info_free (Zik2EqualizerInfo * info);
+Zik2EqualizerInfo *zik2_equalizer_info_ref (Zik2EqualizerInfo * info);
+void zik2_equalizer_info_unref (Zik2EqualizerInfo * info);
 
 Zik2SmartAudioTuneInfo *zik2_smart_audio_tune_info_new (gboolean enabled);
-void zik2_smart_audio_tune_info_free (Zik2SmartAudioTuneInfo * info);
+Zik2SmartAudioTuneInfo *zik2_smart_audio_tune_info_ref (Zik2SmartAudioTuneInfo * info);
+void zik2_smart_audio_tune_info_unref (Zik2SmartAudioTuneInfo * info);
 
 GType zik2_answer_info_get_type (void);
 GType zik2_audio_info_get_type (void);
