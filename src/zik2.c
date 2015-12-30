@@ -25,6 +25,7 @@
 
 #define UNKNOWN_STR "unknown"
 #define DEFAULT_NOISE_CONTROL_STRENGTH 1
+#define DEFAULT_AUTO_POWER_OFF_TIMEOUT 0
 
 enum
 {
@@ -51,6 +52,7 @@ enum
   PROP_TRACK_METADATA,
   PROP_EQUALIZER,
   PROP_SMART_AUDIO_TUNE,
+  PROP_AUTO_POWER_OFF_TIMEOUT,
 };
 
 struct _Zik2Private
@@ -81,6 +83,7 @@ struct _Zik2Private
   gboolean head_detection;
   gchar *serial;
   gboolean auto_connection;
+  guint auto_power_off_timeout;
 
   /* others */
   gboolean flight_mode;
@@ -347,6 +350,12 @@ zik2_class_init (Zik2Class * klass)
       g_param_spec_boolean ("smart-audio-tune", "Smart audio tune",
           "Whether smart audio tune is active or not", FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_AUTO_POWER_OFF_TIMEOUT,
+      g_param_spec_uint ("auto-power-off-timeout", "Auto power off timeout",
+        "Power off device after specified time in minutes (0 means disable)",
+        0, 60, DEFAULT_AUTO_POWER_OFF_TIMEOUT,
+        G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -760,6 +769,22 @@ zik2_sync_smart_audio_tune (Zik2 * zik2)
 }
 
 static void
+zik2_sync_auto_power_off (Zik2 * zik2)
+{
+  Zik2AutoPowerOffInfo *info;
+
+  info = zik2_request_info (zik2, ZIK2_API_SYSTEM_AUTO_POWER_OFF_PATH,
+      ZIK2_AUTO_POWER_OFF_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("failed to get auto-power-off status");
+    return;
+  }
+
+  zik2->priv->auto_power_off_timeout = info->value;
+  zik2_auto_power_off_info_unref (info);
+}
+
+static void
 zik2_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec *pspec)
 {
@@ -849,6 +874,9 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_SMART_AUDIO_TUNE:
       g_value_set_boolean (value, zik2_is_smart_audio_tune_active (zik2));
       break;
+    case PROP_AUTO_POWER_OFF_TIMEOUT:
+      g_value_set_uint (value, zik2_get_auto_power_off_timeout (zik2));
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -930,6 +958,11 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
         g_warning ("failed to enable/disable smart audio tune");
 
       break;
+    case PROP_AUTO_POWER_OFF_TIMEOUT:
+      if (!zik2_set_auto_power_off_timeout (zik2, g_value_get_uint (value)))
+        g_warning ("failed to set auto power off timeout");
+
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -956,6 +989,7 @@ zik2_sync_static_properties (Zik2 * zik2)
   zik2_sync_flight_mode (zik2);
   zik2_sync_friendlyname (zik2);
   zik2_sync_auto_connection (zik2);
+  zik2_sync_auto_power_off (zik2);
 }
 
 /* @conn: (transfer full) */
@@ -1308,5 +1342,27 @@ zik2_set_smart_audio_tune_active (Zik2 * zik2, gboolean active)
   if (ret)
     zik2->priv->smart_audio_tune = active;
 
+  return ret;
+}
+
+guint
+zik2_get_auto_power_off_timeout (Zik2 * zik2)
+{
+  return zik2->priv->auto_power_off_timeout;
+}
+
+gboolean
+zik2_set_auto_power_off_timeout (Zik2 * zik2, guint timeout_min)
+{
+  gboolean ret;
+  gchar *args;
+
+  args = g_strdup_printf ("%u", timeout_min);
+  ret = zik2_do_request (zik2, ZIK2_API_SYSTEM_AUTO_POWER_OFF_PATH, "set", args,
+      NULL);
+  if (ret)
+    zik2->priv->auto_power_off_timeout = timeout_min;
+
+  g_free (args);
   return ret;
 }

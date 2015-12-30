@@ -38,6 +38,7 @@ ZIK2_DEFINE_BOXED_TYPE (Zik2TrackInfo, zik2_track_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2MetadataInfo, zik2_metadata_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2EqualizerInfo, zik2_equalizer_info);
 ZIK2_DEFINE_BOXED_TYPE (Zik2SmartAudioTuneInfo, zik2_smart_audio_tune_info);
+ZIK2_DEFINE_BOXED_TYPE (Zik2AutoPowerOffInfo, zik2_auto_power_off_info);
 
 Zik2AnswerInfo *
 zik2_answer_info_new (const gchar * path, gboolean error)
@@ -685,4 +686,38 @@ zik2_smart_audio_tune_info_unref (Zik2SmartAudioTuneInfo * info)
 
   if (g_atomic_int_dec_and_test (&info->ref_count))
     g_slice_free (Zik2SmartAudioTuneInfo, info);
+}
+
+Zik2AutoPowerOffInfo *
+zik2_auto_power_off_info_new (guint value)
+{
+  Zik2AutoPowerOffInfo *info;
+
+  info = g_slice_new0 (Zik2AutoPowerOffInfo);
+  info->itype = ZIK2_AUTO_POWER_OFF_INFO_TYPE;
+  info->ref_count = 1;
+  info->value = value;
+  return info;
+}
+
+Zik2AutoPowerOffInfo *
+zik2_auto_power_off_info_ref (Zik2AutoPowerOffInfo * info)
+{
+  g_return_val_if_fail (info != NULL, NULL);
+  g_return_val_if_fail (info->itype == ZIK2_AUTO_POWER_OFF_INFO_TYPE, NULL);
+  g_return_val_if_fail (info->ref_count > 0, NULL);
+
+  g_atomic_int_inc (&info->ref_count);
+  return info;
+}
+
+void
+zik2_auto_power_off_info_unref (Zik2AutoPowerOffInfo * info)
+{
+  g_return_if_fail (info != NULL);
+  g_return_if_fail (info->itype == ZIK2_AUTO_POWER_OFF_INFO_TYPE);
+  g_return_if_fail (info->ref_count > 0);
+
+  if (g_atomic_int_dec_and_test (&info->ref_count))
+    g_slice_free (Zik2AutoPowerOffInfo, info);
 }

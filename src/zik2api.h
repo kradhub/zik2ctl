@@ -52,6 +52,7 @@
 #define ZIK2_API_SYSTEM_FLIGHT_MODE_PATH "/api/flight_mode"
 #define ZIK2_API_SYSTEM_HEAD_DETECTION_ENABLED_PATH "/api/system/head_detection/enabled"
 #define ZIK2_API_SYSTEM_PI_PATH "/api/system/pi"
+#define ZIK2_API_SYSTEM_AUTO_POWER_OFF_PATH "/api/system/auto_power_off"
 
 /* Other */
 #define ZIK2_API_FLIGHT_MODE_PATH "/api/flight_mode"
