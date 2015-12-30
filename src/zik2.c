@@ -205,6 +205,13 @@ zik2_sound_effect_angle_get_type (void)
   return type;
 }
 
+static inline void
+_string_replace (gchar ** old, const gchar * new)
+{
+  g_free (*old);
+  *old = g_strdup (new);
+}
+
 #define parent_class zik2_parent_class
 G_DEFINE_TYPE (Zik2, zik2, G_TYPE_OBJECT);
 
@@ -461,8 +468,7 @@ zik2_sync_serial (Zik2 * zik2)
     return;
   }
 
-  g_free (zik2->priv->serial);
-  zik2->priv->serial = g_strdup (info->pi);
+  _string_replace (&zik2->priv->serial, info->pi);
   zik2_system_info_unref (info);
 }
 
@@ -551,8 +557,7 @@ zik2_sync_software_version (Zik2 * zik2)
     return;
   }
 
-  g_free (zik2->priv->software_version);
-  zik2->priv->software_version = g_strdup (info->sip6);
+  _string_replace (&zik2->priv->software_version, info->sip6);
   zik2_software_info_unref (info);
 }
 
@@ -568,8 +573,7 @@ zik2_sync_source (Zik2 * zik2)
     return;
   }
 
-  g_free (zik2->priv->source);
-  zik2->priv->source = g_strdup (info->type);
+  _string_replace (&zik2->priv->source, info->type);
   zik2_source_info_unref (info);
 }
 
@@ -585,8 +589,7 @@ zik2_sync_battery (Zik2 * zik2)
     return;
   }
 
-  g_free (zik2->priv->battery_state);
-  zik2->priv->battery_state = g_strdup (info->state);
+  _string_replace (&zik2->priv->battery_state, info->state);
   zik2->priv->battery_percentage = info->percent;
   zik2_battery_info_unref (info);
 }
@@ -667,8 +670,7 @@ zik2_sync_friendlyname (Zik2 * zik2)
     return;
   }
 
-  g_free (zik2->priv->friendlyname);
-  zik2->priv->friendlyname = g_strdup (info->friendlyname);
+  _string_replace (&zik2->priv->friendlyname, info->friendlyname);
   zik2_bluetooth_info_unref (info);
 }
 
@@ -1219,10 +1221,8 @@ zik2_set_friendlyname (Zik2 * zik2, const gchar * name)
 
   ret = zik2_do_request (zik2, ZIK2_API_BLUETOOTH_FRIENDLY_NAME_PATH, "set",
       name, NULL);
-  if (ret) {
-    g_free (zik2->priv->friendlyname);
-    zik2->priv->friendlyname = g_strdup (name);
-  }
+  if (ret)
+    _string_replace (&zik2->priv->friendlyname, name);
 
   return ret;
 }
