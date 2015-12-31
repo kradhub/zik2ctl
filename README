@@ -19,6 +19,8 @@ Features supported
 - Auto-connection activation
 - Head-detection activation
 - Flight mode activatation
+- Auto power-off activatation and timeout
+- Text-to-speech activation
 
 Usage
 -----
