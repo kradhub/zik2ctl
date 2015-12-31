@@ -60,9 +60,9 @@ Extracted from zik_release_2.05.plf
 /api/software/version_checking/get                 -- not implemented
 /api/software/download_size/set?arg                -- not implemented (used for update ?)
 /api/software/download_check_state/get             -- not implemented (used for update ?)
-/api/software/tts/enable                           -- not implemented (text to speech)
-/api/software/tts/disable                          -- not implemented (text to speech)
-/api/software/tts/get                              -- not implemented (text to speech)
+/api/software/tts/enable                           -- implemented (text to speech)
+/api/software/tts/disable                          -- implemented (text to speech)
+/api/software/tts/get                              -- implemented (text to speech)
 
 /api/system/battery/forecast/get                   -- not implemented (may be not useful as values seems to be always -1)
 /api/system/battery/get                            -- implemented

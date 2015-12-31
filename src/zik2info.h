@@ -42,6 +42,7 @@ G_BEGIN_DECLS
 #define ZIK2_EQUALIZER_INFO_TYPE (zik2_equalizer_info_get_type ())
 #define ZIK2_SMART_AUDIO_TUNE_INFO_TYPE (zik2_smart_audio_tune_info_get_type ())
 #define ZIK2_AUTO_POWER_OFF_INFO_TYPE (zik2_auto_power_off_info_get_type ())
+#define ZIK2_TTS_INFO_TYPE (zik2_tts_info_get_type ())
 
 typedef struct _Zik2AnswerInfo Zik2AnswerInfo;
 typedef struct _Zik2AudioInfo Zik2AudioInfo;
@@ -62,6 +63,7 @@ typedef struct _Zik2MetadataInfo Zik2MetadataInfo;
 typedef struct _Zik2EqualizerInfo Zik2EqualizerInfo;
 typedef struct _Zik2SmartAudioTuneInfo Zik2SmartAudioTuneInfo;
 typedef struct _Zik2AutoPowerOffInfo Zik2AutoPowerOffInfo;
+typedef struct _Zik2TTSInfo Zik2TTSInfo;
 
 /* all nodes structures shall begin with:
  * GType itype
@@ -226,6 +228,14 @@ struct _Zik2AutoPowerOffInfo
   guint value;
 };
 
+struct _Zik2TTSInfo
+{
+  GType itype;
+  gint ref_count;
+
+  gboolean enabled;
+};
+
 Zik2AnswerInfo *zik2_answer_info_new (const gchar * path, gboolean error);
 Zik2AnswerInfo *zik2_answer_info_ref (Zik2AnswerInfo * info);
 void zik2_answer_info_unref (Zik2AnswerInfo * info);
@@ -306,6 +316,10 @@ Zik2AutoPowerOffInfo *zik2_auto_power_off_info_new (guint value);
 Zik2AutoPowerOffInfo *zik2_auto_power_off_info_ref (Zik2AutoPowerOffInfo * info);
 void zik2_auto_power_off_info_unref (Zik2AutoPowerOffInfo * info);
 
+Zik2TTSInfo *zik2_tts_info_new (gboolean enabled);
+Zik2TTSInfo *zik2_tts_info_ref (Zik2TTSInfo * info);
+void zik2_tts_info_unref (Zik2TTSInfo * info);
+
 GType zik2_answer_info_get_type (void);
 GType zik2_audio_info_get_type (void);
 GType zik2_software_info_get_type (void);
@@ -325,6 +339,7 @@ GType zik2_metadata_info_get_type (void);
 GType zik2_equalizer_info_get_type (void);
 GType zik2_smart_audio_tune_info_get_type (void);
 GType zik2_auto_power_off_info_get_type (void);
+GType zik2_tts_info_get_type (void);
 
 G_END_DECLS
 

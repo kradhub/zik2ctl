@@ -150,6 +150,9 @@ gboolean zik2_set_smart_audio_tune_active (Zik2 * zik2, gboolean active);
 guint zik2_get_auto_power_off_timeout (Zik2 * zik2);
 gboolean zik2_set_auto_power_off_timeout (Zik2 * zik2, guint timeout_min);
 
+gboolean zik2_is_tts_active (Zik2 * zik2);
+gboolean zik2_set_tts_active (Zik2 * zik2, gboolean active);
+
 G_END_DECLS
 
 #endif

@@ -41,6 +41,7 @@
 
 /* Software */
 #define ZIK2_API_SOFTWARE_VERSION_PATH "/api/software/version"
+#define ZIK2_API_SOFTWARE_TTS_PATH "/api/software/tts"
 
 /* System */
 #define ZIK2_API_SYSTEM_ANC_PHONE_MODE_ENABLED_PATH "/api/system/anc_phone_mode/enabled"
