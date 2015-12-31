@@ -30,6 +30,7 @@ Zik2Connection *zik2_connection_new (gint fd);
 void zik2_connection_free (Zik2Connection * conn);
 
 gboolean zik2_connection_open_session (Zik2Connection * conn);
+gboolean zik2_connection_close_session (Zik2Connection * conn);
 
 gboolean zik2_connection_send_message (Zik2Connection * conn, Zik2Message * msg,
     Zik2Message ** out_answer);

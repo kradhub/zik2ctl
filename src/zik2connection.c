@@ -73,6 +73,19 @@ zik2_connection_open_session (Zik2Connection * conn)
 }
 
 gboolean
+zik2_connection_close_session (Zik2Connection * conn)
+{
+  Zik2Message *msg;
+  gboolean ret;
+
+  msg = zik2_message_new_close_session ();
+  ret = zik2_connection_send_message (conn, msg, NULL);
+  zik2_message_free (msg);
+
+  return ret;
+}
+
+gboolean
 zik2_connection_send_message (Zik2Connection * conn, Zik2Message * msg,
     Zik2Message ** out_answer)
 {

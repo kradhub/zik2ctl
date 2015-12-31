@@ -26,6 +26,7 @@
 typedef enum
 {
   ZIK2_MESSAGE_ID_OPEN_SESSION = 0x0,
+  ZIK2_MESSAGE_ID_CLOSE_SESSION = 0x1,
   ZIK2_MESSAGE_ID_ACK = 0x2,
   ZIK2_MESSAGE_ID_REQ = 0x80
 } Zik2MessageId;
@@ -524,6 +525,17 @@ zik2_message_new_open_session (void)
   msg->id = ZIK2_MESSAGE_ID_OPEN_SESSION;
   msg->payload = NULL;
   msg->payload_size = 0;
+
+  return msg;
+}
+
+Zik2Message *
+zik2_message_new_close_session (void)
+{
+  Zik2Message *msg;
+
+  msg = g_slice_new0 (Zik2Message);
+  msg->id = ZIK2_MESSAGE_ID_CLOSE_SESSION;
 
   return msg;
 }

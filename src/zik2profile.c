@@ -213,6 +213,10 @@ zik2_profile_request_disconnection (Zik2Profile * profile, const gchar * device)
 
   g_signal_emit (profile, zik2_profile_signals[SIGNAL_ZIK2_DISCONNECTED],
       0, zik2);
+
+  if (!zik2_connection_close_session (zik2->conn))
+    g_warning ("failed to close session for device '%s'", device);
+
   g_hash_table_remove (profile->devices, device);
 }
 

@@ -32,6 +32,7 @@ Zik2Message *zik2_message_new_from_buffer (const guint8 * data, gsize size);
 guint8 *zik2_message_make_buffer (Zik2Message * msg, gsize *out_size);
 
 Zik2Message *zik2_message_new_open_session (void);
+Zik2Message *zik2_message_new_close_session (void);
 
 gboolean zik2_message_is_acknowledge (Zik2Message * msg);
 
