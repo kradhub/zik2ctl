@@ -75,8 +75,8 @@ Extracted from zik_release_2.05.plf
 /api/system/color/get                              -- implemented
 /api/system/pi/get                                 -- implemented (serial number)
 /api/system/auto_power_off/presets_list/get        -- not implemented (presets means possible values)
-/api/system/auto_power_off/get                     -- not implemented
-/api/system/auto_power_off/set?arg                 -- not implemented
+/api/system/auto_power_off/get                     -- implemented
+/api/system/auto_power_off/set?arg                 -- implemented
 /api/system/head_detection/enabled/get             -- implemented
 /api/system/head_detection/enabled/set?arg         -- implemented
 /api/system/bt_address/get                         -- not implemented (useless, we have it through bluetooth stack)
