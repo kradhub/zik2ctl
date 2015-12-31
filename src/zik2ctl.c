@@ -49,6 +49,7 @@ static gchar *auto_connection_switch = NULL;
 static gchar *equalizer_switch = NULL;
 static gchar *smart_audio_tune_switch = NULL;
 static gint auto_power_off_timeout = -1;
+static gchar *tts_switch = NULL;
 
 static gchar *request_path = NULL;
 static gchar *request_method = NULL;
@@ -70,6 +71,7 @@ static GOptionEntry entries[] = {
   { "set-equalizer", 0, 0, G_OPTION_ARG_STRING, &equalizer_switch, "Enable/Disable device equalizer", "<on|off>" },
   { "set-smart-audio-tune", 0, 0, G_OPTION_ARG_STRING, &smart_audio_tune_switch, "Enable/Disable smart audio tune", "<on|off>" },
   { "set-auto-power-off-timeout", 0, 0, G_OPTION_ARG_INT, &auto_power_off_timeout, "Set device auto-power-off timeout in minutes", "<5|10|15|30|60>" },
+  { "set-tts", 0, 0, G_OPTION_ARG_STRING, &tts_switch, "Enable/Disable text-to-speech", "<on|off>" },
   { "dump-api-xml", 0, 0, G_OPTION_ARG_NONE, &dump_api_xml, "Dump answer from all known api", NULL },
   { "request-path", 0, 0, G_OPTION_ARG_STRING, &request_path, "custom request path (development/debug purpose)", "/api/..." },
   { "request-method", 0, 0, G_OPTION_ARG_STRING, &request_method, "custom method to call (development/debug purpose)", "get" },
@@ -278,6 +280,9 @@ show_zik2 (Zik2 * zik2)
     g_print ("  auto power off timeout : %u minutes\n", auto_power_off_timeout);
   else
     g_print ("  auto power off timeout : off\n");
+
+  g_print ("  text-to-speech         : %s\n",
+      zik2_is_tts_active (zik2) ? "on" : "off");
 }
 
 static gboolean
@@ -463,6 +468,12 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
   if (auto_power_off_timeout != -1)
     zik2_set_auto_power_off_timeout (zik2, auto_power_off_timeout);
 
+  if (tts_switch) {
+    g_print ("Setting text-to-speech to %s\n", tts_switch);
+    if (!set_boolean_property_from_string (zik2, "tts", tts_switch))
+      g_printerr ("Failed to set text-to-speech\n");
+  }
+
   if (dump_api_xml) {
     for (i = 0; zik2_api[i].name != NULL; i++) {
       g_print ("- %s\n", zik2_api[i].name);
@@ -603,6 +614,9 @@ check_arguments (void)
       ret = FALSE;
     }
   }
+
+  if (tts_switch)
+    ret = check_switch_argument (tts_switch, "set-tts");
 
   return ret;
 }
