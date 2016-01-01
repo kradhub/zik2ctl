@@ -2,6 +2,7 @@ bin_PROGRAMS = zik2ctl
 
 zik2ctl_SOURCES = zik2ctl.c \
 		  bluetooth-client.c \
+		  zikprofile.c \
 		  zik2profile.c \
 		  zik2message.c \
 		  zik2.c \

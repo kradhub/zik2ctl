@@ -403,7 +403,7 @@ set_sound_effect_angle (Zik2 * zik2)
 }
 
 static void
-on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
+on_zik2_connected (ZikProfile * bprofile, Zik2 * zik2, gpointer userdata)
 {
   gchar *name;
   guint i;
@@ -518,10 +518,10 @@ setup_profile (GDBusObjectManager * manager)
   Zik2Profile *profile;
 
   profile = zik2_profile_new ();
-  g_signal_connect (profile, "zik2-connected", G_CALLBACK (on_zik2_connected),
+  g_signal_connect (profile, "zik-connected", G_CALLBACK (on_zik2_connected),
       manager);
 
-  zik2_profile_install (profile, manager);
+  zik_profile_install (ZIK_PROFILE (profile), manager);
 
   return profile;
 }
@@ -529,7 +529,7 @@ setup_profile (GDBusObjectManager * manager)
 void
 cleanup_profile (Zik2Profile * profile, GDBusObjectManager * manager)
 {
-  zik2_profile_uninstall (profile);
+  zik_profile_uninstall (ZIK_PROFILE (profile));
   g_object_unref (profile);
 }
 

@@ -21,6 +21,8 @@
 #include <glib.h>
 #include <gio/gio.h>
 
+#include "zikprofile.h"
+
 G_BEGIN_DECLS
 
 #define ZIK2_PROFILE_UUID "8b6814d3-6ce7-4498-9700-9312c1711f63"
@@ -28,6 +30,8 @@ G_BEGIN_DECLS
 #define ZIK2_PROFILE_TYPE (zik2_profile_get_type ())
 #define ZIK2_PROFILE(obj) \
   (G_TYPE_CHECK_INSTANCE_CAST((obj), ZIK2_PROFILE_TYPE, Zik2Profile))
+#define ZIK2_PROFILE_CLASS(obj) \
+  (G_TYPE_CHECK_CLASS_CAST((obj), ZIK2_PROFILE_TYPE, Zik2ProfileClass))
 #define ZIK2_PROFILE_GET_CLASS(obj) \
   (G_TYPE_INSTANCE_GET_CLASS ((obj), ZIK2_PROFILE_TYPE, Zik2ProfileClass))
 
@@ -36,32 +40,19 @@ typedef struct _Zik2Profile Zik2Profile;
 
 struct _Zik2Profile
 {
-  GObject parent;
-
-  GDBusObjectManager *manager;
-  GDBusConnection *conn;
-  guint id;
-
-  /* connected devices */
-  GHashTable *devices;
+  ZikProfile parent;
 };
 
 struct _Zik2ProfileClass
 {
-  GObjectClass parent_class;
-
-  GDBusNodeInfo *introspection_data;
-  GDBusInterfaceVTable interface_vtable;
+  ZikProfileClass parent_class;
 };
 
 GType zik2_profile_get_type (void);
+
 Zik2Profile *zik2_profile_new (void);
-
-gboolean zik2_profile_install (Zik2Profile * profile,
-    GDBusObjectManager * manager);
-
-void zik2_profile_uninstall (Zik2Profile * profile);
 
 G_END_DECLS
 
 #endif
+
