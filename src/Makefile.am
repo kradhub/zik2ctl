@@ -8,7 +8,9 @@ zik2ctl_SOURCES = zik2ctl.c \
 		  zikconnection.c \
 		  zikinfo.c \
 		  zik2/zik2.c \
-		  zik2/zik2profile.c
+		  zik2/zik2profile.c \
+		  zik3/zik3.c \
+		  zik3/zik3profile.c
 
 WARNING_FLAGS := -Wall -Wextra -Wno-unused-parameter
 
