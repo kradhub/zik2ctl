@@ -422,13 +422,6 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
       g_printerr ("Failed to set head detection\n");
   }
 
-  if (flight_mode_switch) {
-    g_print ("Setting flight mode to %s\n", flight_mode_switch);
-    if (!set_boolean_property_from_string (zik2, "flight-mode",
-          flight_mode_switch))
-      g_printerr ("Failed to set flight mode\n");
-  }
-
   if (friendlyname)
     set_friendly_name (zik2);
 
@@ -474,7 +467,13 @@ on_zik2_connected (Zik2Profile * profile, Zik2 * zik2, gpointer userdata)
       g_printerr ("Failed to set text-to-speech\n");
   }
 
-  if (dump_api_xml) {
+  if (flight_mode_switch) {
+    /* enabling flight mode reset connection so don't send request */
+    g_print ("Setting flight mode to %s\n", flight_mode_switch);
+    if (!set_boolean_property_from_string (zik2, "flight-mode",
+          flight_mode_switch))
+      g_printerr ("Failed to set flight mode\n");
+  } else if (dump_api_xml) {
     for (i = 0; zik2_api[i].name != NULL; i++) {
       g_print ("- %s\n", zik2_api[i].name);
       custom_request (zik2, zik2_api[i].get_uri, "get", NULL);
