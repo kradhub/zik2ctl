@@ -115,6 +115,23 @@ static const Zik2Api zik2_api[] = {
   { NULL, NULL },
 };
 
+static gboolean
+device_has_uuid (BluetoothDevice1 * device, const gchar * req_uuid)
+{
+  const gchar * const *uuids;
+
+  uuids = bluetooth_device1_get_uuids (device);
+  if (uuids == NULL)
+    return FALSE;
+
+  for (; *uuids != NULL; uuids++) {
+    if (g_strcmp0 (req_uuid, *uuids) == 0)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
 static GSList *
 zik2_device_list_new (GDBusObjectManager * manager)
 {
@@ -126,19 +143,13 @@ zik2_device_list_new (GDBusObjectManager * manager)
   for (walk = objects; walk != NULL; walk = walk->next) {
     GDBusObject *object = G_DBUS_OBJECT (walk->data);
     GDBusInterface *interface;
-    BluetoothDevice1 *device;
-    const gchar * const *uuids;
 
     interface = g_dbus_object_get_interface (object, BLUEZ_DEVICE_IFACE);
     if (interface == NULL)
       continue;
 
-    device = BLUETOOTH_DEVICE1 (interface);
-
-    uuids = bluetooth_device1_get_uuids (device);
-    if (g_strv_contains (uuids, ZIK2_PROFILE_UUID)) {
-      list = g_slist_prepend (list, device);
-    }
+    if (device_has_uuid (BLUETOOTH_DEVICE1 (interface), ZIK2_PROFILE_UUID))
+      list = g_slist_prepend (list, interface);
   }
   g_list_free_full (objects, g_object_unref);
 

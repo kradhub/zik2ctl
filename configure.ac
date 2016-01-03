@@ -9,11 +9,11 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CC
 
 dnl check glib
-PKG_CHECK_MODULES(GLIB, [glib-2.0 >= 2.44], [],
+PKG_CHECK_MODULES(GLIB, [glib-2.0 >= 2.40], [],
                   [AC_MSG_ERROR([This package requires glib to compile.])])
-PKG_CHECK_MODULES(GIO, [gio-2.0 >= 2.44], [],
+PKG_CHECK_MODULES(GIO, [gio-2.0 >= 2.40], [],
                   [AC_MSG_ERROR([This package requires gio to compile.])])
-PKG_CHECK_MODULES(GIO_UNIX, [gio-unix-2.0 >= 2.44], [],
+PKG_CHECK_MODULES(GIO_UNIX, [gio-unix-2.0 >= 2.40], [],
                   [AC_MSG_ERROR([This package requires gio-unix to compile.])])
 
 dnl set gdbus-codegen
