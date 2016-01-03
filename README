@@ -52,7 +52,7 @@ should be running.
 Building from source
 --------------------
 
-For now, Zik2Ctl only require at least version 2.44 of the GLib library.
+For now, Zik2Ctl only require at least version 2.40 of the GLib library.
 You will also need a set of tools including:
 - autoconf
 - automake
