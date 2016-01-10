@@ -397,7 +397,7 @@ zik2_finalize (GObject * object)
     zik2_metadata_info_unref (priv->track_metadata);
 
   if (zik2->conn)
-    zik_connection_free (zik2->conn);
+    zik_connection_unref (zik2->conn);
 
   G_OBJECT_CLASS (parent_class)->finalize (object);
 }

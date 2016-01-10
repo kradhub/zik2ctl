@@ -69,7 +69,7 @@ zik2_profile_new_connection (ZikProfile * profile, BluetoothDevice1 *device,
   /* open session */
   if (!zik_connection_open_session (conn)) {
     g_warning ("failed to open session");
-    zik_connection_free (conn);
+    zik_connection_unref (conn);
     return NULL;
   }
 

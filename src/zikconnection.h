@@ -24,10 +24,15 @@
 
 G_BEGIN_DECLS
 
+#define ZIK_CONNECTION_TYPE (zik_connection_get_type ())
+
 typedef struct _ZikConnection ZikConnection;
 
+GType zik_connection_get_type (void);
+
 ZikConnection *zik_connection_new (gint fd);
-void zik_connection_free (ZikConnection * conn);
+ZikConnection *zik_connection_ref (ZikConnection * conn);
+void zik_connection_unref (ZikConnection * conn);
 
 gboolean zik_connection_open_session (ZikConnection * conn);
 gboolean zik_connection_close_session (ZikConnection * conn);

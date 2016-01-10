@@ -21,10 +21,15 @@
 
 struct _ZikConnection
 {
+  gint ref_count;
+
   GSocket *socket;
   guint8 *recv_buffer;
   gsize recv_buffer_size;
 };
+
+G_DEFINE_BOXED_TYPE (ZikConnection, zik_connection, zik_connection_ref,
+    zik_connection_unref);
 
 ZikConnection *
 zik_connection_new (int fd)
@@ -33,6 +38,7 @@ zik_connection_new (int fd)
   GError *error = NULL;
 
   conn = g_slice_new0 (ZikConnection);
+  conn->ref_count = 1;
   conn->socket = g_socket_new_from_fd (fd, &error);
 
   if (conn->socket == NULL) {
@@ -49,14 +55,23 @@ zik_connection_new (int fd)
   return conn;
 }
 
-void
-zik_connection_free (ZikConnection * conn)
+ZikConnection *
+zik_connection_ref (ZikConnection * conn)
 {
-  if (conn->socket)
-    g_object_unref (conn->socket);
+  g_atomic_int_inc (&conn->ref_count);
+  return conn;
+}
 
-  g_free (conn->recv_buffer);
-  g_slice_free (ZikConnection, conn);
+void
+zik_connection_unref (ZikConnection * conn)
+{
+  if (g_atomic_int_dec_and_test (&conn->ref_count)) {
+    if (conn->socket)
+      g_object_unref (conn->socket);
+
+    g_free (conn->recv_buffer);
+    g_slice_free (ZikConnection, conn);
+  }
 }
 
 gboolean
