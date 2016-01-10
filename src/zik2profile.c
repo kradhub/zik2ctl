@@ -23,7 +23,7 @@
 #include "bluetooth-client.h"
 #include "zik2profile.h"
 #include "zik2.h"
-#include "zik2connection.h"
+#include "zikconnection.h"
 
 #define ZIK2_PATH "/org/bluez/zik2"
 
@@ -58,18 +58,18 @@ zik2_profile_new_connection (ZikProfile * profile, BluetoothDevice1 *device,
     gint fd)
 {
   Zik2 *zik2;
-  Zik2Connection *conn = NULL;
+  ZikConnection *conn = NULL;
 
-  conn = zik2_connection_new (fd);
+  conn = zik_connection_new (fd);
   if (conn == NULL) {
     g_critical ("failed to create zik2_connection for fd %d", fd);
     return NULL;
   }
 
   /* open session */
-  if (!zik2_connection_open_session (conn)) {
+  if (!zik_connection_open_session (conn)) {
     g_warning ("failed to open session");
-    zik2_connection_free (conn);
+    zik_connection_free (conn);
     return NULL;
   }
 
@@ -84,7 +84,7 @@ zik2_profile_close_connection (ZikProfile * profile, GObject * zik)
 {
   Zik2 *zik2 = ZIK2 (zik);
 
-  if (!zik2_connection_close_session (zik2->conn))
+  if (!zik_connection_close_session (zik2->conn))
     return FALSE;
 
   return TRUE;

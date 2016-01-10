@@ -6,7 +6,7 @@ zik2ctl_SOURCES = zik2ctl.c \
 		  zik2profile.c \
 		  zikmessage.c \
 		  zik2.c \
-		  zik2connection.c \
+		  zikconnection.c \
 		  zik2info.c
 
 WARNING_FLAGS := -Wall -Wextra -Wno-unused-parameter

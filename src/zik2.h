@@ -20,7 +20,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include "zik2connection.h"
+#include "zikconnection.h"
 
 G_BEGIN_DECLS
 
@@ -76,7 +76,7 @@ struct _Zik2
 {
   GObject parent;
 
-  Zik2Connection *conn;
+  ZikConnection *conn;
 
   Zik2Private *priv;
 };
@@ -90,7 +90,7 @@ Zik2SoundEffectRoom zik2_sound_effect_room_from_string (const gchar * str);
 const gchar *zik2_sound_effect_room_name (Zik2SoundEffectRoom room);
 
 GType zik2_get_type (void);
-Zik2 *zik2_new (const gchar * name, const gchar * address, Zik2Connection * conn);
+Zik2 *zik2_new (const gchar * name, const gchar * address, ZikConnection * conn);
 
 const gchar *zik2_get_name (Zik2 * zik2);
 const gchar *zik2_get_address (Zik2 * zik2);

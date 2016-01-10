@@ -15,8 +15,8 @@
  * along with Zik2ctl. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ZIK2_CONNECTION_H
-#define ZIK2_CONNECTION_H
+#ifndef ZIK_CONNECTION_H
+#define ZIK_CONNECTION_H
 
 #include <glib.h>
 
@@ -24,15 +24,15 @@
 
 G_BEGIN_DECLS
 
-typedef struct _Zik2Connection Zik2Connection;
+typedef struct _ZikConnection ZikConnection;
 
-Zik2Connection *zik2_connection_new (gint fd);
-void zik2_connection_free (Zik2Connection * conn);
+ZikConnection *zik_connection_new (gint fd);
+void zik_connection_free (ZikConnection * conn);
 
-gboolean zik2_connection_open_session (Zik2Connection * conn);
-gboolean zik2_connection_close_session (Zik2Connection * conn);
+gboolean zik_connection_open_session (ZikConnection * conn);
+gboolean zik_connection_close_session (ZikConnection * conn);
 
-gboolean zik2_connection_send_message (Zik2Connection * conn, ZikMessage * msg,
+gboolean zik_connection_send_message (ZikConnection * conn, ZikMessage * msg,
     ZikMessage ** out_answer);
 
 G_END_DECLS

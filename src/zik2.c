@@ -18,7 +18,7 @@
 #include <string.h>
 
 #include "zik2.h"
-#include "zik2connection.h"
+#include "zikconnection.h"
 #include "zikmessage.h"
 #include "zik2info.h"
 #include "zik2api.h"
@@ -397,7 +397,7 @@ zik2_finalize (GObject * object)
     zik2_metadata_info_unref (priv->track_metadata);
 
   if (zik2->conn)
-    zik2_connection_free (zik2->conn);
+    zik_connection_free (zik2->conn);
 
   G_OBJECT_CLASS (parent_class)->finalize (object);
 }
@@ -414,7 +414,7 @@ zik2_do_request (Zik2 * zik2, const gchar * path, const gchar * method,
 
   msg = zik_message_new_request (path, method, args);
 
-  if (!zik2_connection_send_message (zik2->conn, msg, &reply)) {
+  if (!zik_connection_send_message (zik2->conn, msg, &reply)) {
     g_critical ("failed to send request '%s/%s with args %s'", path, method,
         args);
     goto out;
@@ -1026,7 +1026,7 @@ zik2_sync_static_properties (Zik2 * zik2)
 
 /* @conn: (transfer full) */
 Zik2 *
-zik2_new (const gchar * name, const gchar * address, Zik2Connection * conn)
+zik2_new (const gchar * name, const gchar * address, ZikConnection * conn)
 {
   Zik2 *zik2;
 
