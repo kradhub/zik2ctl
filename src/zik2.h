@@ -76,8 +76,6 @@ struct _Zik2
 {
   GObject parent;
 
-  ZikConnection *conn;
-
   Zik2Private *priv;
 };
 
@@ -94,6 +92,7 @@ Zik2 *zik2_new (const gchar * name, const gchar * address, ZikConnection * conn)
 
 const gchar *zik2_get_name (Zik2 * zik2);
 const gchar *zik2_get_address (Zik2 * zik2);
+ZikConnection *zik2_get_connection (Zik2 * zik2);
 
 /* audio */
 gboolean zik2_is_noise_control_active (Zik2 * zik2);

@@ -32,6 +32,7 @@ enum
   PROP_0,
   PROP_NAME,
   PROP_ADDRESS,
+  PROP_CONNECTION,
   PROP_SERIAL,
   PROP_SOFTWARE_VERSION,
   PROP_NOISE_CONTROL,
@@ -60,6 +61,8 @@ struct _Zik2Private
 {
   gchar *name;
   gchar *address;
+
+  ZikConnection *conn;
 
   /* audio */
   gboolean noise_control;
@@ -247,6 +250,11 @@ zik2_class_init (Zik2Class * klass)
           UNKNOWN_STR,
           G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
+  g_object_class_install_property (gobject_class, PROP_CONNECTION,
+      g_param_spec_boxed ("connection", "Connection", "Zik connection object",
+          ZIK_CONNECTION_TYPE,
+          G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
   g_object_class_install_property (gobject_class, PROP_SERIAL,
       g_param_spec_string ("serial", "Serial", "Zik2 serial number",
           UNKNOWN_STR, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
@@ -396,8 +404,8 @@ zik2_finalize (GObject * object)
   if (priv->track_metadata)
     zik2_metadata_info_unref (priv->track_metadata);
 
-  if (zik2->conn)
-    zik_connection_unref (zik2->conn);
+  if (priv->conn)
+    zik_connection_unref (priv->conn);
 
   G_OBJECT_CLASS (parent_class)->finalize (object);
 }
@@ -414,7 +422,7 @@ zik2_do_request (Zik2 * zik2, const gchar * path, const gchar * method,
 
   msg = zik_message_new_request (path, method, args);
 
-  if (!zik_connection_send_message (zik2->conn, msg, &reply)) {
+  if (!zik_connection_send_message (zik2->priv->conn, msg, &reply)) {
     g_critical ("failed to send request '%s/%s with args %s'", path, method,
         args);
     goto out;
@@ -820,6 +828,9 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_ADDRESS:
       g_value_set_string (value, zik2_get_address (zik2));
       break;
+    case PROP_CONNECTION:
+      g_value_set_boxed (value, zik2_get_connection (zik2));
+      break;
     case PROP_SERIAL:
       g_value_set_string (value, zik2_get_serial (zik2));
       break;
@@ -922,6 +933,9 @@ zik2_set_property (GObject * object, guint prop_id, const GValue * value,
       break;
     case PROP_ADDRESS:
       priv->address = g_value_dup_string (value);
+      break;
+    case PROP_CONNECTION:
+      priv->conn = g_value_dup_boxed (value);
       break;
     case PROP_NOISE_CONTROL:
       if (!zik2_set_noise_control_active (zik2, g_value_get_boolean (value)))
@@ -1030,8 +1044,8 @@ zik2_new (const gchar * name, const gchar * address, ZikConnection * conn)
 {
   Zik2 *zik2;
 
-  zik2 = g_object_new (ZIK2_TYPE, "name", name, "address", address, NULL);
-  zik2->conn = conn;
+  zik2 = g_object_new (ZIK2_TYPE, "name", name, "address", address,
+      "connection", conn, NULL);
 
   zik2_sync_static_properties (zik2);
 
@@ -1048,6 +1062,13 @@ const gchar *
 zik2_get_address (Zik2 * zik2)
 {
   return zik2->priv->address;
+}
+
+/* transfer none */
+ZikConnection *
+zik2_get_connection (Zik2 * zik2)
+{
+  return zik2->priv->conn;
 }
 
 gboolean

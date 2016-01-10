@@ -182,7 +182,7 @@ custom_request (Zik2 * zik2, const gchar * path, const gchar * method,
   gchar *xml;
 
   msg = zik_message_new_request (path, method, args);
-  zik_connection_send_message (zik2->conn, msg, &reply);
+  zik_connection_send_message (zik2_get_connection (zik2), msg, &reply);
   zik_message_free (msg);
 
   g_print ("custom request '%s/%s?arg=%s' reply:\n", path, method, args);
