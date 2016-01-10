@@ -23,7 +23,7 @@
 
 #include "bluetooth-client.h"
 #include "zik2profile.h"
-#include "zik2message.h"
+#include "zikmessage.h"
 #include "zik2connection.h"
 #include "zik2.h"
 #include "zik2api.h"
@@ -177,23 +177,23 @@ static void
 custom_request (Zik2 * zik2, const gchar * path, const gchar * method,
     const gchar * args)
 {
-  Zik2Message *msg;
-  Zik2Message *reply;
+  ZikMessage *msg;
+  ZikMessage *reply;
   gchar *xml;
 
-  msg = zik2_message_new_request (path, method, args);
+  msg = zik_message_new_request (path, method, args);
   zik2_connection_send_message (zik2->conn, msg, &reply);
-  zik2_message_free (msg);
+  zik_message_free (msg);
 
   g_print ("custom request '%s/%s?arg=%s' reply:\n", path, method, args);
-  xml = zik2_message_get_request_reply_xml (reply);
+  xml = zik_message_get_request_reply_xml (reply);
   if (xml)
     g_print ("%s\n", xml);
   else
     g_print ("no reply...\n");
 
   g_free (xml);
-  zik2_message_free (reply);
+  zik_message_free (reply);
 
 }
 

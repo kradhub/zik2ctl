@@ -62,12 +62,12 @@ zik2_connection_free (Zik2Connection * conn)
 gboolean
 zik2_connection_open_session (Zik2Connection * conn)
 {
-  Zik2Message *msg;
+  ZikMessage *msg;
   gboolean ret;
 
-  msg = zik2_message_new_open_session ();
+  msg = zik_message_new_open_session ();
   ret = zik2_connection_send_message (conn, msg, NULL);
-  zik2_message_free (msg);
+  zik_message_free (msg);
 
   return ret;
 }
@@ -75,28 +75,28 @@ zik2_connection_open_session (Zik2Connection * conn)
 gboolean
 zik2_connection_close_session (Zik2Connection * conn)
 {
-  Zik2Message *msg;
+  ZikMessage *msg;
   gboolean ret;
 
-  msg = zik2_message_new_close_session ();
+  msg = zik_message_new_close_session ();
   ret = zik2_connection_send_message (conn, msg, NULL);
-  zik2_message_free (msg);
+  zik_message_free (msg);
 
   return ret;
 }
 
 gboolean
-zik2_connection_send_message (Zik2Connection * conn, Zik2Message * msg,
-    Zik2Message ** out_answer)
+zik2_connection_send_message (Zik2Connection * conn, ZikMessage * msg,
+    ZikMessage ** out_answer)
 {
   gboolean ret = FALSE;
   GError *error = NULL;
   guint8 *data;
   gsize size;
   gssize sbytes, rbytes;
-  Zik2Message *answer;
+  ZikMessage *answer;
 
-  data = zik2_message_make_buffer (msg, &size);
+  data = zik_message_make_buffer (msg, &size);
 
   /* send data */
   sbytes = g_socket_send (conn->socket, (gchar *) data, size, NULL, &error);
@@ -128,7 +128,7 @@ zik2_connection_send_message (Zik2Connection * conn, Zik2Message * msg,
         conn, rbytes);
   }
 
-  answer = zik2_message_new_from_buffer (conn->recv_buffer, rbytes);
+  answer = zik_message_new_from_buffer (conn->recv_buffer, rbytes);
   if (answer == NULL) {
     g_warning ("Zik2Connection %p: failed to make message from received buffer",
         conn);
@@ -136,18 +136,18 @@ zik2_connection_send_message (Zik2Connection * conn, Zik2Message * msg,
   }
 
   /* depending on the sent message, it could be an ack or a request answer */
-  if (!zik2_message_is_acknowledge (answer) &&
-      !zik2_message_is_request (answer)) {
+  if (!zik_message_is_acknowledge (answer) &&
+      !zik_message_is_request (answer)) {
     g_warning ("Zik2Connection %p: bad answer %02x %02x %02x", conn,
         conn->recv_buffer[0], conn->recv_buffer[1], conn->recv_buffer[2]);
-    zik2_message_free (answer);
+    zik_message_free (answer);
     goto done;
   }
 
   if (out_answer != NULL)
     *out_answer = answer;
   else
-    zik2_message_free (answer);
+    zik_message_free (answer);
 
   ret = TRUE;
 

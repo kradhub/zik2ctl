@@ -18,28 +18,28 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "zik2message.h"
+#include "zikmessage.h"
 #include "zik2info.h"
 
-#define ZIK2_MESSAGE_HEADER_LEN 3
+#define ZIK_MESSAGE_HEADER_LEN 3
 
 typedef enum
 {
-  ZIK2_MESSAGE_ID_OPEN_SESSION = 0x0,
-  ZIK2_MESSAGE_ID_CLOSE_SESSION = 0x1,
-  ZIK2_MESSAGE_ID_ACK = 0x2,
-  ZIK2_MESSAGE_ID_REQ = 0x80
-} Zik2MessageId;
+  ZIK_MESSAGE_ID_OPEN_SESSION = 0x0,
+  ZIK_MESSAGE_ID_CLOSE_SESSION = 0x1,
+  ZIK_MESSAGE_ID_ACK = 0x2,
+  ZIK_MESSAGE_ID_REQ = 0x80
+} ZikMessageId;
 
-struct _Zik2Message
+struct _ZikMessage
 {
-  Zik2MessageId id;
+  ZikMessageId id;
 
   gchar *payload;
   gsize payload_size;
 };
 
-struct _Zik2RequestReplyData
+struct _ZikRequestReplyData
 {
   GNode *root;
 };
@@ -456,7 +456,7 @@ zik2_xml_parser_error (GMarkupParseContext * context, GError * error,
   g_prefix_error (&error, "%d:%d: ", line_number, char_number);
 }
 
-static const GMarkupParser zik2_request_reply_xml_parser_cbs = {
+static const GMarkupParser zik_request_reply_xml_parser_cbs = {
   .start_element = zik2_xml_parser_start_element,
   .end_element = zik2_xml_parser_end_element,
   .text = NULL,
@@ -465,27 +465,27 @@ static const GMarkupParser zik2_request_reply_xml_parser_cbs = {
 };
 
 
-/** Zik2Message API */
+/** ZikMessage API */
 
 void
-zik2_message_free (Zik2Message * msg)
+zik_message_free (ZikMessage * msg)
 {
   g_free (msg->payload);
-  g_slice_free (Zik2Message, msg);
+  g_slice_free (ZikMessage, msg);
 }
 
 
 /* free after usage */
 guint8 *
-zik2_message_make_buffer (Zik2Message * msg, gsize *out_size)
+zik_message_make_buffer (ZikMessage * msg, gsize *out_size)
 {
   guint16 size;
   guint8 *data;
 
-  if (ZIK2_MESSAGE_HEADER_LEN + msg->payload_size > G_MAXUINT16)
+  if (ZIK_MESSAGE_HEADER_LEN + msg->payload_size > G_MAXUINT16)
     return NULL;
 
-  size = ZIK2_MESSAGE_HEADER_LEN + msg->payload_size;
+  size = ZIK_MESSAGE_HEADER_LEN + msg->payload_size;
   data = g_malloc (size);
 
   /* header structure is
@@ -503,30 +503,30 @@ zik2_message_make_buffer (Zik2Message * msg, gsize *out_size)
   return data;
 }
 
-Zik2Message *
-zik2_message_new_from_buffer (const guint8 * data, gsize size)
+ZikMessage *
+zik_message_new_from_buffer (const guint8 * data, gsize size)
 {
-  Zik2Message *msg;
+  ZikMessage *msg;
   gsize msg_size;
 
-  if (size < ZIK2_MESSAGE_HEADER_LEN)
+  if (size < ZIK_MESSAGE_HEADER_LEN)
     goto too_small;
 
   msg_size = g_ntohs (*((guint16 *) data));
 
-  if (msg_size < ZIK2_MESSAGE_HEADER_LEN || msg_size > size)
+  if (msg_size < ZIK_MESSAGE_HEADER_LEN || msg_size > size)
     goto bad_size;
 
-  msg = g_slice_new0 (Zik2Message);
+  msg = g_slice_new0 (ZikMessage);
   msg->id = data[2];
 
-  msg->payload_size = msg_size - ZIK2_MESSAGE_HEADER_LEN;
+  msg->payload_size = msg_size - ZIK_MESSAGE_HEADER_LEN;
   msg->payload = g_malloc (msg->payload_size);
   memcpy (msg->payload, data + 3, msg->payload_size);
   return msg;
 
 too_small:
-  g_critical ("data is too small to contain a Zik2Message");
+  g_critical ("data is too small to contain a ZikMessage");
   return NULL;
 
 bad_size:
@@ -534,45 +534,45 @@ bad_size:
   return NULL;
 }
 
-Zik2Message *
-zik2_message_new_open_session (void)
+ZikMessage *
+zik_message_new_open_session (void)
 {
-  Zik2Message *msg;
+  ZikMessage *msg;
 
-  msg = g_slice_new0 (Zik2Message);
-  msg->id = ZIK2_MESSAGE_ID_OPEN_SESSION;
+  msg = g_slice_new0 (ZikMessage);
+  msg->id = ZIK_MESSAGE_ID_OPEN_SESSION;
   msg->payload = NULL;
   msg->payload_size = 0;
 
   return msg;
 }
 
-Zik2Message *
-zik2_message_new_close_session (void)
+ZikMessage *
+zik_message_new_close_session (void)
 {
-  Zik2Message *msg;
+  ZikMessage *msg;
 
-  msg = g_slice_new0 (Zik2Message);
-  msg->id = ZIK2_MESSAGE_ID_CLOSE_SESSION;
+  msg = g_slice_new0 (ZikMessage);
+  msg->id = ZIK_MESSAGE_ID_CLOSE_SESSION;
 
   return msg;
 }
 
 gboolean
-zik2_message_is_acknowledge (Zik2Message * msg)
+zik_message_is_acknowledge (ZikMessage * msg)
 {
-  return msg->id == ZIK2_MESSAGE_ID_ACK;
+  return msg->id == ZIK_MESSAGE_ID_ACK;
 }
 
 /* arg is the string that follow arg=%s and could be NULL */
-Zik2Message *
-zik2_message_new_request (const gchar * path, const gchar * method,
+ZikMessage *
+zik_message_new_request (const gchar * path, const gchar * method,
     const gchar * args)
 {
-  Zik2Message *msg;
+  ZikMessage *msg;
 
-  msg = g_slice_new0 (Zik2Message);
-  msg->id = ZIK2_MESSAGE_ID_REQ;
+  msg = g_slice_new0 (ZikMessage);
+  msg->id = ZIK_MESSAGE_ID_REQ;
 
   if (args)
     msg->payload = g_strdup_printf ("GET %s/%s?arg=%s", path, method, args);
@@ -585,16 +585,16 @@ zik2_message_new_request (const gchar * path, const gchar * method,
 }
 
 gboolean
-zik2_message_is_request (Zik2Message * msg)
+zik_message_is_request (ZikMessage * msg)
 {
-  return msg->id == ZIK2_MESSAGE_ID_REQ;
+  return msg->id == ZIK_MESSAGE_ID_REQ;
 }
 
 gboolean
-zik2_message_parse_request_reply (Zik2Message * msg,
-    Zik2RequestReplyData ** reply)
+zik_message_parse_request_reply (ZikMessage * msg,
+    ZikRequestReplyData ** reply)
 {
-  Zik2RequestReplyData *result;
+  ZikRequestReplyData *result;
   GMarkupParseContext *parser;
   ParserData pdata;
   gchar *xml;
@@ -602,9 +602,9 @@ zik2_message_parse_request_reply (Zik2Message * msg,
   GError *error = NULL;
   gboolean ret = FALSE;
 
-  g_return_val_if_fail (zik2_message_is_request (msg), FALSE);
+  g_return_val_if_fail (zik_message_is_request (msg), FALSE);
 
-  result = g_slice_new0 (Zik2RequestReplyData);
+  result = g_slice_new0 (ZikRequestReplyData);
 
   /* request reply seems to begin with 0x01 0x01 and the payload size again
    * on the two following bytes in network bytes order
@@ -614,13 +614,13 @@ zik2_message_parse_request_reply (Zik2Message * msg,
 
   memset (&pdata, 0, sizeof (pdata));
 
-  parser = g_markup_parse_context_new (&zik2_request_reply_xml_parser_cbs, 0,
+  parser = g_markup_parse_context_new (&zik_request_reply_xml_parser_cbs, 0,
       &pdata, NULL);
   if (!g_markup_parse_context_parse (parser, xml, xml_size, &error)) {
     g_critical ("failed to parse request reply: %s", error->message);
     /* use result to ease cleanup */
     result->root = pdata.root;
-    zik2_request_reply_data_free (result);
+    zik_request_reply_data_free (result);
     g_error_free (error);
     goto out;
   }
@@ -641,12 +641,12 @@ out:
 }
 
 gchar *
-zik2_message_get_request_reply_xml (Zik2Message * msg)
+zik_message_get_request_reply_xml (ZikMessage * msg)
 {
   gchar *xml;
   gsize xml_size;
 
-  g_return_val_if_fail (zik2_message_is_request (msg), FALSE);
+  g_return_val_if_fail (zik_message_is_request (msg), FALSE);
 
   xml = msg->payload + 4;
   xml_size = msg->payload_size - 4;
@@ -654,9 +654,9 @@ zik2_message_get_request_reply_xml (Zik2Message * msg)
   return g_strndup (xml, xml_size);
 }
 
-/** Zik2RequestReplyData API */
+/** ZikRequestReplyData API */
 static gboolean
-zik2_request_reply_data_free_node (GNode * node, gpointer userdata)
+zik_request_reply_data_free_node (GNode * node, gpointer userdata)
 {
   /* first field of node data is a GType */
   GType *type = (GType *) node->data;
@@ -668,12 +668,12 @@ zik2_request_reply_data_free_node (GNode * node, gpointer userdata)
 }
 
 void
-zik2_request_reply_data_free (Zik2RequestReplyData * reply)
+zik_request_reply_data_free (ZikRequestReplyData * reply)
 {
   g_node_traverse (reply->root, G_PRE_ORDER, G_TRAVERSE_ALL, -1,
-      zik2_request_reply_data_free_node, NULL);
+      zik_request_reply_data_free_node, NULL);
   g_node_destroy (reply->root);
-  g_slice_free (Zik2RequestReplyData, reply);
+  g_slice_free (ZikRequestReplyData, reply);
 }
 
 typedef struct
@@ -683,7 +683,7 @@ typedef struct
 } FindNodeFuncData;
 
 static gboolean
-zik2_request_reply_data_find_node_func (GNode * node, gpointer userdata)
+zik_request_reply_data_find_node_func (GNode * node, gpointer userdata)
 {
   FindNodeFuncData *data = (FindNodeFuncData *) userdata;
   GType *type = (GType *) node->data;
@@ -699,7 +699,7 @@ zik2_request_reply_data_find_node_func (GNode * node, gpointer userdata)
 
 /* transfer none */
 gpointer
-zik2_request_reply_data_find_node_info (Zik2RequestReplyData * reply,
+zik_request_reply_data_find_node_info (ZikRequestReplyData * reply,
     GType type)
 {
   GNode *node;
@@ -709,7 +709,7 @@ zik2_request_reply_data_find_node_info (Zik2RequestReplyData * reply,
   data.type = type;
 
   g_node_traverse (reply->root, G_PRE_ORDER, G_TRAVERSE_ALL, -1,
-      zik2_request_reply_data_find_node_func, &data);
+      zik_request_reply_data_find_node_func, &data);
 
   node = data.result;
 
@@ -720,7 +720,7 @@ zik2_request_reply_data_find_node_info (Zik2RequestReplyData * reply,
 }
 
 gboolean
-zik2_request_reply_data_error (Zik2RequestReplyData * reply)
+zik_request_reply_data_error (ZikRequestReplyData * reply)
 {
   Zik2AnswerInfo *info;
 

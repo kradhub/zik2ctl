@@ -19,7 +19,7 @@
 
 #include "zik2.h"
 #include "zik2connection.h"
-#include "zik2message.h"
+#include "zikmessage.h"
 #include "zik2info.h"
 #include "zik2api.h"
 
@@ -405,14 +405,14 @@ zik2_finalize (GObject * object)
 /* reply: allow-none */
 static gboolean
 zik2_do_request (Zik2 * zik2, const gchar * path, const gchar * method,
-    const gchar * args, Zik2RequestReplyData ** reply_data)
+    const gchar * args, ZikRequestReplyData ** reply_data)
 {
-  Zik2Message *msg;
-  Zik2Message *reply = NULL;
-  Zik2RequestReplyData *result;
+  ZikMessage *msg;
+  ZikMessage *reply = NULL;
+  ZikRequestReplyData *result;
   gboolean ret = FALSE;
 
-  msg = zik2_message_new_request (path, method, args);
+  msg = zik_message_new_request (path, method, args);
 
   if (!zik2_connection_send_message (zik2->conn, msg, &reply)) {
     g_critical ("failed to send request '%s/%s with args %s'", path, method,
@@ -420,31 +420,31 @@ zik2_do_request (Zik2 * zik2, const gchar * path, const gchar * method,
     goto out;
   }
 
-  if (!zik2_message_parse_request_reply (reply, &result)) {
+  if (!zik_message_parse_request_reply (reply, &result)) {
     g_critical ("failed to parse request reply '%s/%s with args %s'", path,
         method, args);
     goto out;
   }
 
-  if (zik2_request_reply_data_error (result)) {
+  if (zik_request_reply_data_error (result)) {
     g_warning ("device reply with error '%s/%s with args %s'", path, method,
         args);
-    zik2_request_reply_data_free (result);
+    zik_request_reply_data_free (result);
     goto out;
   }
 
   if (reply_data)
     *reply_data = result;
   else
-    zik2_request_reply_data_free (result);
+    zik_request_reply_data_free (result);
 
   ret = TRUE;
 
 out:
-  zik2_message_free (msg);
+  zik_message_free (msg);
 
   if (reply)
-    zik2_message_free (reply);
+    zik_message_free (reply);
 
   return ret;
 }
@@ -453,13 +453,13 @@ out:
 static gpointer
 zik2_request_info (Zik2 * zik2, const gchar * path, GType type)
 {
-  Zik2RequestReplyData *reply = NULL;
+  ZikRequestReplyData *reply = NULL;
   gpointer info;
 
   if (!zik2_do_request (zik2, path, "get", NULL, &reply))
     return NULL;
 
-  info = zik2_request_reply_data_find_node_info (reply, type);
+  info = zik_request_reply_data_find_node_info (reply, type);
   if (info == NULL)
     goto out;
 
@@ -467,7 +467,7 @@ zik2_request_info (Zik2 * zik2, const gchar * path, GType type)
   info = g_boxed_copy (type, info);
 
 out:
-  zik2_request_reply_data_free (reply);
+  zik_request_reply_data_free (reply);
 
   return info;
 }

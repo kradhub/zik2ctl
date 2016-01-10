@@ -4,7 +4,7 @@ zik2ctl_SOURCES = zik2ctl.c \
 		  bluetooth-client.c \
 		  zikprofile.c \
 		  zik2profile.c \
-		  zik2message.c \
+		  zikmessage.c \
 		  zik2.c \
 		  zik2connection.c \
 		  zik2info.c

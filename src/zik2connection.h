@@ -20,7 +20,7 @@
 
 #include <glib.h>
 
-#include "zik2message.h"
+#include "zikmessage.h"
 
 G_BEGIN_DECLS
 
@@ -32,8 +32,8 @@ void zik2_connection_free (Zik2Connection * conn);
 gboolean zik2_connection_open_session (Zik2Connection * conn);
 gboolean zik2_connection_close_session (Zik2Connection * conn);
 
-gboolean zik2_connection_send_message (Zik2Connection * conn, Zik2Message * msg,
-    Zik2Message ** out_answer);
+gboolean zik2_connection_send_message (Zik2Connection * conn, ZikMessage * msg,
+    ZikMessage ** out_answer);
 
 G_END_DECLS
 
