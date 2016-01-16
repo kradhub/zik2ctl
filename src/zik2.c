@@ -20,7 +20,7 @@
 #include "zik2.h"
 #include "zikconnection.h"
 #include "zikmessage.h"
-#include "zik2info.h"
+#include "zikinfo.h"
 #include "zik2api.h"
 
 #define UNKNOWN_STR "unknown"
@@ -73,7 +73,7 @@ struct _Zik2Private
   gboolean sound_effect;
   Zik2SoundEffectRoom sound_effect_room;
   Zik2SoundEffectAngle sound_effect_angle;
-  Zik2MetadataInfo *track_metadata;
+  ZikMetadataInfo *track_metadata;
   gboolean equalizer;
   gboolean smart_audio_tune;
 
@@ -402,7 +402,7 @@ zik2_finalize (GObject * object)
   g_free (priv->friendlyname);
 
   if (priv->track_metadata)
-    zik2_metadata_info_unref (priv->track_metadata);
+    zik_metadata_info_unref (priv->track_metadata);
 
   if (priv->conn)
     zik_connection_unref (priv->conn);
@@ -483,44 +483,44 @@ out:
 static void
 zik2_sync_serial (Zik2 * zik2)
 {
-  Zik2SystemInfo *info;
+  ZikSystemInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_SYSTEM_PI_PATH,
-      ZIK2_SYSTEM_INFO_TYPE);
+      ZIK_SYSTEM_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get serial");
     return;
   }
 
   _string_replace (&zik2->priv->serial, info->pi);
-  zik2_system_info_unref (info);
+  zik_system_info_unref (info);
 }
 
 static void
 zik2_sync_noise_control (Zik2 * zik2)
 {
-  Zik2NoiseControlInfo *info;
+  ZikNoiseControlInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_AUDIO_NOISE_CONTROL_ENABLED_PATH,
-      ZIK2_NOISE_CONTROL_INFO_TYPE);
+      ZIK_NOISE_CONTROL_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get noise control status");
     return;
   }
 
   zik2->priv->noise_control = info->enabled;
-  zik2_noise_control_info_unref (info);
+  zik_noise_control_info_unref (info);
 }
 
 static void
 zik2_sync_noise_control_mode_and_strength (Zik2 * zik2)
 {
-  Zik2NoiseControlInfo *info;
+  ZikNoiseControlInfo *info;
   GEnumClass *klass;
   GEnumValue *mode;
 
   info = zik2_request_info (zik2, ZIK2_API_AUDIO_NOISE_CONTROL_PATH,
-      ZIK2_NOISE_CONTROL_INFO_TYPE);
+      ZIK_NOISE_CONTROL_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get noise control");
     return;
@@ -536,7 +536,7 @@ zik2_sync_noise_control_mode_and_strength (Zik2 * zik2)
   zik2->priv->noise_control_strength = info->value;
 
 out:
-  zik2_noise_control_info_unref (info);
+  zik_noise_control_info_unref (info);
 }
 
 static gboolean
@@ -572,42 +572,42 @@ zik2_set_noise_control_mode_and_strength (Zik2 * zik2,
 static void
 zik2_sync_software_version (Zik2 * zik2)
 {
-  Zik2SoftwareInfo *info;
+  ZikSoftwareInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_SOFTWARE_VERSION_PATH,
-      ZIK2_SOFTWARE_INFO_TYPE);
+      ZIK_SOFTWARE_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get software info");
     return;
   }
 
   _string_replace (&zik2->priv->software_version, info->sip6);
-  zik2_software_info_unref (info);
+  zik_software_info_unref (info);
 }
 
 static void
 zik2_sync_source (Zik2 * zik2)
 {
-  Zik2SourceInfo *info;
+  ZikSourceInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_AUDIO_SOURCE_PATH,
-      ZIK2_SOURCE_INFO_TYPE);
+      ZIK_SOURCE_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get audio source");
     return;
   }
 
   _string_replace (&zik2->priv->source, info->type);
-  zik2_source_info_unref (info);
+  zik_source_info_unref (info);
 }
 
 static void
 zik2_sync_battery (Zik2 * zik2)
 {
-  Zik2BatteryInfo *info;
+  ZikBatteryInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_SYSTEM_BATTERY_PATH,
-      ZIK2_BATTERY_INFO_TYPE);
+      ZIK_BATTERY_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get system battery");
     return;
@@ -615,96 +615,96 @@ zik2_sync_battery (Zik2 * zik2)
 
   _string_replace (&zik2->priv->battery_state, info->state);
   zik2->priv->battery_percentage = info->percent;
-  zik2_battery_info_unref (info);
+  zik_battery_info_unref (info);
 }
 
 static void
 zik2_sync_volume (Zik2 * zik2)
 {
-  Zik2VolumeInfo *info;
+  ZikVolumeInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_AUDIO_VOLUME_PATH,
-      ZIK2_VOLUME_INFO_TYPE);
+      ZIK_VOLUME_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get audio volume");
     return;
   }
 
   zik2->priv->volume = info->volume;
-  zik2_volume_info_unref (info);
+  zik_volume_info_unref (info);
 }
 
 static void
 zik2_sync_head_detection (Zik2 * zik2)
 {
-  Zik2HeadDetectionInfo *info;
+  ZikHeadDetectionInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_SYSTEM_HEAD_DETECTION_ENABLED_PATH,
-    ZIK2_HEAD_DETECTION_INFO_TYPE);
+    ZIK_HEAD_DETECTION_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get head detection");
     return;
   }
 
   zik2->priv->head_detection = info->enabled;
-  zik2_head_detection_info_unref (info);
+  zik_head_detection_info_unref (info);
 }
 
 static void
 zik2_sync_color (Zik2 * zik2)
 {
-  Zik2ColorInfo *info;
+  ZikColorInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_SYSTEM_COLOR_PATH,
-      ZIK2_COLOR_INFO_TYPE);
+      ZIK_COLOR_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get color");
     return;
   }
 
   zik2->priv->color = info->value;
-  zik2_color_info_unref (info);
+  zik_color_info_unref (info);
 }
 
 static void
 zik2_sync_flight_mode (Zik2 * zik2)
 {
-  Zik2FlightModeInfo *info;
+  ZikFlightModeInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_FLIGHT_MODE_PATH,
-      ZIK2_FLIGHT_MODE_INFO_TYPE);
+      ZIK_FLIGHT_MODE_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get flight mode");
     return;
   }
 
   zik2->priv->flight_mode = info->enabled;
-  zik2_flight_mode_info_unref (info);
+  zik_flight_mode_info_unref (info);
 }
 
 static void
 zik2_sync_friendlyname (Zik2 * zik2)
 {
-  Zik2BluetoothInfo *info;
+  ZikBluetoothInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_BLUETOOTH_FRIENDLY_NAME_PATH,
-      ZIK2_BLUETOOTH_INFO_TYPE);
+      ZIK_BLUETOOTH_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get friendly name");
     return;
   }
 
   _string_replace (&zik2->priv->friendlyname, info->friendlyname);
-  zik2_bluetooth_info_unref (info);
+  zik_bluetooth_info_unref (info);
 }
 
 static void
 zik2_sync_sound_effect (Zik2 * zik2)
 {
-  Zik2SoundEffectInfo *info;
+  ZikSoundEffectInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_AUDIO_SOUND_EFFECT_PATH,
-      ZIK2_SOUND_EFFECT_INFO_TYPE);
+      ZIK_SOUND_EFFECT_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get sound effect info");
     return;
@@ -714,39 +714,39 @@ zik2_sync_sound_effect (Zik2 * zik2)
   zik2->priv->sound_effect_room =
       zik2_sound_effect_room_from_string (info->room_size);
   zik2->priv->sound_effect_angle = info->angle;
-  zik2_sound_effect_info_unref (info);
+  zik_sound_effect_info_unref (info);
 }
 
 static void
 zik2_sync_auto_connection (Zik2 * zik2)
 {
-  Zik2AutoConnectionInfo *info;
+  ZikAutoConnectionInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_SYSTEM_AUTO_CONNECTION_ENABLED_PATH,
-      ZIK2_AUTO_CONNECTION_INFO_TYPE);
+      ZIK_AUTO_CONNECTION_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get auto-connection info");
     return;
   }
 
   zik2->priv->auto_connection = info->enabled;
-  zik2_auto_connection_info_unref (info);
+  zik_auto_connection_info_unref (info);
 }
 
 static void
 zik2_sync_track_metadata (Zik2 * zik2)
 {
-  Zik2MetadataInfo *info;
+  ZikMetadataInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_AUDIO_TRACK_METADATA_PATH,
-      ZIK2_METADATA_INFO_TYPE);
+      ZIK_METADATA_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get track metadata");
     return;
   }
 
   if (zik2->priv->track_metadata)
-    zik2_metadata_info_unref (zik2->priv->track_metadata);
+    zik_metadata_info_unref (zik2->priv->track_metadata);
 
   zik2->priv->track_metadata = info;
 }
@@ -754,65 +754,65 @@ zik2_sync_track_metadata (Zik2 * zik2)
 static void
 zik2_sync_equalizer (Zik2 * zik2)
 {
-  Zik2EqualizerInfo *info;
+  ZikEqualizerInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_AUDIO_EQUALIZER_ENABLED_PATH,
-      ZIK2_EQUALIZER_INFO_TYPE);
+      ZIK_EQUALIZER_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get equalizer status");
     return;
   }
 
   zik2->priv->equalizer = info->enabled;
-  zik2_equalizer_info_unref (info);
+  zik_equalizer_info_unref (info);
 }
 
 static void
 zik2_sync_smart_audio_tune (Zik2 * zik2)
 {
-  Zik2SmartAudioTuneInfo *info;
+  ZikSmartAudioTuneInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_AUDIO_SMART_AUDIO_TUNE_PATH,
-      ZIK2_SMART_AUDIO_TUNE_INFO_TYPE);
+      ZIK_SMART_AUDIO_TUNE_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get smart audio tune status");
     return;
   }
 
   zik2->priv->smart_audio_tune = info->enabled;
-  zik2_smart_audio_tune_info_unref (info);
+  zik_smart_audio_tune_info_unref (info);
 }
 
 static void
 zik2_sync_auto_power_off (Zik2 * zik2)
 {
-  Zik2AutoPowerOffInfo *info;
+  ZikAutoPowerOffInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_SYSTEM_AUTO_POWER_OFF_PATH,
-      ZIK2_AUTO_POWER_OFF_INFO_TYPE);
+      ZIK_AUTO_POWER_OFF_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get auto-power-off status");
     return;
   }
 
   zik2->priv->auto_power_off_timeout = info->value;
-  zik2_auto_power_off_info_unref (info);
+  zik_auto_power_off_info_unref (info);
 }
 
 static void
 zik2_sync_tts (Zik2 * zik2)
 {
-  Zik2TTSInfo *info;
+  ZikTTSInfo *info;
 
   info = zik2_request_info (zik2, ZIK2_API_SOFTWARE_TTS_PATH,
-      ZIK2_TTS_INFO_TYPE);
+      ZIK_TTS_INFO_TYPE);
   if (info == NULL) {
     g_warning ("failed to get tts status");
     return;
   }
 
   zik2->priv->tts = info->enabled;
-  zik2_tts_info_unref (info);
+  zik_tts_info_unref (info);
 }
 
 static void
@@ -883,7 +883,7 @@ zik2_get_property (GObject * object, guint prop_id, GValue * value,
       g_value_set_boolean (value, zik2_is_auto_connection_active (zik2));
     case PROP_TRACK_METADATA:
       {
-        const Zik2MetadataInfo *info;
+        const ZikMetadataInfo *info;
         GVariant *var;
         const gchar *var_format =
             "{%s:<%b>, %s:<%s>, %s:<%s>, %s:<%s>, %s:<%s>}";
@@ -1337,7 +1337,7 @@ void
 zik2_get_track_metadata (Zik2 * zik2, gboolean * playing, const gchar ** title,
     const gchar ** artist, const gchar ** album, const gchar ** genre)
 {
-  const Zik2MetadataInfo *info;
+  const ZikMetadataInfo *info;
 
   zik2_sync_track_metadata (zik2);
   info = zik2->priv->track_metadata;

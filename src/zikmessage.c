@@ -19,7 +19,7 @@
 #include <string.h>
 
 #include "zikmessage.h"
-#include "zik2info.h"
+#include "zikinfo.h"
 
 #define ZIK_MESSAGE_HEADER_LEN 3
 
@@ -84,7 +84,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
           G_MARKUP_COLLECT_INVALID))
       return;
 
-    data->root = g_node_new (zik2_answer_info_new (path, err));
+    data->root = g_node_new (zik_answer_info_new (path, err));
     data->parent = data->root;
   } else if (g_strcmp0 (element_name, "audio") == 0) {
     if (g_slist_length (stack) < 2) {
@@ -95,7 +95,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
     }
 
     /* no attribute to collect, yet */
-    data->parent = g_node_append_data (data->parent, zik2_audio_info_new ());
+    data->parent = g_node_append_data (data->parent, zik_audio_info_new ());
   } else if (g_strcmp0 (element_name, "software") == 0) {
     gchar *sip6, *pic, *tts;
 
@@ -114,7 +114,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_software_info_new (sip6, pic, tts));
+        zik_software_info_new (sip6, pic, tts));
   } else if (g_strcmp0 (element_name, "system") == 0) {
     gchar *pi;
 
@@ -131,7 +131,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
           G_MARKUP_COLLECT_INVALID))
       return;
 
-    data->parent = g_node_append_data (data->parent, zik2_system_info_new (pi));
+    data->parent = g_node_append_data (data->parent, zik_system_info_new (pi));
   } else if (g_strcmp0 (element_name, "noise_control") == 0) {
     gboolean enabled;
     gchar *type;
@@ -157,7 +157,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       value = atoi (valstr);
 
     data->parent = g_node_append_data (data->parent,
-        zik2_noise_control_info_new (enabled, type, value));
+        zik_noise_control_info_new (enabled, type, value));
   } else if (g_strcmp0 (element_name, "source") == 0) {
     gchar *type;
 
@@ -174,7 +174,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_source_info_new (type));
+        zik_source_info_new (type));
   } else if (g_strcmp0 (element_name, "battery") == 0) {
     gchar *state;
     gchar *percent_str;
@@ -194,7 +194,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_battery_info_new (state, atoi (percent_str)));
+        zik_battery_info_new (state, atoi (percent_str)));
   } else if (g_strcmp0 (element_name, "volume") == 0) {
     gchar *value;
 
@@ -211,7 +211,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_volume_info_new (atoi (value)));
+        zik_volume_info_new (atoi (value)));
   } else if (g_strcmp0 (element_name, "head_detection") == 0) {
     gboolean enabled;
 
@@ -228,7 +228,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_head_detection_info_new (enabled));
+        zik_head_detection_info_new (enabled));
   } else if (g_strcmp0 (element_name, "color") == 0) {
     gchar *value;
 
@@ -245,7 +245,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_color_info_new (atoi (value)));
+        zik_color_info_new (atoi (value)));
   } else if (g_strcmp0 (element_name, "flight_mode") == 0) {
     gboolean value;
 
@@ -262,7 +262,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_flight_mode_info_new (value));
+        zik_flight_mode_info_new (value));
   } else if (g_strcmp0 (element_name, "bluetooth") == 0) {
     const gchar *value;
 
@@ -279,7 +279,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_bluetooth_info_new (value));
+        zik_bluetooth_info_new (value));
   } else if (g_strcmp0 (element_name, "sound_effect") == 0) {
     gboolean enabled;
     const gchar *room_size;
@@ -301,7 +301,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_sound_effect_info_new (enabled, room_size, atoi (angle)));
+        zik_sound_effect_info_new (enabled, room_size, atoi (angle)));
   } else if (g_strcmp0 (element_name, "auto_connection") == 0) {
     gboolean enabled;
 
@@ -319,7 +319,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_auto_connection_info_new (enabled));
+        zik_auto_connection_info_new (enabled));
   } else if (g_strcmp0 (element_name, "track") == 0) {
     if (g_slist_length (stack) < 2 || g_strcmp0 (stack->next->data, "audio")) {
       g_set_error_literal (error, G_MARKUP_ERROR,
@@ -328,7 +328,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
     }
 
-    data->parent = g_node_append_data (data->parent, zik2_track_info_new ());
+    data->parent = g_node_append_data (data->parent, zik_track_info_new ());
   } else if (g_strcmp0 (element_name, "metadata") == 0) {
     gboolean playing;
     const gchar *title;
@@ -354,7 +354,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_metadata_info_new (playing, title, artist, album, genre));
+        zik_metadata_info_new (playing, title, artist, album, genre));
   } else if (g_strcmp0 (element_name, "equalizer") == 0) {
     gboolean enabled;
 
@@ -372,7 +372,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_equalizer_info_new (enabled));
+        zik_equalizer_info_new (enabled));
   } else if (g_strcmp0 (element_name, "smart_audio_tune") == 0) {
     gboolean enabled;
 
@@ -390,7 +390,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_smart_audio_tune_info_new (enabled));
+        zik_smart_audio_tune_info_new (enabled));
   } else if (g_strcmp0 (element_name, "auto_power_off") == 0) {
     const gchar *value;
 
@@ -408,7 +408,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_auto_power_off_info_new (atoi (value)));
+        zik_auto_power_off_info_new (atoi (value)));
   } else if (g_strcmp0 (element_name, "tts") == 0) {
     gboolean enabled;
 
@@ -426,7 +426,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik2_tts_info_new (enabled));
+        zik_tts_info_new (enabled));
   }
 }
 
@@ -722,12 +722,12 @@ zik_request_reply_data_find_node_info (ZikRequestReplyData * reply,
 gboolean
 zik_request_reply_data_error (ZikRequestReplyData * reply)
 {
-  Zik2AnswerInfo *info;
+  ZikAnswerInfo *info;
 
   g_return_val_if_fail (reply != NULL, FALSE);
   g_return_val_if_fail (reply->root != NULL, FALSE);
   info = reply->root->data;
-  g_return_val_if_fail (info->itype == ZIK2_ANSWER_INFO_TYPE, FALSE);
+  g_return_val_if_fail (info->itype == ZIK_ANSWER_INFO_TYPE, FALSE);
 
   return info->error;
 }
