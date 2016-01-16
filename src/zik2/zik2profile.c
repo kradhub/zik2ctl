@@ -30,10 +30,9 @@
 #define parent_class zik2_profile_parent_class
 G_DEFINE_TYPE (Zik2Profile, zik2_profile, ZIK_PROFILE_TYPE);
 
-static GObject * zik2_profile_new_connection (ZikProfile * profile,
+static Zik *zik2_profile_new_connection (ZikProfile * profile,
     BluetoothDevice1 *device, gint fd);
-static gboolean zik2_profile_close_connection (ZikProfile * profile,
-    GObject * zik);
+static gboolean zik2_profile_close_connection (ZikProfile * profile, Zik * zik);
 
 static void
 zik2_profile_class_init (Zik2ProfileClass * klass)
@@ -53,7 +52,7 @@ zik2_profile_init (Zik2Profile * profile)
 {
 }
 
-static GObject *
+static Zik *
 zik2_profile_new_connection (ZikProfile * profile, BluetoothDevice1 *device,
     gint fd)
 {
@@ -76,15 +75,13 @@ zik2_profile_new_connection (ZikProfile * profile, BluetoothDevice1 *device,
   zik2 = zik2_new (bluetooth_device1_get_name (device),
       bluetooth_device1_get_address (device), conn);
 
-  return G_OBJECT (zik2);
+  return ZIK_CAST (zik2);
 }
 
 static gboolean
-zik2_profile_close_connection (ZikProfile * profile, GObject * zik)
+zik2_profile_close_connection (ZikProfile * profile, Zik * zik)
 {
-  Zik2 *zik2 = ZIK2 (zik);
-
-  if (!zik_connection_close_session (zik_get_connection (ZIK (zik2))))
+  if (!zik_connection_close_session (zik_get_connection (zik)))
     return FALSE;
 
   return TRUE;

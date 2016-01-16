@@ -22,6 +22,7 @@
 #include <gio/gio.h>
 
 #include "bluetooth-client.h"
+#include "zik.h"
 
 G_BEGIN_DECLS
 
@@ -59,10 +60,10 @@ struct _ZikProfileClass
   const gchar *profile_uuid;
   const gchar *object_path;
 
-  /* Return: a #GObject instance of a Zik object */
-  GObject * (*new_connection) (ZikProfile * profile, BluetoothDevice1 *device,
+  /* Return: a #Zik instance */
+  Zik * (*new_connection) (ZikProfile * profile, BluetoothDevice1 *device,
       gint fd);
-  gboolean (*close_connection) (ZikProfile * profile, GObject * object);
+  gboolean (*close_connection) (ZikProfile * profile, Zik * zik);
 };
 
 GType zik_profile_get_type (void);

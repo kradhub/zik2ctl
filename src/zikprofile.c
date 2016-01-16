@@ -22,6 +22,7 @@
 
 #include "bluetooth-client.h"
 #include "zikprofile.h"
+#include "zik.h"
 
 #define BLUEZ_PROFILE_MANAGER_PATH "/org/bluez"
 #define BLUEZ_PROFILE_MANAGER_IFACE "org.bluez.ProfileManager1"
@@ -84,7 +85,7 @@ zik_profile_class_init (ZikProfileClass * klass)
    */
   zik_profile_signals[SIGNAL_ZIK_CONNECTED] = g_signal_new ("zik-connected",
       G_TYPE_FROM_CLASS (klass), G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL,
-      G_TYPE_NONE, 1, G_TYPE_OBJECT);
+      G_TYPE_NONE, 1, ZIK_TYPE);
 
   /* ZikProfile::zik-disconnected:
    * @profile: the ZikProfile instance
@@ -93,7 +94,7 @@ zik_profile_class_init (ZikProfileClass * klass)
   zik_profile_signals[SIGNAL_ZIK_DISCONNECTED] =
       g_signal_new ("zik-disconnected", G_TYPE_FROM_CLASS (klass),
           G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 1,
-          G_TYPE_OBJECT);
+          ZIK_TYPE);
 }
 
 static void
@@ -142,7 +143,7 @@ zik_profile_new_connection (ZikProfile * profile, const gchar * device,
   ZikProfileClass *klass = ZIK_PROFILE_GET_CLASS (profile);
   GDBusInterface *iface = NULL;
   BluetoothDevice1 *bt_device;
-  GObject *zik;
+  Zik *zik;
 
   g_info ("zik_profile_new_connection called with device '%s' and fd %d",
       device, fd);
@@ -184,7 +185,7 @@ static void
 zik_profile_request_disconnection (ZikProfile * profile, const gchar * device)
 {
   ZikProfileClass *klass = ZIK_PROFILE_GET_CLASS (profile);
-  GObject *zik;
+  Zik *zik;
 
   g_info ("zik_profile_request_disconnection called with device '%s'\n",
      device);
