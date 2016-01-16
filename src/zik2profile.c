@@ -84,7 +84,7 @@ zik2_profile_close_connection (ZikProfile * profile, GObject * zik)
 {
   Zik2 *zik2 = ZIK2 (zik);
 
-  if (!zik_connection_close_session (zik2_get_connection (zik2)))
+  if (!zik_connection_close_session (zik_get_connection (ZIK (zik2))))
     return FALSE;
 
   return TRUE;

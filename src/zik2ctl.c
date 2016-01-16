@@ -26,7 +26,7 @@
 #include "zikmessage.h"
 #include "zikconnection.h"
 #include "zik2.h"
-#include "zik2api.h"
+#include "zikapi.h"
 
 #define BLUEZ_NAME "org.bluez"
 #define BLUEZ_OBJECT_MANAGER_PATH "/"
@@ -87,31 +87,31 @@ struct _Zik2Api
 };
 
 static const Zik2Api zik2_api[] = {
-  { "ZIK2_API_AUDIO_TRACK_METADATA_PATH", ZIK2_API_AUDIO_TRACK_METADATA_PATH },
-  { "ZIK2_API_AUDIO_NOISE_CONTROL_ENABLED_PATH", ZIK2_API_AUDIO_NOISE_CONTROL_ENABLED_PATH },
-  { "ZIK2_API_AUDIO_NOISE_CONTROL_PATH", ZIK2_API_AUDIO_NOISE_CONTROL_PATH },
-  { "ZIK2_API_AUDIO_NOISE_CONTROL_PHONE_MODE_PATH", ZIK2_API_AUDIO_NOISE_CONTROL_PHONE_MODE_PATH },
-  { "ZIK2_API_AUDIO_THUMB_EQUALIZER_VALUE_PATH", ZIK2_API_AUDIO_THUMB_EQUALIZER_VALUE_PATH },
-  { "ZIK2_API_AUDIO_EQUALIZER_ENABLED_PATH", ZIK2_API_AUDIO_EQUALIZER_ENABLED_PATH },
-  { "ZIK2_API_AUDIO_SMART_AUDIO_TUNE_PATH", ZIK2_API_AUDIO_SMART_AUDIO_TUNE_PATH },
-  { "ZIK2_API_AUDIO_PRESET_BYPASS_PATH", ZIK2_API_AUDIO_PRESET_BYPASS_PATH },
-  { "ZIK2_API_AUDIO_PRESET_CURRENT_PATH", ZIK2_API_AUDIO_PRESET_CURRENT_PATH },
-  { "ZIK2_API_AUDIO_SOUND_EFFECT_ENABLED_PATH", ZIK2_API_AUDIO_SOUND_EFFECT_ENABLED_PATH },
-  { "ZIK2_API_AUDIO_SOUND_EFFECT_PATH", ZIK2_API_AUDIO_SOUND_EFFECT_PATH },
-  { "ZIK2_API_AUDIO_NOISE_PATH", ZIK2_API_AUDIO_NOISE_PATH },
-  { "ZIK2_API_AUDIO_VOLUME_PATH", ZIK2_API_AUDIO_VOLUME_PATH },
-  { "ZIK2_API_AUDIO_SOURCE_PATH", ZIK2_API_AUDIO_SOURCE_PATH },
-  { "ZIK2_API_SOFTWARE_VERSION_PATH", ZIK2_API_SOFTWARE_VERSION_PATH },
-  { "ZIK2_API_BLUETOOTH_FRIENDLY_NAME_PATH", ZIK2_API_BLUETOOTH_FRIENDLY_NAME_PATH },
-  { "ZIK2_API_SYSTEM_BATTERY_PATH", ZIK2_API_SYSTEM_BATTERY_PATH },
-  { "ZIK2_API_SYSTEM_BATTERY_FORECAST_PATH", ZIK2_API_SYSTEM_BATTERY_FORECAST_PATH },
-  { "ZIK2_API_SYSTEM_AUTO_CONNECTION_ENABLED_PATH", ZIK2_API_SYSTEM_AUTO_CONNECTION_ENABLED_PATH },
-  { "ZIK2_API_SYSTEM_ANC_PHONE_MODE_ENABLED_PATH", ZIK2_API_SYSTEM_ANC_PHONE_MODE_ENABLED_PATH },
-  { "ZIK2_API_SYSTEM_DEVICE_TYPE_PATH", ZIK2_API_SYSTEM_DEVICE_TYPE_PATH },
-  { "ZIK2_API_SYSTEM_COLOR_PATH", ZIK2_API_SYSTEM_COLOR_PATH },
-  { "ZIK2_API_SYSTEM_PI_PATH", ZIK2_API_SYSTEM_PI_PATH },
-  { "ZIK2_API_SYSTEM_HEAD_DETECTION_ENABLED_PATH", ZIK2_API_SYSTEM_HEAD_DETECTION_ENABLED_PATH },
-  { "ZIK2_API_SYSTEM_FLIGHT_MODE_PATH", ZIK2_API_SYSTEM_FLIGHT_MODE_PATH },
+  { "ZIK_API_AUDIO_TRACK_METADATA_PATH", ZIK_API_AUDIO_TRACK_METADATA_PATH },
+  { "ZIK_API_AUDIO_NOISE_CONTROL_ENABLED_PATH", ZIK_API_AUDIO_NOISE_CONTROL_ENABLED_PATH },
+  { "ZIK_API_AUDIO_NOISE_CONTROL_PATH", ZIK_API_AUDIO_NOISE_CONTROL_PATH },
+  { "ZIK_API_AUDIO_NOISE_CONTROL_PHONE_MODE_PATH", ZIK_API_AUDIO_NOISE_CONTROL_PHONE_MODE_PATH },
+  { "ZIK_API_AUDIO_THUMB_EQUALIZER_VALUE_PATH", ZIK_API_AUDIO_THUMB_EQUALIZER_VALUE_PATH },
+  { "ZIK_API_AUDIO_EQUALIZER_ENABLED_PATH", ZIK_API_AUDIO_EQUALIZER_ENABLED_PATH },
+  { "ZIK_API_AUDIO_SMART_AUDIO_TUNE_PATH", ZIK_API_AUDIO_SMART_AUDIO_TUNE_PATH },
+  { "ZIK_API_AUDIO_PRESET_BYPASS_PATH", ZIK_API_AUDIO_PRESET_BYPASS_PATH },
+  { "ZIK_API_AUDIO_PRESET_CURRENT_PATH", ZIK_API_AUDIO_PRESET_CURRENT_PATH },
+  { "ZIK_API_AUDIO_SOUND_EFFECT_ENABLED_PATH", ZIK_API_AUDIO_SOUND_EFFECT_ENABLED_PATH },
+  { "ZIK_API_AUDIO_SOUND_EFFECT_PATH", ZIK_API_AUDIO_SOUND_EFFECT_PATH },
+  { "ZIK_API_AUDIO_NOISE_PATH", ZIK_API_AUDIO_NOISE_PATH },
+  { "ZIK_API_AUDIO_VOLUME_PATH", ZIK_API_AUDIO_VOLUME_PATH },
+  { "ZIK_API_AUDIO_SOURCE_PATH", ZIK_API_AUDIO_SOURCE_PATH },
+  { "ZIK_API_SOFTWARE_VERSION_PATH", ZIK_API_SOFTWARE_VERSION_PATH },
+  { "ZIK_API_BLUETOOTH_FRIENDLY_NAME_PATH", ZIK_API_BLUETOOTH_FRIENDLY_NAME_PATH },
+  { "ZIK_API_SYSTEM_BATTERY_PATH", ZIK_API_SYSTEM_BATTERY_PATH },
+  { "ZIK_API_SYSTEM_BATTERY_FORECAST_PATH", ZIK_API_SYSTEM_BATTERY_FORECAST_PATH },
+  { "ZIK_API_SYSTEM_AUTO_CONNECTION_ENABLED_PATH", ZIK_API_SYSTEM_AUTO_CONNECTION_ENABLED_PATH },
+  { "ZIK_API_SYSTEM_ANC_PHONE_MODE_ENABLED_PATH", ZIK_API_SYSTEM_ANC_PHONE_MODE_ENABLED_PATH },
+  { "ZIK_API_SYSTEM_DEVICE_TYPE_PATH", ZIK_API_SYSTEM_DEVICE_TYPE_PATH },
+  { "ZIK_API_SYSTEM_COLOR_PATH", ZIK_API_SYSTEM_COLOR_PATH },
+  { "ZIK_API_SYSTEM_PI_PATH", ZIK_API_SYSTEM_PI_PATH },
+  { "ZIK_API_SYSTEM_HEAD_DETECTION_ENABLED_PATH", ZIK_API_SYSTEM_HEAD_DETECTION_ENABLED_PATH },
+  { "ZIK_API_SYSTEM_FLIGHT_MODE_PATH", ZIK_API_SYSTEM_FLIGHT_MODE_PATH },
   { NULL, NULL },
 };
 
@@ -182,7 +182,7 @@ custom_request (Zik2 * zik2, const gchar * path, const gchar * method,
   gchar *xml;
 
   msg = zik_message_new_request (path, method, args);
-  zik_connection_send_message (zik2_get_connection (zik2), msg, &reply);
+  zik_connection_send_message (zik_get_connection (ZIK (zik2)), msg, &reply);
   zik_message_free (msg);
 
   g_print ("custom request '%s/%s?arg=%s' reply:\n", path, method, args);
@@ -198,14 +198,14 @@ custom_request (Zik2 * zik2, const gchar * path, const gchar * method,
 }
 
 static const gchar *
-nc_mode_str (Zik2NoiseControlMode mode)
+nc_mode_str (ZikNoiseControlMode mode)
 {
   switch (mode) {
-    case ZIK2_NOISE_CONTROL_MODE_OFF:
+    case ZIK_NOISE_CONTROL_MODE_OFF:
       return "off";
-    case ZIK2_NOISE_CONTROL_MODE_ANC:
+    case ZIK_NOISE_CONTROL_MODE_ANC:
       return "anc (noise cancelling)";
-    case ZIK2_NOISE_CONTROL_MODE_AOC:
+    case ZIK_NOISE_CONTROL_MODE_AOC:
         return "aoc (street mode)";
     default:
         break;
@@ -232,6 +232,7 @@ color_str (Zik2Color color)
 static void
 show_zik2 (Zik2 * zik2)
 {
+  Zik *zik = ZIK (zik2);
   gboolean metadata_playing;
   const gchar *metadata_title;
   const gchar *metadata_artist;
@@ -239,29 +240,29 @@ show_zik2 (Zik2 * zik2)
   const gchar *metadata_genre;
   guint auto_power_off_timeout;
 
-  zik2_get_track_metadata (zik2, &metadata_playing, &metadata_title,
+  zik_get_track_metadata (zik, &metadata_playing, &metadata_title,
       &metadata_artist, &metadata_album, &metadata_genre);
-  auto_power_off_timeout = zik2_get_auto_power_off_timeout (zik2);
+  auto_power_off_timeout = zik_get_auto_power_off_timeout (zik);
 
   g_print ("audio:\n");
   g_print ("  noise control          : %s\n",
-      zik2_is_noise_control_active (zik2) ? "on" : "off");
+      zik_is_noise_control_active (zik) ? "on" : "off");
   g_print ("  noise control mode     : %s\n",
-      nc_mode_str (zik2_get_noise_control_mode (zik2)));
+      nc_mode_str (zik_get_noise_control_mode (zik)));
   g_print ("  noise control strength : %u\n",
-      zik2_get_noise_control_strength (zik2));
+      zik_get_noise_control_strength (zik));
   g_print ("  sound effect           : %s\n",
-      zik2_is_sound_effect_active (zik2) ? "on" : "off");
+      zik_is_sound_effect_active (zik) ? "on" : "off");
   g_print ("  sound effect room      : %s\n",
-      zik2_sound_effect_room_name (zik2_get_sound_effect_room (zik2)));
+      zik_sound_effect_room_name (zik_get_sound_effect_room (zik)));
   g_print ("  sound effect angle     : %u\n",
-      zik2_get_sound_effect_angle (zik2));
+      zik_get_sound_effect_angle (zik));
   g_print ("  equalizer              : %s\n",
-      zik2_is_equalizer_active (zik2) ? "on" : "off");
+      zik_is_equalizer_active (zik) ? "on" : "off");
   g_print ("  smart audio tune       : %s\n",
-      zik2_is_smart_audio_tune_active (zik2) ? "on" : "off");
-  g_print ("  source                 : %s\n", zik2_get_source (zik2));
-  g_print ("  volume (raw)           : %u\n", zik2_get_volume (zik2));
+      zik_is_smart_audio_tune_active (zik) ? "on" : "off");
+  g_print ("  source                 : %s\n", zik_get_source (zik));
+  g_print ("  volume (raw)           : %u\n", zik_get_volume (zik));
 
   g_print ("\ntrack metadata\n");
   g_print ("  playing                : %s\n", metadata_playing ? "yes" : "no");
@@ -271,21 +272,21 @@ show_zik2 (Zik2 * zik2)
   g_print ("  genre                  : %s\n", metadata_genre);
 
   g_print ("\nsoftware:\n");
-  g_print ("  software version       : %s\n", zik2_get_software_version (zik2));
+  g_print ("  software version       : %s\n", zik_get_software_version (zik));
 
   g_print ("\nsystem:\n");
   g_print ("  battery state          : %s (remaining: %u%%)\n",
-      zik2_get_battery_state (zik2), zik2_get_battery_percentage (zik2));
+      zik_get_battery_state (zik), zik_get_battery_percentage (zik));
   g_print ("  color                  : %s\n",
       color_str (zik2_get_color (zik2)));
   g_print ("  flight mode            : %s\n",
-      zik2_is_flight_mode_active (zik2) ? "on" : "off");
+      zik_is_flight_mode_active (zik) ? "on" : "off");
   g_print ("  head detection         : %s\n",
-      zik2_is_head_detection_active (zik2) ? "on" : "off");
-  g_print ("  serial-number          : %s\n", zik2_get_serial (zik2));
-  g_print ("  friendlyname           : %s\n", zik2_get_friendlyname (zik2));
+      zik_is_head_detection_active (zik) ? "on" : "off");
+  g_print ("  serial-number          : %s\n", zik_get_serial (zik));
+  g_print ("  friendlyname           : %s\n", zik_get_friendlyname (zik));
   g_print ("  auto-connection        : %s\n",
-      zik2_is_auto_connection_active (zik2) ? "on" : "off");
+      zik_is_auto_connection_active (zik) ? "on" : "off");
 
   if (auto_power_off_timeout > 0)
     g_print ("  auto power off timeout : %u minutes\n", auto_power_off_timeout);
@@ -293,7 +294,7 @@ show_zik2 (Zik2 * zik2)
     g_print ("  auto power off timeout : off\n");
 
   g_print ("  text-to-speech         : %s\n",
-      zik2_is_tts_active (zik2) ? "on" : "off");
+      zik_is_tts_active (zik) ? "on" : "off");
 }
 
 static gboolean
@@ -320,21 +321,21 @@ set_boolean_property_from_string (Zik2 * zik2, const gchar * property,
 }
 
 static gboolean
-set_noise_control_mode (Zik2 * zik2)
+set_noise_control_mode (Zik * zik)
 {
-  Zik2NoiseControlMode req_mode;
+  ZikNoiseControlMode req_mode;
 
   if (g_strcmp0 (noise_control_mode, "off") == 0)
-    req_mode = ZIK2_NOISE_CONTROL_MODE_OFF;
+    req_mode = ZIK_NOISE_CONTROL_MODE_OFF;
   else if (g_strcmp0 (noise_control_mode, "anc") == 0)
-    req_mode = ZIK2_NOISE_CONTROL_MODE_ANC;
+    req_mode = ZIK_NOISE_CONTROL_MODE_ANC;
   else if (g_strcmp0 (noise_control_mode, "aoc") == 0)
-    req_mode = ZIK2_NOISE_CONTROL_MODE_AOC;
+    req_mode = ZIK_NOISE_CONTROL_MODE_AOC;
   else
     return FALSE;
 
   g_print ("Setting noise control mode to %s\n", noise_control_mode);
-  if (!zik2_set_noise_control_mode (zik2, req_mode)) {
+  if (!zik_set_noise_control_mode (zik, req_mode)) {
     g_printerr ("failed to set noise control mode to %s\n", noise_control_mode);
     return FALSE;
   }
@@ -343,12 +344,12 @@ set_noise_control_mode (Zik2 * zik2)
 }
 
 static gboolean
-set_noise_control_strength (Zik2 * zik2)
+set_noise_control_strength (Zik * zik)
 {
   guint req_value = noise_control_strength;
 
   g_print ("Setting noise control strength to %u\n", req_value);
-  if (!zik2_set_noise_control_strength (zik2, req_value)) {
+  if (!zik_set_noise_control_strength (zik, req_value)) {
     g_printerr ("failed to set noise control strength to %u\n", req_value);
     return FALSE;
   }
@@ -357,12 +358,12 @@ set_noise_control_strength (Zik2 * zik2)
 }
 
 static gboolean
-set_friendly_name (Zik2 * zik2)
+set_friendly_name (Zik * zik)
 {
   gchar *req_value = friendlyname;
 
   g_print ("Setting friendlyname to '%s'\n", req_value);
-  if (!zik2_set_friendlyname (zik2, req_value)) {
+  if (!zik_set_friendlyname (zik, req_value)) {
      g_printerr ("failed to set friendlyname to %s\n", req_value);
      return FALSE;
   }
@@ -371,16 +372,16 @@ set_friendly_name (Zik2 * zik2)
 }
 
 static gboolean
-set_sound_effect_room (Zik2 * zik2)
+set_sound_effect_room (Zik * zik)
 {
-  Zik2SoundEffectRoom req_mode;
+  ZikSoundEffectRoom req_mode;
 
-  req_mode = zik2_sound_effect_room_from_string (sound_effect_room);
-  if (req_mode == ZIK2_SOUND_EFFECT_ROOM_UNKNOWN)
+  req_mode = zik_sound_effect_room_from_string (sound_effect_room);
+  if (req_mode == ZIK_SOUND_EFFECT_ROOM_UNKNOWN)
     return FALSE;
 
   g_print ("Setting sound effect room to %s\n", sound_effect_room);
-  if (!zik2_set_sound_effect_room (zik2, req_mode)) {
+  if (!zik_set_sound_effect_room (zik, req_mode)) {
     g_printerr ("failed to set sound effect room to %s\n", sound_effect_room);
     return FALSE;
   }
@@ -389,12 +390,12 @@ set_sound_effect_room (Zik2 * zik2)
 }
 
 static gboolean
-set_sound_effect_angle (Zik2 * zik2)
+set_sound_effect_angle (Zik * zik)
 {
   guint req_value = sound_effect_angle;
 
   g_print ("Setting sound_effect_angle to %u\n", sound_effect_angle);
-  if (!zik2_set_sound_effect_angle (zik2, req_value)) {
+  if (!zik_set_sound_effect_angle (zik, req_value)) {
     g_printerr ("failed to set sound effect angle to %u\n", sound_effect_angle);
     return FALSE;
   }
@@ -421,10 +422,10 @@ on_zik2_connected (ZikProfile * bprofile, Zik2 * zik2, gpointer userdata)
   }
 
   if (noise_control_mode)
-    set_noise_control_mode (zik2);
+    set_noise_control_mode (ZIK (zik2));
 
   if (noise_control_strength)
-    set_noise_control_strength (zik2);
+    set_noise_control_strength (ZIK (zik2));
 
   if (head_detection_switch) {
     g_print ("Setting head detection to %s\n", head_detection_switch);
@@ -434,7 +435,7 @@ on_zik2_connected (ZikProfile * bprofile, Zik2 * zik2, gpointer userdata)
   }
 
   if (friendlyname)
-    set_friendly_name (zik2);
+    set_friendly_name (ZIK (zik2));
 
   if (sound_effect_switch) {
     g_print ("Setting sound effect to %s\n", sound_effect_switch);
@@ -444,10 +445,10 @@ on_zik2_connected (ZikProfile * bprofile, Zik2 * zik2, gpointer userdata)
   }
 
   if (sound_effect_room)
-    set_sound_effect_room (zik2);
+    set_sound_effect_room (ZIK (zik2));
 
   if (sound_effect_angle > 0)
-    set_sound_effect_angle (zik2);
+    set_sound_effect_angle (ZIK (zik2));
 
   if (auto_connection_switch) {
     g_print ("Setting auto-connection to %s\n", auto_connection_switch);
@@ -470,7 +471,7 @@ on_zik2_connected (ZikProfile * bprofile, Zik2 * zik2, gpointer userdata)
   }
 
   if (auto_power_off_timeout != -1)
-    zik2_set_auto_power_off_timeout (zik2, auto_power_off_timeout);
+    zik_set_auto_power_off_timeout (ZIK (zik2), auto_power_off_timeout);
 
   if (tts_switch) {
     g_print ("Setting text-to-speech to %s\n", tts_switch);

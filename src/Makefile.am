@@ -5,6 +5,7 @@ zik2ctl_SOURCES = zik2ctl.c \
 		  zikprofile.c \
 		  zik2profile.c \
 		  zikmessage.c \
+		  zik.c \
 		  zik2.c \
 		  zikconnection.c \
 		  zikinfo.c
