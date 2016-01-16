@@ -890,7 +890,7 @@ zik_set_property (GObject * object, guint prop_id, const GValue * value,
       priv->address = g_value_dup_string (value);
       break;
     case PROP_CONNECTION:
-      priv->conn = g_value_dup_boxed (value);
+      priv->conn = g_value_get_boxed (value);
       break;
     case PROP_NOISE_CONTROL:
       if (!zik_set_noise_control_active (zik, g_value_get_boolean (value)))
