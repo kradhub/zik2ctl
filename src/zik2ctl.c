@@ -174,7 +174,7 @@ lookup_device_by_addr (GSList * list, const gchar * addr)
 }
 
 static void
-custom_request (Zik2 * zik2, const gchar * path, const gchar * method,
+custom_request (Zik * zik, const gchar * path, const gchar * method,
     const gchar * args)
 {
   ZikMessage *msg;
@@ -182,7 +182,7 @@ custom_request (Zik2 * zik2, const gchar * path, const gchar * method,
   gchar *xml;
 
   msg = zik_message_new_request (path, method, args);
-  zik_connection_send_message (zik_get_connection (ZIK (zik2)), msg, &reply);
+  zik_connection_send_message (zik_get_connection (zik), msg, &reply);
   zik_message_free (msg);
 
   g_print ("custom request '%s/%s?arg=%s' reply:\n", path, method, args);
@@ -230,9 +230,8 @@ color_str (Zik2Color color)
 }
 
 static void
-show_zik2 (Zik2 * zik2)
+show_zik (Zik * zik)
 {
-  Zik *zik = ZIK (zik2);
   gboolean metadata_playing;
   const gchar *metadata_title;
   const gchar *metadata_artist;
@@ -277,8 +276,11 @@ show_zik2 (Zik2 * zik2)
   g_print ("\nsystem:\n");
   g_print ("  battery state          : %s (remaining: %u%%)\n",
       zik_get_battery_state (zik), zik_get_battery_percentage (zik));
-  g_print ("  color                  : %s\n",
-      color_str (zik2_get_color (zik2)));
+
+  if (IS_ZIK2 (zik))
+    g_print ("  color                  : %s\n",
+        color_str (zik2_get_color (ZIK2_CAST (zik))));
+
   g_print ("  flight mode            : %s\n",
       zik_is_flight_mode_active (zik) ? "on" : "off");
   g_print ("  head detection         : %s\n",
@@ -298,7 +300,7 @@ show_zik2 (Zik2 * zik2)
 }
 
 static gboolean
-set_boolean_property_from_string (Zik2 * zik2, const gchar * property,
+set_boolean_property_from_string (Zik * zik, const gchar * property,
     const gchar * value_str)
 {
   gboolean req_value;
@@ -311,8 +313,8 @@ set_boolean_property_from_string (Zik2 * zik2, const gchar * property,
   else
     return FALSE;
 
-  g_object_set (zik2, property, req_value, NULL);
-  g_object_get (zik2, property, &value, NULL);
+  g_object_set (zik, property, req_value, NULL);
+  g_object_get (zik, property, &value, NULL);
 
   if (value != req_value)
     return FALSE;
@@ -404,96 +406,96 @@ set_sound_effect_angle (Zik * zik)
 }
 
 static void
-on_zik2_connected (ZikProfile * bprofile, Zik2 * zik2, gpointer userdata)
+on_zik_connected (ZikProfile * bprofile, Zik * zik, gpointer userdata)
 {
   gchar *name;
   guint i;
 
-  g_object_get (zik2, "name", &name, NULL);
+  g_object_get (zik, "name", &name, NULL);
   g_print ("connected to %s\n", name);
   g_free (name);
 
   /* process set request from user */
   if (noise_control_switch) {
     g_print ("Setting noise control to %s\n", noise_control_switch);
-    if (!set_boolean_property_from_string (zik2, "noise-control",
+    if (!set_boolean_property_from_string (zik, "noise-control",
           noise_control_switch))
       g_printerr ("Failed to set noise control\n");
   }
 
   if (noise_control_mode)
-    set_noise_control_mode (ZIK (zik2));
+    set_noise_control_mode (zik);
 
   if (noise_control_strength)
-    set_noise_control_strength (ZIK (zik2));
+    set_noise_control_strength (zik);
 
   if (head_detection_switch) {
     g_print ("Setting head detection to %s\n", head_detection_switch);
-    if (!set_boolean_property_from_string (zik2, "head-detection",
+    if (!set_boolean_property_from_string (zik, "head-detection",
           head_detection_switch))
       g_printerr ("Failed to set head detection\n");
   }
 
   if (friendlyname)
-    set_friendly_name (ZIK (zik2));
+    set_friendly_name (zik);
 
   if (sound_effect_switch) {
     g_print ("Setting sound effect to %s\n", sound_effect_switch);
-    if (!set_boolean_property_from_string (zik2, "sound-effect",
+    if (!set_boolean_property_from_string (zik, "sound-effect",
           sound_effect_switch))
       g_printerr ("Failed to set sound effect\n");
   }
 
   if (sound_effect_room)
-    set_sound_effect_room (ZIK (zik2));
+    set_sound_effect_room (zik);
 
   if (sound_effect_angle > 0)
-    set_sound_effect_angle (ZIK (zik2));
+    set_sound_effect_angle (zik);
 
   if (auto_connection_switch) {
     g_print ("Setting auto-connection to %s\n", auto_connection_switch);
-    if (!set_boolean_property_from_string (zik2, "auto-connection",
+    if (!set_boolean_property_from_string (zik, "auto-connection",
           auto_connection_switch))
       g_printerr ("Failed to set auto-connection\n");
   }
 
   if (equalizer_switch) {
     g_print ("Setting equalizer to %s\n", equalizer_switch);
-    if (!set_boolean_property_from_string (zik2, "equalizer", equalizer_switch))
+    if (!set_boolean_property_from_string (zik, "equalizer", equalizer_switch))
       g_printerr ("Failed to set equalizer\n");
   }
 
   if (smart_audio_tune_switch) {
     g_print ("Setting smart audio tune to %s\n", smart_audio_tune_switch);
-    if (!set_boolean_property_from_string (zik2, "smart-audio-tune",
+    if (!set_boolean_property_from_string (zik, "smart-audio-tune",
           smart_audio_tune_switch))
       g_printerr ("Failed to set smart audio tune\n");
   }
 
   if (auto_power_off_timeout != -1)
-    zik_set_auto_power_off_timeout (ZIK (zik2), auto_power_off_timeout);
+    zik_set_auto_power_off_timeout (zik, auto_power_off_timeout);
 
   if (tts_switch) {
     g_print ("Setting text-to-speech to %s\n", tts_switch);
-    if (!set_boolean_property_from_string (zik2, "tts", tts_switch))
+    if (!set_boolean_property_from_string (zik, "tts", tts_switch))
       g_printerr ("Failed to set text-to-speech\n");
   }
 
   if (flight_mode_switch) {
     /* enabling flight mode reset connection so don't send request */
     g_print ("Setting flight mode to %s\n", flight_mode_switch);
-    if (!set_boolean_property_from_string (zik2, "flight-mode",
+    if (!set_boolean_property_from_string (zik, "flight-mode",
           flight_mode_switch))
       g_printerr ("Failed to set flight mode\n");
   } else if (dump_api_xml) {
     for (i = 0; zik2_api[i].name != NULL; i++) {
       g_print ("- %s\n", zik2_api[i].name);
-      custom_request (zik2, zik2_api[i].get_uri, "get", NULL);
+      custom_request (zik, zik2_api[i].get_uri, "get", NULL);
     }
   } else if (request_path) {
-    custom_request (zik2, request_path, request_method, request_args);
+    custom_request (zik, request_path, request_method, request_args);
   } else {
-    show_zik2 (zik2);
+    show_zik (zik);
   }
 }
 
@@ -519,7 +521,7 @@ setup_profile (GDBusObjectManager * manager)
   Zik2Profile *profile;
 
   profile = zik2_profile_new ();
-  g_signal_connect (profile, "zik-connected", G_CALLBACK (on_zik2_connected),
+  g_signal_connect (profile, "zik-connected", G_CALLBACK (on_zik_connected),
       manager);
 
   zik_profile_install (ZIK_PROFILE (profile), manager);
