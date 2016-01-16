@@ -3,12 +3,12 @@ bin_PROGRAMS = zik2ctl
 zik2ctl_SOURCES = zik2ctl.c \
 		  bluetooth-client.c \
 		  zikprofile.c \
-		  zik2profile.c \
 		  zikmessage.c \
 		  zik.c \
-		  zik2.c \
 		  zikconnection.c \
-		  zikinfo.c
+		  zikinfo.c \
+		  zik2/zik2.c \
+		  zik2/zik2profile.c
 
 WARNING_FLAGS := -Wall -Wextra -Wno-unused-parameter
 

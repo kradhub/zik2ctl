@@ -22,11 +22,11 @@
 #include <errno.h>
 
 #include "bluetooth-client.h"
-#include "zik2profile.h"
+#include "zikapi.h"
 #include "zikmessage.h"
 #include "zikconnection.h"
-#include "zik2.h"
-#include "zikapi.h"
+#include "zik2/zik2.h"
+#include "zik2/zik2profile.h"
 
 #define BLUEZ_NAME "org.bluez"
 #define BLUEZ_OBJECT_MANAGER_PATH "/"
