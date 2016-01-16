@@ -53,6 +53,7 @@ static gchar *equalizer_switch = NULL;
 static gchar *smart_audio_tune_switch = NULL;
 static gint auto_power_off_timeout = -1;
 static gchar *tts_switch = NULL;
+static gchar *auto_noise_control_switch = NULL;
 
 static gchar *request_path = NULL;
 static gchar *request_method = NULL;
@@ -64,6 +65,7 @@ static GOptionEntry entries[] = {
   { "set-noise-control", 0, 0, G_OPTION_ARG_STRING, &noise_control_switch, "Enable the noise control", "<on|off>" },
   { "set-noise-control-mode", 0, 0, G_OPTION_ARG_STRING, &noise_control_mode, "Select noise control mode (anc: noise cancelling, aoc: street mode)", "<off|anc|aoc>" },
   { "set-noise-control-strength", 0, 0, G_OPTION_ARG_INT, &noise_control_strength, "Select noise control strength", "<1|2>" },
+  { "set-auto-noise-control", 0, 0, G_OPTION_ARG_STRING, &auto_noise_control_switch, "Enable/Disable automatic noise control (Zik3 only)", "<on|off>" },
   { "set-head-detection", 0, 0, G_OPTION_ARG_STRING, &head_detection_switch, "Enable the head detection", "<on|off>" },
   { "set-flight-mode", 0, 0, G_OPTION_ARG_STRING, &flight_mode_switch, "Enable/Disable flight mode", "<on|off>" },
   { "set-friendlyname", 0, 0, G_OPTION_ARG_STRING, &friendlyname, "Set the name used to generate bluetooth name", NULL },
@@ -267,6 +269,11 @@ show_zik (Zik * zik)
       nc_mode_str (zik_get_noise_control_mode (zik)));
   g_print ("  noise control strength : %u\n",
       zik_get_noise_control_strength (zik));
+
+  if (IS_ZIK3 (zik))
+    g_print ("  noise control auto     : %s\n",
+        zik3_is_auto_noise_control_active (ZIK3_CAST (zik)) ? "on" : "off");
+
   g_print ("  sound effect           : %s\n",
       zik_is_sound_effect_active (zik) ? "on" : "off");
   g_print ("  sound effect room      : %s\n",
@@ -498,6 +505,13 @@ on_zik_connected (ZikProfile * bprofile, Zik * zik, gpointer userdata)
       g_printerr ("Failed to set text-to-speech\n");
   }
 
+  if (auto_noise_control_switch) {
+    g_print ("Setting auto noise control to %s\n", auto_noise_control_switch);
+    if (!set_boolean_property_from_string (zik, "auto-noise-control",
+          auto_noise_control_switch))
+      g_printerr ("Failed to set automatic noise control\n");
+  }
+
   if (flight_mode_switch) {
     /* enabling flight mode reset connection so don't send request */
     g_print ("Setting flight mode to %s\n", flight_mode_switch);
@@ -642,6 +656,10 @@ check_arguments (void)
 
   if (tts_switch)
     ret = check_switch_argument (tts_switch, "set-tts");
+
+  if (auto_noise_control_switch)
+    ret = check_switch_argument (auto_noise_control_switch,
+        "set-auto-noise-control");
 
   return ret;
 }
