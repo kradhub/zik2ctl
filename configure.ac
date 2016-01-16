@@ -1,7 +1,7 @@
 AC_PREREQ([2.69])
 AC_INIT([zik2ctl], [0.1])
 
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 
 AC_CONFIG_SRCDIR([src/zik2ctl.c])
 AC_CONFIG_HEADERS([config.h])
