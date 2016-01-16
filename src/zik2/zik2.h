@@ -26,8 +26,12 @@ G_BEGIN_DECLS
 
 #define ZIK2_TYPE (zik2_get_type ())
 #define ZIK2(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), ZIK2_TYPE, Zik2))
+#define ZIK2_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass), ZIK2_TYPE, Zik2Class))
 #define ZIK2_GET_CLASS(obj) \
   (G_TYPE_INSTANCE_GET_CLASS ((obj), ZIK2_TYPE, Zik2Class))
+#define IS_ZIK2(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), ZIK2_TYPE))
+#define IS_ZIK2_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), ZIK2_TYPE))
+#define ZIK2_CAST(obj) ((Zik2 *) (obj))
 
 typedef enum _Zik2Color Zik2Color;
 

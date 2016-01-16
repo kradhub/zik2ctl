@@ -26,8 +26,12 @@ G_BEGIN_DECLS
 
 #define ZIK3_TYPE (zik3_get_type ())
 #define ZIK3(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), ZIK3_TYPE, Zik3))
+#define ZIK3_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass), ZIK3_TYPE, Zik3Class))
 #define ZIK3_GET_CLASS(obj) \
   (G_TYPE_INSTANCE_GET_CLASS ((obj), ZIK3_TYPE, Zik3Class))
+#define IS_ZIK3(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), ZIK3_TYPE))
+#define IS_ZIK3_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), ZIK3_TYPE))
+#define ZIK3_CAST(obj) ((Zik3 *) (obj))
 
 typedef struct _Zik3Class Zik3Class;
 typedef struct _Zik3 Zik3;

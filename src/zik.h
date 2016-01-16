@@ -26,7 +26,11 @@ G_BEGIN_DECLS
 
 #define ZIK_TYPE (zik_get_type ())
 #define ZIK(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), ZIK_TYPE, Zik))
+#define ZIK_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass),ZIK_TYPE, ZikClass))
 #define ZIK_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), ZIK_TYPE, ZikClass))
+#define IS_ZIK(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), ZIK_TYPE))
+#define IS_ZIK_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), ZIK_TYPE))
+#define ZIK_CAST(obj) ((Zik *) (obj))
 
 typedef enum _ZikNoiseControlMode ZikNoiseControlMode;
 typedef enum _ZikSoundEffectRoom ZikSoundEffectRoom;
