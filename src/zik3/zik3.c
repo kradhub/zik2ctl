@@ -26,12 +26,14 @@
 enum
 {
   PROP_0,
-  PROP_AUTO_NOISE_CONTROL
+  PROP_AUTO_NOISE_CONTROL,
+  PROP_SOUND_EFFECT_MODE,
 };
 
 struct _Zik3Private
 {
   gboolean auto_noise_control;
+  gchar *sound_effect_mode;
 };
 
 #define parent_class zik3_parent_class
@@ -59,6 +61,11 @@ zik3_class_init (Zik3Class * klass)
       g_param_spec_boolean ("auto-noise-control", "Auto Noise Control",
           "Whether automatic noise control is active or not", FALSE,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_SOUND_EFFECT_MODE,
+      g_param_spec_string ("sound-effect-mode", "Sound Effect Mode",
+          "Current sound effect mode", NULL,
+          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -87,6 +94,25 @@ zik3_sync_auto_noise_control (Zik3 * zik3)
 }
 
 static void
+zik3_sync_sound_effect_mode (Zik3 * zik3)
+{
+  /* TODO: should be somewhere get along with base Zik Class as it is
+   * already sync with sound effect */
+  ZikSoundEffectInfo *info;
+
+  info = zik_request_info (ZIK_CAST (zik3), ZIK_API_AUDIO_SOUND_EFFECT_PATH,
+      ZIK_SOUND_EFFECT_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("failed to get sound effect mode");
+    return;
+  }
+
+  g_free (zik3->priv->sound_effect_mode);
+  zik3->priv->sound_effect_mode = g_strdup (info->mode);
+  zik_sound_effect_info_unref (info);
+}
+
+static void
 zik3_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec *pspec)
 {
@@ -95,6 +121,9 @@ zik3_get_property (GObject * object, guint prop_id, GValue * value,
   switch (prop_id) {
     case PROP_AUTO_NOISE_CONTROL:
       g_value_set_boolean (value, zik3_is_auto_noise_control_active (zik3));
+      break;
+    case PROP_SOUND_EFFECT_MODE:
+      g_value_set_string (value, zik3_get_sound_effect_mode (zik3));
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -126,6 +155,7 @@ zik3_sync_static_properties (Zik3 * zik3)
   zik_sync_static_properties (ZIK (zik3));
 
   zik3_sync_auto_noise_control (zik3);
+  zik3_sync_sound_effect_mode (zik3);
 }
 
 /* @conn: (transfer full) */
@@ -160,4 +190,10 @@ zik3_set_auto_noise_control_active (Zik3 * zik3, gboolean active)
     zik3->priv->auto_noise_control = active;
 
   return ret;
+}
+
+const gchar *
+zik3_get_sound_effect_mode (Zik3 * zik3)
+{
+  return zik3->priv->sound_effect_mode;
 }

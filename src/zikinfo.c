@@ -475,7 +475,7 @@ zik_bluetooth_info_unref (ZikBluetoothInfo * info)
 
 ZikSoundEffectInfo *
 zik_sound_effect_info_new (gboolean enabled, const gchar * room_size,
-    guint angle)
+    guint angle, const gchar * mode)
 {
   ZikSoundEffectInfo *info;
 
@@ -485,6 +485,7 @@ zik_sound_effect_info_new (gboolean enabled, const gchar * room_size,
   info->enabled = enabled;
   info->room_size = g_strdup (room_size);
   info->angle = angle;
+  info->mode = g_strdup (mode);
   return info;
 }
 
@@ -508,6 +509,7 @@ zik_sound_effect_info_unref (ZikSoundEffectInfo * info)
 
   if (g_atomic_int_dec_and_test (&info->ref_count)) {
     g_free (info->room_size);
+    g_free (info->mode);
     g_slice_free (ZikSoundEffectInfo, info);
   }
 }

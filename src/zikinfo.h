@@ -177,6 +177,7 @@ struct _ZikSoundEffectInfo
   gboolean enabled;
   gchar *room_size;
   guint angle;
+  gchar *mode;
 };
 
 struct _ZikAutoConnectionInfo
@@ -288,7 +289,7 @@ ZikBluetoothInfo *zik_bluetooth_info_ref (ZikBluetoothInfo * info);
 void zik_bluetooth_info_unref (ZikBluetoothInfo * info);
 
 ZikSoundEffectInfo *zik_sound_effect_info_new (gboolean enabled,
-    const gchar * room_size, guint angle);
+    const gchar * room_size, guint angle, const gchar * mode);
 ZikSoundEffectInfo *zik_sound_effect_info_ref (ZikSoundEffectInfo * info);
 void zik_sound_effect_info_unref (ZikSoundEffectInfo * info);
 

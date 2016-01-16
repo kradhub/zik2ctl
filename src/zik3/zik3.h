@@ -55,6 +55,8 @@ Zik3 *zik3_new (const gchar * name, const gchar * address, ZikConnection * conn)
 gboolean zik3_is_auto_noise_control_active (Zik3 * zik3);
 gboolean zik3_set_auto_noise_control_active (Zik3 * zik3, gboolean active);
 
+const gchar *zik3_get_sound_effect_mode (Zik3 * zik3);
+
 G_END_DECLS
 
 #endif

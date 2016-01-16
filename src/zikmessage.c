@@ -286,6 +286,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
     gboolean enabled;
     const gchar *room_size;
     const gchar *angle;
+    const gchar *mode;
 
     if (g_slist_length (stack) < 2 || g_strcmp0 (stack->next->data, "audio")) {
       g_set_error_literal (error, G_MARKUP_ERROR,
@@ -299,11 +300,12 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
           G_MARKUP_COLLECT_BOOLEAN, "enabled", &enabled,
           G_MARKUP_COLLECT_STRING, "room_size", &room_size,
           G_MARKUP_COLLECT_STRING, "angle", &angle,
+          G_MARKUP_COLLECT_STRING | G_MARKUP_COLLECT_OPTIONAL, "mode", &mode,
           G_MARKUP_COLLECT_INVALID))
       return;
 
     data->parent = g_node_append_data (data->parent,
-        zik_sound_effect_info_new (enabled, room_size, atoi (angle)));
+        zik_sound_effect_info_new (enabled, room_size, atoi (angle), mode));
   } else if (g_strcmp0 (element_name, "auto_connection") == 0) {
     gboolean enabled;
 
