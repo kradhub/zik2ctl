@@ -27,6 +27,9 @@
 #include "zikconnection.h"
 #include "zik2/zik2.h"
 #include "zik2/zik2profile.h"
+#include "zik3/zik3.h"
+#include "zik3/zik3profile.h"
+
 
 #define BLUEZ_NAME "org.bluez"
 #define BLUEZ_OBJECT_MANAGER_PATH "/"
@@ -56,8 +59,8 @@ static gchar *request_method = NULL;
 static gchar *request_args = NULL;
 
 static GOptionEntry entries[] = {
-  { "list", 'l', 0, G_OPTION_ARG_NONE, &list_devices, "List Zik2 devices paired", NULL },
-  { "device", 'd', 0, G_OPTION_ARG_STRING, &device_addr, "Specify Zik2 device address", "01:23:45:67:89:AB" },
+  { "list", 'l', 0, G_OPTION_ARG_NONE, &list_devices, "List Zik devices paired", NULL },
+  { "device", 'd', 0, G_OPTION_ARG_STRING, &device_addr, "Specify Zik device address", "01:23:45:67:89:AB" },
   { "set-noise-control", 0, 0, G_OPTION_ARG_STRING, &noise_control_switch, "Enable the noise control", "<on|off>" },
   { "set-noise-control-mode", 0, 0, G_OPTION_ARG_STRING, &noise_control_mode, "Select noise control mode (anc: noise cancelling, aoc: street mode)", "<off|anc|aoc>" },
   { "set-noise-control-strength", 0, 0, G_OPTION_ARG_INT, &noise_control_strength, "Select noise control strength", "<1|2>" },
@@ -132,8 +135,20 @@ device_has_uuid (BluetoothDevice1 * device, const gchar * req_uuid)
   return FALSE;
 }
 
+static gboolean
+is_zik2_device (BluetoothDevice1 * device)
+{
+  return device_has_uuid (device, ZIK2_PROFILE_UUID);
+}
+
+static gboolean
+is_zik3_device (BluetoothDevice1 * device)
+{
+  return device_has_uuid (device, ZIK3_PROFILE_UUID);
+}
+
 static GSList *
-zik2_device_list_new (GDBusObjectManager * manager)
+zik_device_list_new (GDBusObjectManager * manager)
 {
   GSList *list = NULL;
   GList *objects;
@@ -148,7 +163,8 @@ zik2_device_list_new (GDBusObjectManager * manager)
     if (interface == NULL)
       continue;
 
-    if (device_has_uuid (BLUETOOTH_DEVICE1 (interface), ZIK2_PROFILE_UUID))
+    if (is_zik2_device (BLUETOOTH_DEVICE1 (interface)) ||
+        is_zik3_device (BLUETOOTH_DEVICE1 (interface)))
       list = g_slist_prepend (list, interface);
   }
   g_list_free_full (objects, g_object_unref);
@@ -172,6 +188,7 @@ lookup_device_by_addr (GSList * list, const gchar * addr)
 
   return NULL;
 }
+
 
 static void
 custom_request (Zik * zik, const gchar * path, const gchar * method,
@@ -515,24 +532,19 @@ on_profile_connected (GObject * object, GAsyncResult * res, gpointer userdata)
 }
 
 
-static Zik2Profile *
-setup_profile (GDBusObjectManager * manager)
+static void
+setup_profile (GDBusObjectManager * manager, ZikProfile * profile)
 {
-  Zik2Profile *profile;
-
-  profile = zik2_profile_new ();
   g_signal_connect (profile, "zik-connected", G_CALLBACK (on_zik_connected),
       manager);
 
-  zik_profile_install (ZIK_PROFILE (profile), manager);
-
-  return profile;
+  zik_profile_install (profile, manager);
 }
 
 void
-cleanup_profile (Zik2Profile * profile, GDBusObjectManager * manager)
+cleanup_profile (ZikProfile * profile, GDBusObjectManager * manager)
 {
-  zik_profile_uninstall (ZIK_PROFILE (profile));
+  zik_profile_uninstall (profile);
   g_object_unref (profile);
 }
 
@@ -643,9 +655,9 @@ main (int argc, char *argv[])
   GMainLoop *loop = NULL;
   GDBusObjectManager *manager = NULL;
   gchar *name_owner;
-  GSList *zik2_devices = NULL;
+  GSList *zik_devices = NULL;
 
-  context = g_option_context_new ("- control Zik2 settings");
+  context = g_option_context_new ("- control Zik2/Zik3 settings");
   g_option_context_add_main_entries (context, entries, 0);
   if (!g_option_context_parse (context, &argc, &argv, &error)) {
     g_printerr ("failed to parse options: %s\n", error->message);
@@ -677,19 +689,19 @@ main (int argc, char *argv[])
   }
   g_free (name_owner);
 
-  zik2_devices = zik2_device_list_new (manager);
-  if (zik2_devices == NULL) {
-    g_print ("No Zik2 has been paired, please pair them first\n");
+  zik_devices = zik_device_list_new (manager);
+  if (zik_devices == NULL) {
+    g_print ("No Zik has been paired, please pair them first\n");
     goto out;
   }
 
   if (list_devices) {
-    /* display a list of paired Zik2 */
+    /* display a list of paired Zik */
     GSList *walk;
 
-    g_print ("List of Zik2 paired:\n");
+    g_print ("List of Zik paired:\n");
 
-    for (walk = zik2_devices; walk != NULL; walk = g_slist_next (walk)) {
+    for (walk = zik_devices; walk != NULL; walk = g_slist_next (walk)) {
       BluetoothDevice1 *device = BLUETOOTH_DEVICE1 (walk->data);
 
       g_print ("%s: %s\n", bluetooth_device1_get_name (device),
@@ -697,29 +709,41 @@ main (int argc, char *argv[])
     }
   } else {
     BluetoothDevice1 *device;
-    Zik2Profile *profile;
+    ZikProfile *profile;
+    const gchar *profile_uuid;
 
     if (device_addr) {
-      device = lookup_device_by_addr (zik2_devices, device_addr);
+      device = lookup_device_by_addr (zik_devices, device_addr);
       if (device == NULL) {
         g_printerr ("device '%s' not found\n", device_addr);
         goto out;
       }
-    } else if (g_slist_length (zik2_devices) == 1) {
-      device = BLUETOOTH_DEVICE1 (zik2_devices->data);
+    } else if (g_slist_length (zik_devices) == 1) {
+      device = BLUETOOTH_DEVICE1 (zik_devices->data);
     } else {
-      /* there is more than one zik2 and no device specified, error out */
+      /* there is more than one zik and no device specified, error out */
       g_print ("more than 1 device are paired, please select one\n");
       goto out;
     }
 
-    profile = setup_profile (manager);
+    /* make profile according to device type */
+    if (is_zik2_device (device)) {
+      profile = (ZikProfile *) zik2_profile_new ();
+      profile_uuid = ZIK2_PROFILE_UUID;
+    } else if (is_zik3_device (device)) {
+      profile = (ZikProfile *) zik3_profile_new ();
+      profile_uuid = ZIK3_PROFILE_UUID;
+    } else {
+      g_assert_not_reached ();
+    }
+
+    setup_profile (manager, profile);
 
     /* connect asynchronously to profile as it is handled by this application
      * so through the main loop */
-    g_print ("connecting to Zik2 device '%s'\n",
+    g_print ("connecting to Zik device '%s'\n",
         bluetooth_device1_get_name (device));
-    bluetooth_device1_call_connect_profile (device, ZIK2_PROFILE_UUID, NULL,
+    bluetooth_device1_call_connect_profile (device, profile_uuid, NULL,
         on_profile_connected, loop);
 
     g_main_loop_run (loop);
@@ -736,8 +760,8 @@ out:
   if (manager)
     g_object_unref (manager);
 
-  if (zik2_devices)
-    g_slist_free_full (zik2_devices, g_object_unref);
+  if (zik_devices)
+    g_slist_free_full (zik_devices, g_object_unref);
 
   g_option_context_free (context);
 
