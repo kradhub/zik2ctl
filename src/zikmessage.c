@@ -137,6 +137,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
     gchar *type;
     gchar *valstr;
     guint value = 0;
+    gboolean auto_nc;
 
     if (g_slist_length (stack) < 2 || g_strcmp0 (stack->next->data, "audio")) {
       g_set_error_literal (error, G_MARKUP_ERROR,
@@ -150,6 +151,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
           G_MARKUP_COLLECT_BOOLEAN | G_MARKUP_COLLECT_OPTIONAL, "enabled", &enabled,
           G_MARKUP_COLLECT_STRING | G_MARKUP_COLLECT_OPTIONAL, "type", &type,
           G_MARKUP_COLLECT_STRING | G_MARKUP_COLLECT_OPTIONAL, "value", &valstr,
+          G_MARKUP_COLLECT_BOOLEAN | G_MARKUP_COLLECT_OPTIONAL, "auto_nc", &auto_nc,
           G_MARKUP_COLLECT_INVALID))
       return;
 
@@ -157,7 +159,7 @@ zik2_xml_parser_start_element (GMarkupParseContext * context,
       value = atoi (valstr);
 
     data->parent = g_node_append_data (data->parent,
-        zik_noise_control_info_new (enabled, type, value));
+        zik_noise_control_info_new (enabled, type, value, auto_nc));
   } else if (g_strcmp0 (element_name, "source") == 0) {
     gchar *type;
 

@@ -189,7 +189,8 @@ zik_system_info_unref (ZikSystemInfo * info)
 }
 
 ZikNoiseControlInfo *
-zik_noise_control_info_new (gboolean enabled, gchar * type, guint value)
+zik_noise_control_info_new (gboolean enabled, gchar * type, guint value,
+    gboolean auto_nc)
 {
   ZikNoiseControlInfo *info;
 
@@ -199,6 +200,7 @@ zik_noise_control_info_new (gboolean enabled, gchar * type, guint value)
   info->enabled = enabled;
   info->type = g_strdup (type);
   info->value = value;
+  info->auto_nc = auto_nc;
   return info;
 }
 

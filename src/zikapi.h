@@ -23,6 +23,7 @@
 #define ZIK_API_AUDIO_NOISE_PATH "/api/audio/noise"
 #define ZIK_API_AUDIO_NOISE_CONTROL_PATH "/api/audio/noise_control"
 #define ZIK_API_AUDIO_NOISE_CONTROL_ENABLED_PATH "/api/audio/noise_control/enabled"
+#define ZIK_API_AUDIO_NOISE_CONTROL_AUTO_NC_PATH "/api/audio/noise_control/auto_nc"
 #define ZIK_API_AUDIO_NOISE_CONTROL_PHONE_MODE_PATH "/api/audio/noise_control/phone_mode"
 #define ZIK_API_AUDIO_PRESET_BYPASS_PATH "/api/audio/preset/bypass"
 #define ZIK_API_AUDIO_PRESET_CURRENT_PATH "/api/audio/preset/current"

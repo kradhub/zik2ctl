@@ -109,6 +109,7 @@ struct _ZikNoiseControlInfo
   gboolean enabled;
   gchar *type;
   guint value;
+  gboolean auto_nc;
 };
 
 struct _ZikSourceInfo
@@ -254,7 +255,7 @@ ZikSystemInfo *zik_system_info_ref (ZikSystemInfo * info);
 void zik_system_info_unref (ZikSystemInfo * info);
 
 ZikNoiseControlInfo * zik_noise_control_info_new (gboolean enabled,
-    gchar * type, guint value);
+    gchar * type, guint value, gboolean auto_nc);
 ZikNoiseControlInfo *zik_noise_control_info_ref (ZikNoiseControlInfo * info);
 void zik_noise_control_info_unref (ZikNoiseControlInfo * info);
 

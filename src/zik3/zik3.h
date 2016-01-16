@@ -52,6 +52,9 @@ struct _Zik3Class
 GType zik3_get_type (void);
 Zik3 *zik3_new (const gchar * name, const gchar * address, ZikConnection * conn);
 
+gboolean zik3_is_auto_noise_control_active (Zik3 * zik3);
+gboolean zik3_set_auto_noise_control_active (Zik3 * zik3, gboolean active);
+
 G_END_DECLS
 
 #endif

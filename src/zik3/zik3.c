@@ -26,19 +26,39 @@
 enum
 {
   PROP_0,
+  PROP_AUTO_NOISE_CONTROL
 };
 
 struct _Zik3Private
 {
+  gboolean auto_noise_control;
 };
 
 #define parent_class zik3_parent_class
 G_DEFINE_TYPE (Zik3, zik3, ZIK_TYPE);
 
+/* GObject methods */
+static void zik3_get_property (GObject * object, guint prop_id, GValue * value,
+    GParamSpec *pspec);
+static void zik3_set_property (GObject * object, guint prop_id,
+    const GValue * value, GParamSpec *pspec);
+
 static void
 zik3_class_init (Zik3Class * klass)
 {
+  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
   g_type_class_add_private (klass, sizeof (Zik3Private));
+
+  gobject_class->get_property = zik3_get_property;
+  gobject_class->set_property = zik3_set_property;
+
+  /* FIXME: auto noise control may be a noise control mode depending on
+   * what it is */
+  g_object_class_install_property (gobject_class, PROP_AUTO_NOISE_CONTROL,
+      g_param_spec_boolean ("auto-noise-control", "Auto Noise Control",
+          "Whether automatic noise control is active or not", FALSE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -47,12 +67,65 @@ zik3_init (Zik3 * zik3)
   zik3->priv = G_TYPE_INSTANCE_GET_PRIVATE (zik3, ZIK3_TYPE, Zik3Private);
 }
 
+static void
+zik3_sync_auto_noise_control (Zik3 * zik3)
+{
+  /* TODO: should be somewhere get along with base Zik Class noise control
+   * synchronization. ie noise control get is done twice with that */
+
+  ZikNoiseControlInfo *info;
+
+  info = zik_request_info (ZIK_CAST (zik3), ZIK_API_AUDIO_NOISE_CONTROL_PATH,
+      ZIK_NOISE_CONTROL_INFO_TYPE);
+  if (info == NULL) {
+    g_warning ("failed to get noise control info for auto noise control");
+    return;
+  }
+
+  zik3->priv->auto_noise_control = info->auto_nc;
+  zik_noise_control_info_unref (info);
+}
+
+static void
+zik3_get_property (GObject * object, guint prop_id, GValue * value,
+    GParamSpec *pspec)
+{
+  Zik3 *zik3 = ZIK3 (object);
+
+  switch (prop_id) {
+    case PROP_AUTO_NOISE_CONTROL:
+      g_value_set_boolean (value, zik3_is_auto_noise_control_active (zik3));
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+  }
+}
+
+static void
+zik3_set_property (GObject * object, guint prop_id, const GValue * value,
+    GParamSpec *pspec)
+{
+  Zik3 *zik3 = ZIK3 (object);
+
+  switch (prop_id) {
+    case PROP_AUTO_NOISE_CONTROL:
+      zik3_set_auto_noise_control_active (zik3, g_value_get_boolean (value));
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+  }
+}
+
 /* Static properties are the one which not change at all or only change
  * with user action */
 static void
 zik3_sync_static_properties (Zik3 * zik3)
 {
   zik_sync_static_properties (ZIK (zik3));
+
+  zik3_sync_auto_noise_control (zik3);
 }
 
 /* @conn: (transfer full) */
@@ -67,4 +140,24 @@ zik3_new (const gchar * name, const gchar * address, ZikConnection * conn)
   zik3_sync_static_properties (zik3);
 
   return zik3;
+}
+
+gboolean
+zik3_is_auto_noise_control_active (Zik3 * zik3)
+{
+  return zik3->priv->auto_noise_control;
+}
+
+gboolean
+zik3_set_auto_noise_control_active (Zik3 * zik3, gboolean active)
+{
+  gboolean ret;
+
+  ret = zik_do_request (ZIK_CAST (zik3),
+      ZIK_API_AUDIO_NOISE_CONTROL_AUTO_NC_PATH, "set",
+      active ? "true" : "false", NULL);
+  if (ret)
+    zik3->priv->auto_noise_control = active;
+
+  return ret;
 }
