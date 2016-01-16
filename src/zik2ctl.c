@@ -280,6 +280,11 @@ show_zik (Zik * zik)
       zik_sound_effect_room_name (zik_get_sound_effect_room (zik)));
   g_print ("  sound effect angle     : %u\n",
       zik_get_sound_effect_angle (zik));
+
+  if (IS_ZIK3 (zik))
+    g_print ("  sound effect mode      : %s\n",
+        zik3_get_sound_effect_mode (ZIK3_CAST (zik)));
+
   g_print ("  equalizer              : %s\n",
       zik_is_equalizer_active (zik) ? "on" : "off");
   g_print ("  smart audio tune       : %s\n",
